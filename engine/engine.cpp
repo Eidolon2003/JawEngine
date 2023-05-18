@@ -1,5 +1,5 @@
 #include "engine.h"
 
-void jaw::engine::hello() {
+void jaw::Engine::hello() {
 	std::cout << "Hello from my library\n";
 }

@@ -3,7 +3,7 @@
 int main() {
 	std::cout << "Hello CMake!\n";
 
-	jaw::engine engine;
+	jaw::Engine engine;
 	engine.hello();
 
 	return 0;

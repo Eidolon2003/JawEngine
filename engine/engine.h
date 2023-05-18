@@ -2,7 +2,7 @@
 #include <iostream>
 
 namespace jaw {
-	class engine {
+	class Engine {
 	public:
 		void hello();
 	};
