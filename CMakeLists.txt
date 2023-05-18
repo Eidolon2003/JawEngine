@@ -13,3 +13,4 @@ project ("JawEngine")
 
 # Include sub-projects.
 add_subdirectory ("TestApp")
+add_subdirectory ("engine")

@@ -1,12 +1,10 @@
-﻿// TestApp.cpp : Defines the entry point for the application.
-//
+﻿#include "TestApp.h"
 
-#include "TestApp.h"
+int main() {
+	std::cout << "Hello CMake!\n";
 
-using namespace std;
+	jaw::engine engine;
+	engine.hello();
 
-int main()
-{
-	cout << "Hello CMake." << endl;
 	return 0;
 }
