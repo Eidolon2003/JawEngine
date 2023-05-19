@@ -1,10 +1,12 @@
 ﻿#include "TestApp.h"
 
 int main() {
-	std::cout << "Hello CMake!\n";
-
 	jaw::Engine engine;
-	engine.hello();
-
+	engine.OpenWindow(new MyApp);
+	for (;;) std::this_thread::sleep_for(std::chrono::seconds(1));
 	return 0;
+}
+
+void MyApp::Loop() {
+	std::cout << "Hello\n";
 }

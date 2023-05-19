@@ -1,4 +1,9 @@
 ﻿#pragma once
 #include <iostream>
 
-#include "../engine/engine.h"
+#include "../engine/JawEngine.h"
+
+class MyApp : public jaw::Application {
+public:
+	void Loop() override;
+};
