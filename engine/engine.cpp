@@ -8,6 +8,7 @@ void jaw::StartEngine(jaw::AppInterface* pApp, const jaw::AppProperties& appProp
 		auto iter = engine.pWindows.begin();
 		while (iter != engine.pWindows.end()) {
 			if (iter->second->finished.load()) {
+				delete iter->second;
 				iter = engine.pWindows.erase(iter);
 			}
 			else 
@@ -30,14 +31,14 @@ jaw::Engine::Engine(const EngineProperties& props) {
 
 }
 
-void jaw::Engine::OpenWindow(AppInterface* pApp, const AppProperties& pProps) {
-	pWindows[pApp] = new Window(pApp, this);
+void jaw::Engine::OpenWindow(AppInterface* pApp, const AppProperties& props) {
+	pWindows[pApp] = new Window(pApp, props, this);
 }
 
 void jaw::Engine::CloseWindow(AppInterface* pApp) {
 
 #if defined WINDOWS
-	PostMessage(pWindows[pApp]->hWnd, WM_CLOSE, NULL, NULL);
+	PostMessage(pWindows[pApp]->getHWND(), WM_CLOSE, NULL, NULL);
 #endif
 
 }

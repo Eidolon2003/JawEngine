@@ -3,7 +3,6 @@
 #include "JawEngine.h"
 #include "window.h"
 
-#include <iostream>
 #include <atomic>
 #include <thread>
 #include <unordered_map>

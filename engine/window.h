@@ -4,6 +4,8 @@
 
 #include <atomic>
 #include <thread>
+#include <chrono>
+#include <ratio>
 
 #if defined WINDOWS
 #include <Windows.h>
@@ -13,7 +15,7 @@ namespace jaw {
 	
 	class Window {
 	public:
-		Window(AppInterface* pApp, EngineInterface* pEngine);
+		Window(AppInterface* pApp, const AppProperties&, EngineInterface* pEngine);
 		~Window();
 
 		GraphicsInterface* pGraphics;
@@ -26,10 +28,17 @@ namespace jaw {
 
 	private:
 		void ThreadFunk();
+		bool FrameLimiter();
+
+		double framerate;
+		std::chrono::high_resolution_clock::time_point start, lastFrame;
 
 
 #if defined WINDOWS
 	public:
+		HWND getHWND() { return hWnd; }
+
+	private:
 		WNDCLASSEX wc;
 		HWND hWnd;
 

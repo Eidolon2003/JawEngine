@@ -12,8 +12,11 @@ public:
 	void Loop() override {
 		std::cout << x++ << '\n';
 
-		if (x == 40) pEngine->OpenWindow(new MyApp, {});
-		if (x == 50) pEngine->CloseWindow(this);
+		jaw::AppProperties properties;
+		properties.framerate = 100;
+
+		if (x == 5) pEngine->OpenWindow(new MyApp, properties);
+		if (x == 10) pEngine->CloseWindow(this);
 	}
 };
 
@@ -22,7 +25,9 @@ int main() {
 	ep.showCMD = true;
 
 	jaw::AppProperties ap;
+	ap.framerate = 100;
 
 	jaw::StartEngine(new MyApp, ap, ep);
+
 	return 0;
 }

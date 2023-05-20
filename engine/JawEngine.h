@@ -6,6 +6,8 @@
 #define LINUX
 #endif
 
+#include <cstdint>
+
 namespace jaw {
 
 	struct EngineProperties {
@@ -13,7 +15,7 @@ namespace jaw {
 	};
 
 	struct AppProperties {
-
+		double framerate;
 	};
 
 	class GraphicsInterface {
