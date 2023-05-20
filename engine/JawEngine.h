@@ -6,10 +6,15 @@
 #define LINUX
 #endif
 
-#include <thread>
-#include <unordered_map>
-
 namespace jaw {
+
+	struct EngineProperties {
+		bool showCMD;
+	};
+
+	struct AppProperties {
+
+	};
 
 	class GraphicsInterface {
 
@@ -23,23 +28,23 @@ namespace jaw {
 
 	};
 
-	class Application {
+	class AppInterface;
+	class EngineInterface {
 	public:
-		GraphicsInterface* pGraphics;
-		SoundInterface* pSound;
-		InputInterface* pInput;
+		virtual void OpenWindow(AppInterface*, const AppProperties&) = 0;
+		virtual void CloseWindow(AppInterface*) = 0;
+	};
+
+	class AppInterface {
+	public:
+		GraphicsInterface* pGraphics = nullptr;
+		SoundInterface* pSound = nullptr;
+		InputInterface* pInput = nullptr;
+		EngineInterface* pEngine = nullptr;
 
 		virtual void Loop() = 0;
 	};
 
-	class Engine {
-	public:
-		Engine();
-		void OpenWindow(Application*);
-		void CloseWindow(Application*);
-
-	private:
-		std::unordered_map<Application*, std::thread*> pWindowThreads;
-	};
+	void StartEngine(AppInterface*, const AppProperties&, const EngineProperties&);
 
 };

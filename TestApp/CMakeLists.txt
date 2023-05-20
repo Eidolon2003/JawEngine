@@ -1,4 +1,4 @@
-﻿add_executable (TestApp "TestApp.cpp" "TestApp.h")
+﻿add_executable (TestApp "TestApp.cpp" )
 target_link_libraries(TestApp engine)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

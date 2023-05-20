@@ -1,33 +1,43 @@
 #include "engine.h"
 
-void WindowThreadFunk(jaw::Application* pApp) {
-	Window window(pApp);
+void jaw::StartEngine(jaw::AppInterface* pApp, const jaw::AppProperties& appProps, const jaw::EngineProperties& engProps) {
+	jaw::Engine engine(engProps);
+	engine.OpenWindow(pApp, appProps);
 
-	bool running = true;
-	while (running) {
-		MSG msg;
-		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-			if (msg.message == WM_QUIT) running = false;
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+	while (!engine.pWindows.empty()) {
+		auto iter = engine.pWindows.begin();
+		while (iter != engine.pWindows.end()) {
+			if (iter->second->finished.load()) {
+				iter = engine.pWindows.erase(iter);
+			}
+			else 
+				iter++;
 		}
 
-		window.pApp->Loop();
-
-		Sleep(100);
+		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 }
 
-jaw::Engine::Engine() {
+jaw::Engine::Engine(const EngineProperties& props) {
+
+#if defined WINDOWS
+	HWND console = GetConsoleWindow();
+	if (props.showCMD)
+		ShowWindow(console, SW_SHOW);
+	else
+		ShowWindow(console, SW_HIDE);
+#endif
 
 }
 
-void jaw::Engine::OpenWindow(Application* pApp) {
-	auto pThread = new std::thread(WindowThreadFunk, pApp);
-	pWindowThreads[pApp] = pThread;
-	pThread->detach();
+void jaw::Engine::OpenWindow(AppInterface* pApp, const AppProperties& pProps) {
+	pWindows[pApp] = new Window(pApp, this);
 }
 
-void jaw::Engine::CloseWindow(Application* pApp) {
+void jaw::Engine::CloseWindow(AppInterface* pApp) {
+
+#if defined WINDOWS
+	PostMessage(pWindows[pApp]->hWnd, WM_CLOSE, NULL, NULL);
+#endif
 
 }

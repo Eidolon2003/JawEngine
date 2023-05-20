@@ -1,24 +1,31 @@
 #include "window.h"
 
-#if defined WINDOWS
+jaw::Window::Window(jaw::AppInterface* pApp, jaw::EngineInterface* pEngine) {
+	finished.store(false);
 
-LRESULT __stdcall Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	switch (uMsg) {
-	case WM_CLOSE:
-		PostQuitMessage(NULL);
-		return DefWindowProc(hWnd, uMsg, wParam, lParam);
-
-	default:
-		return DefWindowProc(hWnd, uMsg, wParam, lParam);
-	}
-}
-
-Window::Window(jaw::Application* pApp) {
 	this->pApp = pApp;
+	this->pEngine = pEngine;
 	this->pGraphics = nullptr;
 	this->pSound = nullptr;
 	this->pInput = nullptr;
 
+	pApp->pEngine = pEngine;
+	pApp->pGraphics = pGraphics;
+	pApp->pSound = pSound;
+	pApp->pInput = pInput;
+
+#if defined WINDOWS
+	hWnd = NULL;
+	wc = WNDCLASSEX();
+#endif
+
+	std::thread(&Window::ThreadFunk, this).detach();
+}
+
+
+#if defined WINDOWS
+
+void jaw::Window::ThreadFunk() {
 	wc.cbSize = sizeof(wc);
 	wc.style = CS_DBLCLKS;
 	wc.lpfnWndProc = WinProc;
@@ -46,10 +53,38 @@ Window::Window(jaw::Application* pApp) {
 		NULL										//Additional application data
 	);
 	ShowWindow(hWnd, SW_SHOW);
+
+	bool running = true;
+	while (running) {
+		MSG msg;
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+			if (msg.message == WM_QUIT) running = false;
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+
+		pApp->Loop();
+
+		Sleep(100);
+	}
+
+	finished.store(true);
 }
 
-Window::~Window() {
-	delete pApp;
+LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	switch (uMsg) {
+	case WM_CLOSE:
+		PostQuitMessage(NULL);
+		return DefWindowProc(hWnd, uMsg, wParam, lParam);
+
+	default:
+		return DefWindowProc(hWnd, uMsg, wParam, lParam);
+	}
 }
 
 #endif
+
+
+jaw::Window::~Window() {
+	delete pApp;
+}

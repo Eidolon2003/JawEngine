@@ -1,12 +1,28 @@
-﻿#include "TestApp.h"
+﻿#include <iostream>
+#include "../engine/JawEngine.h"
+
+class MyApp : public jaw::AppInterface {
+public:
+	unsigned x;
+
+	MyApp() {
+		x = 0;
+	}
+
+	void Loop() override {
+		std::cout << x++ << '\n';
+
+		if (x == 40) pEngine->OpenWindow(new MyApp, {});
+		if (x == 50) pEngine->CloseWindow(this);
+	}
+};
 
 int main() {
-	jaw::Engine engine;
-	engine.OpenWindow(new MyApp);
-	for (;;) std::this_thread::sleep_for(std::chrono::seconds(1));
-	return 0;
-}
+	jaw::EngineProperties ep;
+	ep.showCMD = true;
 
-void MyApp::Loop() {
-	std::cout << "Hello\n";
+	jaw::AppProperties ap;
+
+	jaw::StartEngine(new MyApp, ap, ep);
+	return 0;
 }
