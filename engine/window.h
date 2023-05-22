@@ -4,8 +4,6 @@
 
 #include <atomic>
 #include <thread>
-#include <chrono>
-#include <ratio>
 
 #if defined WINDOWS
 #include <Windows.h>
@@ -13,10 +11,22 @@
 
 namespace jaw {
 	
-	class Window {
+	class Window : public WindowInterface {
 	public:
 		Window(AppInterface* pApp, const AppProperties&, EngineInterface* pEngine);
 		~Window();
+
+		bool isClosed();
+
+		std::chrono::duration<double, std::milli> getFrametime() override;
+		std::chrono::duration<uint64_t, std::milli> getLifetime() override;
+
+	private:
+		void ThreadFunk();
+		bool FrameLimiter();
+
+		double framerate;
+		std::chrono::high_resolution_clock::time_point start, thisFrame, lastFrame;
 
 		GraphicsInterface* pGraphics;
 		SoundInterface* pSound;
@@ -25,13 +35,6 @@ namespace jaw {
 		AppInterface* pApp;
 
 		std::atomic<bool> finished;
-
-	private:
-		void ThreadFunk();
-		bool FrameLimiter();
-
-		double framerate;
-		std::chrono::high_resolution_clock::time_point start, lastFrame;
 
 
 #if defined WINDOWS

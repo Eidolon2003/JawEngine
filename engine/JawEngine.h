@@ -7,6 +7,7 @@
 #endif
 
 #include <cstdint>
+#include <chrono>
 
 namespace jaw {
 
@@ -37,11 +38,18 @@ namespace jaw {
 		virtual void CloseWindow(AppInterface*) = 0;
 	};
 
+	class WindowInterface {
+	public:
+		virtual std::chrono::duration<double, std::milli> getFrametime() = 0;
+		virtual std::chrono::duration<uint64_t, std::milli> getLifetime() = 0;
+	};
+
 	class AppInterface {
 	public:
 		GraphicsInterface* pGraphics = nullptr;
 		SoundInterface* pSound = nullptr;
 		InputInterface* pInput = nullptr;
+		WindowInterface* pWindow = nullptr;
 		EngineInterface* pEngine = nullptr;
 
 		virtual void Loop() = 0;

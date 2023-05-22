@@ -10,13 +10,7 @@ public:
 	}
 
 	void Loop() override {
-		std::cout << x++ << '\n';
-
-		jaw::AppProperties properties;
-		properties.framerate = 100;
-
-		if (x == 5) pEngine->OpenWindow(new MyApp, properties);
-		if (x == 10) pEngine->CloseWindow(this);
+		std::cout << pWindow->getLifetime().count() << '\n';
 	}
 };
 
@@ -25,7 +19,7 @@ int main() {
 	ep.showCMD = true;
 
 	jaw::AppProperties ap;
-	ap.framerate = 100;
+	ap.framerate = 10;
 
 	jaw::StartEngine(new MyApp, ap, ep);
 

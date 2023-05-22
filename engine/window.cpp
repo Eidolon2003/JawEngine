@@ -3,7 +3,7 @@
 jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, jaw::EngineInterface* pEngine) {
 	finished.store(false);
 
-	start = lastFrame = std::chrono::high_resolution_clock::now();
+	start = thisFrame = lastFrame = std::chrono::high_resolution_clock::now();
 
 	framerate = props.framerate;
 
@@ -13,6 +13,7 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 	this->pSound = nullptr;
 	this->pInput = nullptr;
 
+	pApp->pWindow = this;
 	pApp->pEngine = pEngine;
 	pApp->pGraphics = pGraphics;
 	pApp->pSound = pSound;
@@ -26,6 +27,9 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 	std::thread(&Window::ThreadFunk, this).detach();
 }
 
+jaw::Window::~Window() {
+	delete pApp;
+}
 
 #if defined WINDOWS
 
@@ -91,21 +95,32 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
 #endif
 
+bool jaw::Window::isClosed() {
+	return finished.load();
+}
+
 bool jaw::Window::FrameLimiter() {
 	using namespace std::chrono;
 
 	auto now = high_resolution_clock::now();
-	duration<uint64_t, std::nano> frametime = now - lastFrame;
+	duration<uint64_t, std::nano> frametime = now - thisFrame;
 	duration<uint64_t, std::nano> target = duration<uint64_t, std::nano> ((uint64_t)(1000000000 / framerate));
 
 	if (frametime + milliseconds(1) < target)
-		std::this_thread::sleep_until(lastFrame + target - milliseconds(1));
+		std::this_thread::sleep_until(thisFrame + target - milliseconds(1));
 
 	if (frametime < target) return false;
-	lastFrame = now;
+
+	lastFrame = thisFrame;
+	thisFrame = now;
 	return true;
 }
 
-jaw::Window::~Window() {
-	delete pApp;
+std::chrono::duration<double, std::milli> jaw::Window::getFrametime() {
+	return thisFrame - lastFrame;
+}
+
+std::chrono::duration <uint64_t, std::milli> jaw::Window::getLifetime() {
+	using namespace std::chrono;
+	return duration_cast<duration<uint64_t, std::milli>>(thisFrame - start);
 }

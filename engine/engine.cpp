@@ -7,7 +7,7 @@ void jaw::StartEngine(jaw::AppInterface* pApp, const jaw::AppProperties& appProp
 	while (!engine.pWindows.empty()) {
 		auto iter = engine.pWindows.begin();
 		while (iter != engine.pWindows.end()) {
-			if (iter->second->finished.load()) {
+			if (iter->second->isClosed()) {
 				delete iter->second;
 				iter = engine.pWindows.erase(iter);
 			}
