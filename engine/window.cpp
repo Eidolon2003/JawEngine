@@ -104,7 +104,7 @@ bool jaw::Window::FrameLimiter() {
 
 	auto now = high_resolution_clock::now();
 	duration<uint64_t, std::nano> frametime = now - thisFrame;
-	duration<uint64_t, std::nano> target = duration<uint64_t, std::nano> ((uint64_t)(1000000000 / framerate));
+	duration<uint64_t, std::nano> target = duration<uint64_t, std::nano>((uint64_t)(1000000000 / framerate));
 
 	if (frametime + milliseconds(1) < target)
 		std::this_thread::sleep_until(thisFrame + target - milliseconds(1));
