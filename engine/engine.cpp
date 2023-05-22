@@ -20,15 +20,7 @@ void jaw::StartEngine(jaw::AppInterface* pApp, const jaw::AppProperties& appProp
 }
 
 jaw::Engine::Engine(const EngineProperties& props) {
-
-#if defined WINDOWS
-	HWND console = GetConsoleWindow();
-	if (props.showCMD)
-		ShowWindow(console, SW_SHOW);
-	else
-		ShowWindow(console, SW_HIDE);
-#endif
-
+	ShowCMD(props.showCMD);
 }
 
 void jaw::Engine::OpenWindow(AppInterface* pApp, const AppProperties& props) {
@@ -36,9 +28,17 @@ void jaw::Engine::OpenWindow(AppInterface* pApp, const AppProperties& props) {
 }
 
 void jaw::Engine::CloseWindow(AppInterface* pApp) {
-
 #if defined WINDOWS
 	PostMessage(pWindows[pApp]->getHWND(), WM_CLOSE, NULL, NULL);
 #endif
+}
 
+void jaw::Engine::ShowCMD(bool show) {
+#if defined WINDOWS
+	HWND console = GetConsoleWindow();
+	if (show)
+		ShowWindow(console, SW_SHOW);
+	else
+		ShowWindow(console, SW_HIDE);
+#endif
 }

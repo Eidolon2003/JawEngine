@@ -31,6 +31,37 @@ jaw::Window::~Window() {
 	delete pApp;
 }
 
+bool jaw::Window::isClosed() {
+	return finished.load();
+}
+
+bool jaw::Window::FrameLimiter() {
+	using namespace std::chrono;
+
+	auto now = high_resolution_clock::now();
+	duration<uint64_t, std::nano> frametime = now - thisFrame;
+	duration<uint64_t, std::nano> target = duration<uint64_t, std::nano>((uint64_t)(1000000000 / framerate));
+
+	if (frametime + milliseconds(1) < target)
+		std::this_thread::sleep_until(thisFrame + target - milliseconds(1));
+
+	if (frametime < target) return false;
+
+	lastFrame = thisFrame;
+	thisFrame = now;
+	return true;
+}
+
+std::chrono::duration<double, std::milli> jaw::Window::getFrametime() {
+	return thisFrame - lastFrame;
+}
+
+std::chrono::duration <uint64_t, std::milli> jaw::Window::getLifetime() {
+	using namespace std::chrono;
+	return duration_cast<duration<uint64_t, std::milli>>(thisFrame - start);
+}
+
+
 #if defined WINDOWS
 
 void jaw::Window::ThreadFunk() {
@@ -94,33 +125,3 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 }
 
 #endif
-
-bool jaw::Window::isClosed() {
-	return finished.load();
-}
-
-bool jaw::Window::FrameLimiter() {
-	using namespace std::chrono;
-
-	auto now = high_resolution_clock::now();
-	duration<uint64_t, std::nano> frametime = now - thisFrame;
-	duration<uint64_t, std::nano> target = duration<uint64_t, std::nano>((uint64_t)(1000000000 / framerate));
-
-	if (frametime + milliseconds(1) < target)
-		std::this_thread::sleep_until(thisFrame + target - milliseconds(1));
-
-	if (frametime < target) return false;
-
-	lastFrame = thisFrame;
-	thisFrame = now;
-	return true;
-}
-
-std::chrono::duration<double, std::milli> jaw::Window::getFrametime() {
-	return thisFrame - lastFrame;
-}
-
-std::chrono::duration <uint64_t, std::milli> jaw::Window::getLifetime() {
-	using namespace std::chrono;
-	return duration_cast<duration<uint64_t, std::milli>>(thisFrame - start);
-}

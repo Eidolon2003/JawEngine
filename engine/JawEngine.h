@@ -36,6 +36,7 @@ namespace jaw {
 	public:
 		virtual void OpenWindow(AppInterface*, const AppProperties&) = 0;
 		virtual void CloseWindow(AppInterface*) = 0;
+		virtual void ShowCMD(bool) = 0;
 	};
 
 	class WindowInterface {

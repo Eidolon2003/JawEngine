@@ -14,6 +14,7 @@ namespace jaw {
 		Engine(const EngineProperties&);
 		void OpenWindow(AppInterface*, const AppProperties&) override;
 		void CloseWindow(AppInterface*) override;
+		void ShowCMD(bool) override;
 
 	private:
 		std::unordered_map<AppInterface*, Window*> pWindows;
