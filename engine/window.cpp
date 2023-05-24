@@ -11,7 +11,7 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 	this->pEngine = pEngine;
 	this->pGraphics = nullptr;
 	this->pSound = nullptr;
-	this->pInput = nullptr;
+	this->pInput = new jaw::Input;
 
 	pApp->pWindow = this;
 	pApp->pEngine = pEngine;
@@ -29,6 +29,7 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 
 jaw::Window::~Window() {
 	delete pApp;
+	delete pInput;
 }
 
 bool jaw::Window::isClosed() {
@@ -93,6 +94,10 @@ void jaw::Window::ThreadFunk() {
 		wc.hInstance,								//Instance Handle
 		NULL										//Additional application data
 	);
+
+	//Set the window's data to a pointer to this object so it can be accessed in WinProc
+	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)this);
+
 	ShowWindow(hWnd, SW_SHOW);
 
 	bool running = true;
@@ -114,10 +119,19 @@ void jaw::Window::ThreadFunk() {
 }
 
 LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	jaw::Window* _this = (jaw::Window*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+
 	switch (uMsg) {
 	case WM_CLOSE:
 		PostQuitMessage(NULL);
 		return DefWindowProc(hWnd, uMsg, wParam, lParam);
+
+	case WM_MOUSEMOVE: {
+		unsigned short x = lParam & 0xFFFF;
+		unsigned short y = (lParam >> 16) & 0xFFFF;
+		_this->pInput->mouseXY = std::make_pair(*(short*)&x, *(short*)&y);
+		return 0;
+	}
 
 	default:
 		return DefWindowProc(hWnd, uMsg, wParam, lParam);

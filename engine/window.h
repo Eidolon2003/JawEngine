@@ -1,6 +1,7 @@
 #pragma once
 
 #include "JawEngine.h"
+#include "input.h"
 
 #include <atomic>
 #include <thread>
@@ -30,7 +31,7 @@ namespace jaw {
 
 		GraphicsInterface* pGraphics;
 		SoundInterface* pSound;
-		InputInterface* pInput;
+		Input* pInput;
 		EngineInterface* pEngine;
 		AppInterface* pApp;
 

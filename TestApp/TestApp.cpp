@@ -10,7 +10,8 @@ public:
 	}
 
 	void Loop() override {
-		std::cout << pWindow->getLifetime().count() << '\n';
+		auto mouse = pInput->getMouseXY();
+		printf("%d,%d\n", mouse.first, mouse.second);
 	}
 };
 
@@ -19,7 +20,7 @@ int main() {
 	ep.showCMD = true;
 
 	jaw::AppProperties ap;
-	ap.framerate = 10;
+	ap.framerate = 100;
 
 	jaw::StartEngine(new MyApp, ap, ep);
 

@@ -8,6 +8,8 @@
 
 #include <cstdint>
 #include <chrono>
+#include <functional>
+#include <algorithm>
 
 namespace jaw {
 
@@ -28,7 +30,8 @@ namespace jaw {
 	};
 
 	class InputInterface {
-
+	public:
+		virtual std::pair<int, int> getMouseXY() = 0;
 	};
 
 	class AppInterface;
