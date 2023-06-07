@@ -139,7 +139,17 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	}
 
 	case WM_CHAR:
-		_this->pInput->charInput.append(1, (char)wParam);
+		_this->pInput->charInput.push_back(wParam);
+		goto def;
+
+	case WM_KEYDOWN:
+		//set appropriate bit
+		_this->pInput->keybits[wParam >> 4 & 0xF] |= 1 << (wParam & 0xF);
+		goto def;
+
+	case WM_KEYUP:
+		//reset appropriate bit
+		_this->pInput->keybits[wParam >> 4 & 0xF] &= ~(1 << (wParam & 0xF));
 		goto def;
 
 	def:

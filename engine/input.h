@@ -13,6 +13,9 @@ namespace jaw {
 
 		std::string charInput;
 		std::string getString() override;
+
+		uint16_t keybits[16];
+		bool isKeyPressed(uint8_t) override;
 	};
 
 };

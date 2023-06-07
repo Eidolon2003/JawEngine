@@ -5,7 +5,15 @@ class MyApp : public jaw::AppInterface {
 public:
 
 	void Loop() override {
-		std::cout << pInput->getString();
+		if (pInput->isKeyPressed(jaw::A))
+			std::cout << "Yes A\n";
+		else
+			std::cout << "No A\n";
+
+		if (pInput->isKeyPressed(jaw::B))
+			std::cout << "Yes B\n";
+		else
+			std::cout << "No B\n";
 	}
 };
 
