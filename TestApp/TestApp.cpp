@@ -3,15 +3,9 @@
 
 class MyApp : public jaw::AppInterface {
 public:
-	unsigned x;
-
-	MyApp() {
-		x = 0;
-	}
 
 	void Loop() override {
-		auto mouse = pInput->getMouseXY();
-		printf("%d,%d\n", mouse.first, mouse.second);
+		std::cout << pInput->getString();
 	}
 };
 

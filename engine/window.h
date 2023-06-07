@@ -25,6 +25,7 @@ namespace jaw {
 	private:
 		void ThreadFunk();
 		bool FrameLimiter();
+		void Reset();
 
 		double framerate;
 		std::chrono::high_resolution_clock::time_point start, thisFrame, lastFrame;

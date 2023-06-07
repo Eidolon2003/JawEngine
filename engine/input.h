@@ -10,6 +10,9 @@ namespace jaw {
 
 		std::pair<int, int> mouseXY;
 		std::pair<int, int> getMouseXY() override;
+
+		std::string charInput;
+		std::string getString() override;
 	};
 
 };

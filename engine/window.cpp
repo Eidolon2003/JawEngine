@@ -32,6 +32,10 @@ jaw::Window::~Window() {
 	delete pInput;
 }
 
+void jaw::Window::Reset() {
+	pInput->charInput = "";
+}
+
 bool jaw::Window::isClosed() {
 	return finished.load();
 }
@@ -111,6 +115,7 @@ void jaw::Window::ThreadFunk() {
 
 		if (FrameLimiter()) {
 			pApp->Loop();
+			Reset();
 		}
 	}
 
@@ -124,15 +129,20 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	switch (uMsg) {
 	case WM_CLOSE:
 		PostQuitMessage(NULL);
-		return DefWindowProc(hWnd, uMsg, wParam, lParam);
+		goto def;
 
 	case WM_MOUSEMOVE: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
 		_this->pInput->mouseXY = std::make_pair(*(short*)&x, *(short*)&y);
-		return 0;
+		goto def;
 	}
 
+	case WM_CHAR:
+		_this->pInput->charInput.append(1, (char)wParam);
+		goto def;
+
+	def:
 	default:
 		return DefWindowProc(hWnd, uMsg, wParam, lParam);
 	}
