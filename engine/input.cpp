@@ -2,15 +2,17 @@
 
 jaw::Input::Input(bool repeat) {
 	enableKeyRepeat = repeat;
-	mouseXY = { 0, 0 };
+	mouse = { 0, 0, 0 };
 	charInput = "";
 	memset(keybits, 0, sizeof(keybits));
 	std::fill(downJumpTable, downJumpTable + TABLELEN, nullptr);
 	std::fill(upJumpTable, upJumpTable + TABLELEN, nullptr);
+	clickDown = nullptr;
+	clickUp = nullptr;
 }
 
-std::pair<int, int> jaw::Input::getMouseXY() {
-	return mouseXY;
+jaw::Mouse jaw::Input::getMouse() {
+	return mouse;
 }
 
 std::string jaw::Input::getString() {
@@ -27,4 +29,12 @@ void jaw::Input::BindKeyDown(uint8_t vkc, std::function<void()> f) {
 
 void jaw::Input::BindKeyUp(uint8_t vkc, std::function<void()> f) {
 	upJumpTable[vkc] = f;
+}
+
+void jaw::Input::BindClickDown(std::function<void(Mouse)> f) {
+	clickDown = f;
+}
+
+void jaw::Input::BindClickUp(std::function<void(Mouse)> f) {
+	clickUp = f;
 }

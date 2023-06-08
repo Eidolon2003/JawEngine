@@ -133,10 +133,44 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 		PostQuitMessage(NULL);
 		goto def;
 
+	case WM_LBUTTONDOWN:
+	case WM_RBUTTONDOWN:
+	case WM_MBUTTONDOWN:
+	case WM_XBUTTONDOWN: {
+		unsigned short x = lParam & 0xFFFF;
+		unsigned short y = (lParam >> 16) & 0xFFFF;
+		_this->pInput->mouse.x = *(short*)&x;
+		_this->pInput->mouse.y = *(short*)&y;
+		_this->pInput->mouse.flags = wParam;
+
+		if (_this->pInput->clickDown)
+			_this->pInput->clickDown(_this->pInput->mouse);
+
+		goto def;
+	}
+
+	case WM_LBUTTONUP:
+	case WM_RBUTTONUP:
+	case WM_MBUTTONUP:
+	case WM_XBUTTONUP: {
+		unsigned short x = lParam & 0xFFFF;
+		unsigned short y = (lParam >> 16) & 0xFFFF;
+		_this->pInput->mouse.x = *(short*)&x;
+		_this->pInput->mouse.y = *(short*)&y;
+		_this->pInput->mouse.flags = wParam;
+
+		if (_this->pInput->clickUp)
+			_this->pInput->clickUp(_this->pInput->mouse);
+
+		goto def;
+	}
+
 	case WM_MOUSEMOVE: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouseXY = std::make_pair(*(short*)&x, *(short*)&y);
+		_this->pInput->mouse.x = *(short*)&x;
+		_this->pInput->mouse.y = *(short*)&y;
+		_this->pInput->mouse.flags = wParam;
 		goto def;
 	}
 

@@ -8,8 +8,8 @@ namespace jaw {
 	public:
 		Input(bool repeat);
 
-		std::pair<int, int> mouseXY;
-		std::pair<int, int> getMouseXY() override;
+		Mouse mouse;
+		Mouse getMouse() override;
 
 		std::string charInput;
 		std::string getString() override;
@@ -24,6 +24,11 @@ namespace jaw {
 		std::function<void()> upJumpTable[TABLELEN];
 		void BindKeyDown(uint8_t, std::function<void()>) override;
 		void BindKeyUp(uint8_t, std::function<void()>) override;
+
+		std::function<void(Mouse)> clickDown;
+		std::function<void(Mouse)> clickUp;
+		void BindClickDown(std::function<void(Mouse)>) override;
+		void BindClickUp(std::function<void(Mouse)>) override;
 	};
 
 };

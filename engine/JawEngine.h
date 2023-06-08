@@ -1,8 +1,8 @@
 #pragma once
 
-#if (defined (_WIN32) || defined (_WIN64))
+#if (defined _WIN32 || defined _WIN64)
 #define WINDOWS
-#elif (defined (LINUX) || defined (__linux__))
+#elif (defined LINUX || defined __linux__)
 #define LINUX
 #endif
 
@@ -22,6 +22,23 @@ namespace jaw {
 		bool enableKeyRepeat = false;
 	};
 
+	struct Mouse {
+		union {
+			struct {
+				char lmb : 1;
+				char rmb : 1;
+				char shift : 1;
+				char ctrl : 1;
+				char mmb : 1;
+				char xmb1 : 1;
+				char xmb2 : 1;
+			};
+			uint8_t flags;
+		};
+		short x;
+		short y;
+	};
+
 	class GraphicsInterface {
 
 	};
@@ -32,11 +49,13 @@ namespace jaw {
 
 	class InputInterface {
 	public:
-		virtual std::pair<int, int> getMouseXY() = 0;
+		virtual Mouse getMouse() = 0;
 		virtual std::string getString() = 0;
 		virtual bool isKeyPressed(uint8_t) = 0;
 		virtual void BindKeyDown(uint8_t, std::function<void()>) = 0;
 		virtual void BindKeyUp(uint8_t, std::function<void()>) = 0;
+		virtual void BindClickDown(std::function<void(Mouse)>) = 0;
+		virtual void BindClickUp(std::function<void(Mouse)>) = 0;
 	};
 
 	class AppInterface;
