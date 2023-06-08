@@ -12,7 +12,7 @@ public:
 		auto mouse = pInput->getMouse();
 		printf("%d, %d\n", mouse.x, mouse.y);
 
-		pGraphics->FillRect(50, 50, 350, 350, 0xF01010, 0);
+		pGraphics->FillRect(mouse.x, mouse.y, 0, 0, 0xF01010, 0);
 	}
 };
 
@@ -23,7 +23,7 @@ int main() {
 	jaw::AppProperties ap;
 	ap.sizeX = 640;
 	ap.sizeY = 480;
-	ap.framerate = 100;
+	ap.framerate = 0;
 	ap.enableKeyRepeat = false;
 
 	jaw::StartEngine(new MyApp, ap, ep);

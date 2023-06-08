@@ -33,6 +33,8 @@ bool jaw::Window::isClosed() {
 bool jaw::Window::FrameLimiter() {
 	using namespace std::chrono;
 
+	if (framerate == 0) return true;
+
 	auto now = high_resolution_clock::now();
 	duration<uint64_t, std::nano> frametime = now - thisFrame;
 	duration<uint64_t, std::nano> target = duration<uint64_t, std::nano>((uint64_t)(1000000000 / framerate));
