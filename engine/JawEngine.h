@@ -37,6 +37,7 @@ namespace jaw {
 		};
 		short x;
 		short y;
+		short wheel;
 	};
 
 	class GraphicsInterface {

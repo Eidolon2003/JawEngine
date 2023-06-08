@@ -2,7 +2,7 @@
 
 jaw::Input::Input(bool repeat) {
 	enableKeyRepeat = repeat;
-	mouse = { 0, 0, 0 };
+	mouse = { 0, 0, 0, 0 };
 	charInput = "";
 	memset(keybits, 0, sizeof(keybits));
 	std::fill(downJumpTable, downJumpTable + TABLELEN, nullptr);

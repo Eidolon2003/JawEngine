@@ -17,6 +17,7 @@ public:
 		printf("XMB2: %u\n", !!mouse.xmb2);
 		printf("SHIFT: %u\n", !!mouse.shift);
 		printf("CTRL: %u\n", !!mouse.ctrl);
+		printf("WHEEL: %d\n\n", mouse.wheel);
 	}
 };
 

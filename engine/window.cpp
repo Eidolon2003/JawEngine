@@ -174,6 +174,16 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 		goto def;
 	}
 
+	case WM_MOUSEWHEEL: {
+		unsigned short x = lParam & 0xFFFF;
+		unsigned short y = (lParam >> 16) & 0xFFFF;
+		_this->pInput->mouse.x = *(short*)&x;
+		_this->pInput->mouse.y = *(short*)&y;
+		_this->pInput->mouse.flags = wParam;
+		_this->pInput->mouse.wheel += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
+		goto def;
+	}
+
 	case WM_CHAR:
 		_this->pInput->charInput.push_back(wParam);
 		goto def;
