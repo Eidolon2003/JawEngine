@@ -4,16 +4,14 @@
 class MyApp : public jaw::AppInterface {
 public:
 
-	void Loop() override {
-		if (pInput->isKeyPressed(jaw::A))
-			std::cout << "Yes A\n";
-		else
-			std::cout << "No A\n";
+	void Init() override {
+		pInput->BindKeyDown(jaw::A, [this]() {
+			std::cout << pWindow->getLifetime() << '\n';
+		});
+	}
 
-		if (pInput->isKeyPressed(jaw::B))
-			std::cout << "Yes B\n";
-		else
-			std::cout << "No B\n";
+	void Loop() override {
+		
 	}
 };
 
@@ -23,6 +21,7 @@ int main() {
 
 	jaw::AppProperties ap;
 	ap.framerate = 100;
+	ap.enableKeyRepeat = false;
 
 	jaw::StartEngine(new MyApp, ap, ep);
 

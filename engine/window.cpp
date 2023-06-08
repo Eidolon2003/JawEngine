@@ -11,7 +11,7 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 	this->pEngine = pEngine;
 	this->pGraphics = nullptr;
 	this->pSound = nullptr;
-	this->pInput = new jaw::Input;
+	this->pInput = new jaw::Input(props.enableKeyRepeat);
 
 	pApp->pWindow = this;
 	pApp->pEngine = pEngine;
@@ -104,6 +104,8 @@ void jaw::Window::ThreadFunk() {
 
 	ShowWindow(hWnd, SW_SHOW);
 
+	pApp->Init();
+
 	bool running = true;
 	while (running) {
 		MSG msg;
@@ -143,13 +145,27 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 		goto def;
 
 	case WM_KEYDOWN:
+		//Check for repeat
+		if ((lParam & 0x40000000) && !_this->pInput->enableKeyRepeat)
+			goto def;
+
 		//set appropriate bit
 		_this->pInput->keybits[wParam >> 4 & 0xF] |= 1 << (wParam & 0xF);
+
+		//call keybind
+		if (_this->pInput->downJumpTable[wParam & 0xFF])
+			_this->pInput->downJumpTable[wParam & 0xFF]();
+
 		goto def;
 
 	case WM_KEYUP:
 		//reset appropriate bit
 		_this->pInput->keybits[wParam >> 4 & 0xF] &= ~(1 << (wParam & 0xF));
+
+		//call keybind
+		if (_this->pInput->upJumpTable[wParam & 0xFF])
+			_this->pInput->upJumpTable[wParam & 0xFF]();
+
 		goto def;
 
 	def:

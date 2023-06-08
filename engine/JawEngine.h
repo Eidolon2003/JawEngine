@@ -14,11 +14,12 @@
 namespace jaw {
 
 	struct EngineProperties {
-		bool showCMD;
+		bool showCMD = false;
 	};
 
 	struct AppProperties {
-		double framerate;
+		double framerate = 60;
+		bool enableKeyRepeat = false;
 	};
 
 	class GraphicsInterface {
@@ -34,6 +35,8 @@ namespace jaw {
 		virtual std::pair<int, int> getMouseXY() = 0;
 		virtual std::string getString() = 0;
 		virtual bool isKeyPressed(uint8_t) = 0;
+		virtual void BindKeyDown(uint8_t, std::function<void()>) = 0;
+		virtual void BindKeyUp(uint8_t, std::function<void()>) = 0;
 	};
 
 	class AppInterface;
@@ -58,6 +61,7 @@ namespace jaw {
 		WindowInterface* pWindow = nullptr;
 		EngineInterface* pEngine = nullptr;
 
+		virtual void Init() = 0;
 		virtual void Loop() = 0;
 	};
 
