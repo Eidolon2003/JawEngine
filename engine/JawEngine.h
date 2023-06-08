@@ -18,6 +18,8 @@ namespace jaw {
 	};
 
 	struct AppProperties {
+		uint16_t sizeX = 640;
+		uint16_t sizeY = 480;
 		double framerate = 60;
 		bool enableKeyRepeat = false;
 	};
@@ -41,7 +43,8 @@ namespace jaw {
 	};
 
 	class GraphicsInterface {
-
+	public:
+		virtual void FillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color, uint8_t layer) = 0;
 	};
 
 	class SoundInterface {

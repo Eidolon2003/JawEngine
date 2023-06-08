@@ -7,6 +7,7 @@ namespace jaw {
 	class Input : public jaw::InputInterface {
 	public:
 		Input(bool repeat);
+		void Reset();
 
 		Mouse mouse;
 		Mouse getMouse() override;

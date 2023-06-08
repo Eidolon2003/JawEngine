@@ -5,19 +5,13 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 
 	start = thisFrame = lastFrame = std::chrono::high_resolution_clock::now();
 
-	framerate = props.framerate;
-
 	this->pApp = pApp;
 	this->pEngine = pEngine;
-	this->pGraphics = nullptr;
-	this->pSound = nullptr;
-	this->pInput = new jaw::Input(props.enableKeyRepeat);
 
-	pApp->pWindow = this;
-	pApp->pEngine = pEngine;
-	pApp->pGraphics = pGraphics;
-	pApp->pSound = pSound;
-	pApp->pInput = pInput;
+	framerate = props.framerate;
+	sizeX = props.sizeX;
+	sizeY = props.sizeY;
+	repeat = props.enableKeyRepeat;
 
 #if defined WINDOWS
 	hWnd = NULL;
@@ -30,10 +24,6 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 jaw::Window::~Window() {
 	delete pApp;
 	delete pInput;
-}
-
-void jaw::Window::Reset() {
-	pInput->charInput = "";
 }
 
 bool jaw::Window::isClosed() {
@@ -72,6 +62,11 @@ std::chrono::duration <uint64_t, std::milli> jaw::Window::getLifetime() {
 void jaw::Window::ThreadFunk() {
 	timeBeginPeriod(1);
 
+	constexpr DWORD STYLE = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+
+	RECT rect = { 0, 0, sizeX, sizeY };
+	AdjustWindowRect(&rect, STYLE, false);
+
 	wc.cbSize = sizeof(wc);
 	wc.style = CS_DBLCLKS;
 	wc.lpfnWndProc = WinProc;
@@ -89,10 +84,10 @@ void jaw::Window::ThreadFunk() {
 		0,											//Optional styling
 		wc.lpszClassName,							//Window Class
 		wc.lpszClassName,							//Window Text
-		WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,	//Window Style (not resizable)
+		STYLE,										//Window Style (not resizable)
 		CW_USEDEFAULT, CW_USEDEFAULT,				//Location (Top left is 0,0)
-		640,										//width of the window
-		480,										//height of the window							
+		rect.right - rect.left,						//width of the window
+		rect.bottom - rect.top,						//height of the window							
 		NULL,										//Parent window
 		NULL,										//Menu
 		wc.hInstance,								//Instance Handle
@@ -103,6 +98,16 @@ void jaw::Window::ThreadFunk() {
 	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)this);
 
 	ShowWindow(hWnd, SW_SHOW);
+
+	this->pSound = nullptr;
+	this->pGraphics = new jaw::D2DGraphics(hWnd, sizeX, sizeY);
+	this->pInput = new jaw::Input(repeat);
+
+	pApp->pWindow = this;
+	pApp->pEngine = pEngine;
+	pApp->pGraphics = pGraphics;
+	pApp->pSound = pSound;
+	pApp->pInput = pInput;
 
 	pApp->Init();
 
@@ -116,8 +121,10 @@ void jaw::Window::ThreadFunk() {
 		}
 
 		if (FrameLimiter()) {
+			pGraphics->BeginFrame();
 			pApp->Loop();
-			Reset();
+			pGraphics->EndFrame();
+			pInput->Reset();
 		}
 	}
 

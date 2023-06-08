@@ -11,6 +11,10 @@ jaw::Input::Input(bool repeat) {
 	clickUp = nullptr;
 }
 
+void jaw::Input::Reset() {
+	charInput = "";
+}
+
 jaw::Mouse jaw::Input::getMouse() {
 	return mouse;
 }

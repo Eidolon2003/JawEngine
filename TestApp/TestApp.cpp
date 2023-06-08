@@ -10,14 +10,9 @@ public:
 
 	void Loop() override {
 		auto mouse = pInput->getMouse();
-		printf("LMB: %u\n", !!mouse.lmb);
-		printf("RMB: %u\n", !!mouse.rmb);
-		printf("MMB: %u\n", !!mouse.mmb);
-		printf("XMB1: %u\n", !!mouse.xmb1);
-		printf("XMB2: %u\n", !!mouse.xmb2);
-		printf("SHIFT: %u\n", !!mouse.shift);
-		printf("CTRL: %u\n", !!mouse.ctrl);
-		printf("WHEEL: %d\n\n", mouse.wheel);
+		printf("%d, %d\n", mouse.x, mouse.y);
+
+		pGraphics->FillRect(50, 50, 350, 350, 0xF01010, 0);
 	}
 };
 
@@ -26,7 +21,9 @@ int main() {
 	ep.showCMD = true;
 
 	jaw::AppProperties ap;
-	ap.framerate = 5;
+	ap.sizeX = 640;
+	ap.sizeY = 480;
+	ap.framerate = 100;
 	ap.enableKeyRepeat = false;
 
 	jaw::StartEngine(new MyApp, ap, ep);

@@ -2,6 +2,7 @@
 
 #include "JawEngine.h"
 #include "input.h"
+#include "graphics.h"
 
 #include <atomic>
 #include <thread>
@@ -25,12 +26,13 @@ namespace jaw {
 	private:
 		void ThreadFunk();
 		bool FrameLimiter();
-		void Reset();
 
+		uint16_t sizeX;
+		uint16_t sizeY;
 		double framerate;
+		bool repeat;
 		std::chrono::high_resolution_clock::time_point start, thisFrame, lastFrame;
 
-		GraphicsInterface* pGraphics;
 		SoundInterface* pSound;
 		Input* pInput;
 		EngineInterface* pEngine;
@@ -46,6 +48,7 @@ namespace jaw {
 	private:
 		WNDCLASSEX wc;
 		HWND hWnd;
+		D2DGraphics* pGraphics;
 
 		static LRESULT __stdcall WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 #endif
