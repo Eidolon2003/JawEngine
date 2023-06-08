@@ -9,6 +9,7 @@
 
 #if defined WINDOWS
 #include <Windows.h>
+#include "d2d.h"
 #endif
 
 namespace jaw {
@@ -34,6 +35,7 @@ namespace jaw {
 		std::chrono::high_resolution_clock::time_point start, thisFrame, lastFrame;
 
 		SoundInterface* pSound;
+		InternalGraphicsInterface* pGraphics;
 		Input* pInput;
 		EngineInterface* pEngine;
 		AppInterface* pApp;
@@ -48,7 +50,6 @@ namespace jaw {
 	private:
 		WNDCLASSEX wc;
 		HWND hWnd;
-		D2DGraphics* pGraphics;
 
 		static LRESULT __stdcall WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 #endif

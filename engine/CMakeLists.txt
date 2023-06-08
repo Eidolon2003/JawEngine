@@ -1,4 +1,4 @@
-﻿add_library(engine STATIC "engine.cpp" "engine.h" "JawEngine.h" "window.cpp" "window.h" "input.cpp" "input.h"  "graphics.h" "graphics.cpp")
+﻿add_library(engine STATIC "engine.cpp" "engine.h" "JawEngine.h" "window.cpp" "window.h" "input.cpp" "input.h"  "graphics.h" "d2d.h" "d2d.cpp")
 
 if(WIN32)
 	target_link_libraries(engine winmm.lib)

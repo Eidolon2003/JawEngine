@@ -23,7 +23,7 @@ int main() {
 	jaw::AppProperties ap;
 	ap.sizeX = 640;
 	ap.sizeY = 480;
-	ap.framerate = 0;
+	ap.framerate = 200;
 	ap.enableKeyRepeat = false;
 
 	jaw::StartEngine(new MyApp, ap, ep);

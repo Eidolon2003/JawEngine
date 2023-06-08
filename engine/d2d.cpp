@@ -1,4 +1,4 @@
-#include "graphics.h"
+#include "d2d.h"
 
 jaw::D2DGraphics::D2DGraphics(HWND hWnd, uint16_t x, uint16_t y) {
 	setSize(x, y);
