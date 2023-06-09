@@ -15,7 +15,7 @@ void jaw::StartEngine(jaw::AppInterface* pApp, const jaw::AppProperties& appProp
 				iter++;
 		}
 
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
 	}
 }
 

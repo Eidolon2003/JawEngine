@@ -13,11 +13,6 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 	sizeY = props.sizeY;
 	repeat = props.enableKeyRepeat;
 
-#if defined WINDOWS
-	hWnd = NULL;
-	wc = WNDCLASSEX();
-#endif
-
 	std::thread(&Window::ThreadFunk, this).detach();
 }
 
@@ -184,17 +179,13 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	}
 
 	case WM_MOUSEWHEEL: {
-		unsigned short x = lParam & 0xFFFF;
-		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouse.x = max(0, *(short*)&x);
-		_this->pInput->mouse.y = max(0, *(short*)&y);
 		_this->pInput->mouse.flags = wParam & 0xFF;
 		_this->pInput->mouse.wheel += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
 		goto def;
 	}
 
 	case WM_CHAR:
-		_this->pInput->charInput.push_back(wParam);
+		_this->pInput->charInput.push_back((char)wParam);
 		goto def;
 
 	case WM_KEYDOWN:

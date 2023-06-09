@@ -4,15 +4,24 @@
 class MyApp : public jaw::AppInterface {
 public:
 
+	int x = 320, y = 240;
+
 	void Init() override {
 		pInput->BindKeyDown(jaw::ESC, std::bind(&jaw::EngineInterface::CloseWindow, pEngine, this));
+
+		pInput->BindClickDown([this](auto mouse) {
+			if (mouse.lmb) {
+				x = mouse.x;
+				y = mouse.y;
+			}
+		});
 	}
 
 	void Loop() override {
 		auto mouse = pInput->getMouse();
-		printf("%d, %d\n", mouse.x, mouse.y);
+		printf("%d, %d\t%d\n", mouse.x, mouse.y, mouse.wheel);
 
-		pGraphics->FillRect(mouse.x, mouse.y, 320, 240, 0xB00B1E, 0);
+		pGraphics->FillRect(mouse.x, mouse.y, x, y, 0xB00B1E, 0);
 	}
 };
 

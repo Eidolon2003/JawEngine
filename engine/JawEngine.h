@@ -24,24 +24,6 @@ namespace jaw {
 		bool enableKeyRepeat = false;
 	};
 
-	struct Mouse {
-		union {
-			struct {
-				char lmb : 1;
-				char rmb : 1;
-				char shift : 1;
-				char ctrl : 1;
-				char mmb : 1;
-				char xmb1 : 1;
-				char xmb2 : 1;
-			};
-			uint8_t flags;
-		};
-		uint16_t x;
-		uint16_t y;
-		int16_t wheel;
-	};
-
 	class GraphicsInterface {
 	public:
 		virtual void FillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color, uint8_t layer) = 0;
@@ -53,6 +35,24 @@ namespace jaw {
 
 	class InputInterface {
 	public:
+		struct Mouse {
+			union {
+				struct {
+					char lmb : 1;
+					char rmb : 1;
+					char shift : 1;
+					char ctrl : 1;
+					char mmb : 1;
+					char xmb1 : 1;
+					char xmb2 : 1;
+				};
+				uint8_t flags;
+			};
+			uint16_t x;
+			uint16_t y;
+			int16_t wheel;
+		};
+
 		virtual Mouse getMouse() = 0;
 		virtual std::string getString() = 0;
 		virtual bool isKeyPressed(uint8_t) = 0;

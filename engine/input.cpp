@@ -15,7 +15,7 @@ void jaw::Input::Reset() {
 	charInput = "";
 }
 
-jaw::Mouse jaw::Input::getMouse() {
+jaw::Input::Mouse jaw::Input::getMouse() {
 	return mouse;
 }
 

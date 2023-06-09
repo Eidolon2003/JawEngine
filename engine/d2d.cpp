@@ -51,7 +51,7 @@ void jaw::D2DGraphics::EndFrame() {
 		x->EndDraw();
 
 	pRenderTarget->BeginDraw();
-	pRenderTarget->Clear(D2D1::ColorF(0, 0, 0, 0));
+	pRenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::Black));
 
 	for (auto x : layers) {
 		ID2D1Bitmap* pBitmap = nullptr;
@@ -60,10 +60,10 @@ void jaw::D2DGraphics::EndFrame() {
 		pRenderTarget->DrawBitmap(
 			pBitmap,
 			D2D1::Rect(
-				uint16_t(0),
-				uint16_t(0),
-				sizeX,
-				sizeY
+				0.f,
+				0.f,
+				(float)sizeX,
+				(float)sizeY
 			),
 			1.0,
 			D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR
@@ -85,10 +85,10 @@ void jaw::D2DGraphics::FillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t 
 
 	pBitmapTarget->FillRectangle(
 		D2D1::Rect(
-			x1,
-			y1,
-			x2,
-			y2
+			(float)x1,
+			(float)y1,
+			(float)x2,
+			(float)y2
 		),
 		pSolidBrush
 	);
