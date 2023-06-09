@@ -37,9 +37,9 @@ namespace jaw {
 			};
 			uint8_t flags;
 		};
-		short x;
-		short y;
-		short wheel;
+		uint16_t x;
+		uint16_t y;
+		int16_t wheel;
 	};
 
 	class GraphicsInterface {

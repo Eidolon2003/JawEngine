@@ -148,9 +148,9 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	case WM_XBUTTONDOWN: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouse.x = *(short*)&x;
-		_this->pInput->mouse.y = *(short*)&y;
-		_this->pInput->mouse.flags = wParam;
+		_this->pInput->mouse.x = max(0, *(short*)&x);
+		_this->pInput->mouse.y = max(0, *(short*)&y);
+		_this->pInput->mouse.flags = wParam & 0xFF;
 
 		if (_this->pInput->clickDown)
 			_this->pInput->clickDown(_this->pInput->mouse);
@@ -164,9 +164,9 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	case WM_XBUTTONUP: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouse.x = *(short*)&x;
-		_this->pInput->mouse.y = *(short*)&y;
-		_this->pInput->mouse.flags = wParam;
+		_this->pInput->mouse.x = max(0, *(short*)&x);
+		_this->pInput->mouse.y = max(0, *(short*)&y);
+		_this->pInput->mouse.flags = wParam & 0xFF;
 
 		if (_this->pInput->clickUp)
 			_this->pInput->clickUp(_this->pInput->mouse);
@@ -177,18 +177,18 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	case WM_MOUSEMOVE: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouse.x = *(short*)&x;
-		_this->pInput->mouse.y = *(short*)&y;
-		_this->pInput->mouse.flags = wParam;
+		_this->pInput->mouse.x = max(0, *(short*)&x);
+		_this->pInput->mouse.y = max(0, *(short*)&y);
+		_this->pInput->mouse.flags = wParam & 0xFF;
 		goto def;
 	}
 
 	case WM_MOUSEWHEEL: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouse.x = *(short*)&x;
-		_this->pInput->mouse.y = *(short*)&y;
-		_this->pInput->mouse.flags = wParam;
+		_this->pInput->mouse.x = max(0, *(short*)&x);
+		_this->pInput->mouse.y = max(0, *(short*)&y);
+		_this->pInput->mouse.flags = wParam & 0xFF;
 		_this->pInput->mouse.wheel += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
 		goto def;
 	}
