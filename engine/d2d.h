@@ -20,7 +20,7 @@ namespace jaw {
 
 	public:
 		D2DGraphics(HWND hWnd, uint16_t x, uint16_t y);
-		~D2DGraphics();
+		~D2DGraphics() override;
 
 		void BeginFrame() override;
 		void EndFrame() override;

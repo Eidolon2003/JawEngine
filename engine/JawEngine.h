@@ -84,6 +84,7 @@ namespace jaw {
 		WindowInterface* pWindow = nullptr;
 		EngineInterface* pEngine = nullptr;
 
+		virtual ~AppInterface() {}
 		virtual void Init() = 0;
 		virtual void Loop() = 0;
 	};

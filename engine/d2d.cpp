@@ -1,6 +1,7 @@
 #include "d2d.h"
 
 jaw::D2DGraphics::D2DGraphics(HWND hWnd, uint16_t x, uint16_t y) {
+
 	setSize(x, y);
 	this->hWnd = hWnd;
 
@@ -33,10 +34,18 @@ jaw::D2DGraphics::D2DGraphics(HWND hWnd, uint16_t x, uint16_t y) {
 
 jaw::D2DGraphics::~D2DGraphics() {
 	pSolidBrush->Release();
+	for (auto x : layers) {
+		x->EndDraw();
+		x->Release();
+	}
+	pRenderTarget->EndDraw();
 	pRenderTarget->Release();
 	pD2DFactory->Release();
-	for (auto x : layers)
-		x->Release();
+}
+
+void jaw::D2DGraphics::setSize(uint16_t x, uint16_t y) {
+	sizeX = x;
+	sizeY = y;
 }
 
 void jaw::D2DGraphics::BeginFrame() {
@@ -68,13 +77,9 @@ void jaw::D2DGraphics::EndFrame() {
 			1.0,
 			D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR
 		);
+		pBitmap->Release();
 	}
 	pRenderTarget->EndDraw();
-}
-
-void jaw::D2DGraphics::setSize(uint16_t x, uint16_t y) {
-	sizeX = x;
-	sizeY = y;
 }
 
 void jaw::D2DGraphics::FillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color, uint8_t layer) {

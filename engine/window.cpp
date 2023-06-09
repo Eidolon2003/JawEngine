@@ -17,8 +17,9 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 }
 
 jaw::Window::~Window() {
-	delete pApp;
 	delete pInput;
+	delete pGraphics;
+	delete pApp;
 }
 
 bool jaw::Window::isClosed() {
@@ -94,8 +95,6 @@ void jaw::Window::ThreadFunk() {
 	//Set the window's data to a pointer to this object so it can be accessed in WinProc
 	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)this);
 
-	ShowWindow(hWnd, SW_SHOW);
-
 	this->pSound = nullptr;
 	this->pGraphics = new jaw::D2DGraphics(hWnd, sizeX, sizeY);
 	this->pInput = new jaw::Input(repeat);
@@ -107,6 +106,8 @@ void jaw::Window::ThreadFunk() {
 	pApp->pInput = pInput;
 
 	pApp->Init();
+
+	ShowWindow(hWnd, SW_SHOW);
 
 	bool running = true;
 	while (running) {
