@@ -1,5 +1,5 @@
 ﻿#include <iostream>
-#include "../engine/JawEngine.h"
+#include "../jawengine/JawEngine.h"
 
 class MyApp : public jaw::AppInterface {
 public:
