@@ -26,6 +26,17 @@ namespace jaw {
 
 	class GraphicsInterface {
 	public:
+		class Bitmap {
+		public:
+			virtual std::string getName() = 0;
+			virtual std::pair<uint32_t, uint32_t> getSize() = 0;
+		};
+
+		virtual Bitmap* LoadBmp(std::string filename) = 0;
+		virtual void DrawBmp(std::string filename, uint16_t x, uint16_t y, uint8_t layer, float scale = 1.f, float opacity = 1.f, bool interpolation = false) = 0;
+
+		virtual void setBackgroundColor(uint32_t color) = 0;
+		virtual void ClearLayer(uint8_t layer, uint32_t color = 0x000000, float alpha = 0.f) = 0;
 		virtual void FillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color, uint8_t layer) = 0;
 	};
 
