@@ -1,34 +1,34 @@
 ﻿add_library(mylib STATIC 
-    "engine.cpp" 
-    "engine.h"
-    "JawEngine.h"
-    "window.cpp"
-    "window.h"
-    "input.cpp"
-    "input.h"
-    "graphics.h"
-    "d2d.h"
-    "d2d.cpp"
+	"engine.cpp" 
+	"engine.h"
+	"JawEngine.h"
+	"window.cpp"
+	"window.h"
+	"input.cpp"
+	"input.h"
+	"graphics.h"
+	"d2d.h"
+	"d2d.cpp"
 )
 set_property(TARGET mylib PROPERTY CXX_STANDARD 20)
 
 if(WIN32)
-    target_link_libraries(mylib
-        winmm.lib
-        d2d1.lib
-        windowscodecs.lib
-    )
+	target_link_libraries(mylib
+		winmm.lib
+		d2d1.lib
+		windowscodecs.lib
+	)
 
-    find_library(WINMM "winmm.lib")
-    find_library(D2D1 "d2d1.lib")
-    find_library(WINDOWSCODECS "windowscodecs.lib")
+	find_library(WINMM "winmm.lib")
+	find_library(D2D1 "d2d1.lib")
+	find_library(WINDOWSCODECS "windowscodecs.lib")
 
 	add_custom_command(
-        TARGET mylib POST_BUILD
-        COMMAND lib.exe /OUT:${CMAKE_CURRENT_BINARY_DIR}/jawengine.lib 
-            $<TARGET_FILE:mylib>
-            ${WINMM}
-            ${D2D1}
-            ${WINDOWSCODECS}
-    )
+		TARGET mylib POST_BUILD
+		COMMAND lib.exe /OUT:${CMAKE_CURRENT_BINARY_DIR}/jawengine.lib 
+			$<TARGET_FILE:mylib>
+			${WINMM}
+			${D2D1}
+			${WINDOWSCODECS}
+	)
 endif()
