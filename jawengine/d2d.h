@@ -47,7 +47,7 @@ namespace jaw {
 					return lhs.bold < rhs.bold;
 
 				if (lhs.italic != rhs.italic)
-					return lhs.bold < rhs.bold;
+					return lhs.italic < rhs.italic;
 
 				return lhs.size < rhs.size;
 			}
@@ -68,7 +68,7 @@ namespace jaw {
 		void setSize(uint16_t x, uint16_t y) override;
 
 		Bitmap* LoadBmp(std::string filename) override;
-		bool DrawBmp(std::string filename, Point pt, uint8_t layer, float scale = 1.f, float opacity = 1.f, bool interpolation = false) override;
+		bool DrawBmp(std::string filename, Point pt, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
 
 		bool LoadFont(const Font& font) override;
 		bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font, uint32_t color = 0xFFFFFF) override;

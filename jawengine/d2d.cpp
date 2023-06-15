@@ -195,7 +195,7 @@ LoadBmp_return1:
 	return p;
 }
 
-bool jaw::D2DGraphics::DrawBmp(std::string filename, Point pt, uint8_t layer, float scale, float opacity, bool interpolation) {
+bool jaw::D2DGraphics::DrawBmp(std::string filename, Point pt, uint8_t layer, float scale, float alpha, bool interpolation) {
 	if (!bitmaps.count(filename))
 		if (!LoadBmp(filename)) return false;
 
@@ -212,7 +212,7 @@ bool jaw::D2DGraphics::DrawBmp(std::string filename, Point pt, uint8_t layer, fl
 			pt.x + (pBitmap->x * scale),
 			pt.y + (pBitmap->y * scale)
 		),
-		opacity,
+		alpha,
 		interpolation ? D2D1_BITMAP_INTERPOLATION_MODE_LINEAR : D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR
 	);
 	return true;

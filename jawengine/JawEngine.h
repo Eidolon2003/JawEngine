@@ -49,7 +49,7 @@ namespace jaw {
 		};
 
 		virtual Bitmap* LoadBmp(std::string filename) = 0;
-		virtual bool DrawBmp(std::string filename, Point pt, uint8_t layer, float scale = 1.f, float opacity = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawBmp(std::string filename, Point pt, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
 
 		virtual bool LoadFont(const Font&) = 0;
 		virtual bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font, uint32_t color = 0xFFFFFF) = 0;
