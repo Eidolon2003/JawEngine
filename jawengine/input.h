@@ -23,13 +23,13 @@ namespace jaw {
 		static constexpr int TABLELEN = 256;
 		std::function<void()> downJumpTable[TABLELEN];
 		std::function<void()> upJumpTable[TABLELEN];
-		void BindKeyDown(uint8_t, std::function<void()>) override;
-		void BindKeyUp(uint8_t, std::function<void()>) override;
+		void BindKeyDown(uint8_t, const std::function<void()>&) override;
+		void BindKeyUp(uint8_t, const std::function<void()>&) override;
 
 		std::function<void(Mouse)> clickDown;
 		std::function<void(Mouse)> clickUp;
-		void BindClickDown(std::function<void(Mouse)>) override;
-		void BindClickUp(std::function<void(Mouse)>) override;
+		void BindClickDown(const std::function<void(Mouse)>&) override;
+		void BindClickUp(const std::function<void(Mouse)>&) override;
 	};
 
 };

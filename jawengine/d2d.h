@@ -32,7 +32,7 @@ namespace jaw {
 		ID2D1SolidColorBrush* pSolidBrush;
 		IDWriteFactory* pDWFactory;
 
-		static constexpr uint8_t LAYERS = 16;
+		static constexpr uint8_t LAYERS = 8;
 		std::vector<ID2D1BitmapRenderTarget*> layers;
 
 		std::unordered_map<std::string, D2DBitmap*> bitmaps;
@@ -68,10 +68,13 @@ namespace jaw {
 		void setSize(uint16_t x, uint16_t y) override;
 
 		Bitmap* LoadBmp(std::string filename) override;
-		bool DrawBmp(std::string filename, Point pt, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
+		bool DrawBmp(std::string filename, Point dest, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
+		bool DrawBmp(std::string filename, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) override;
+		bool DrawPartialBmp(std::string filename, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) override;
+		bool DrawPartialBmp(std::string filename, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
 
 		bool LoadFont(const Font& font) override;
-		bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font, uint32_t color = 0xFFFFFF) override;
+		bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font = Font(), uint32_t color = 0xFFFFFF) override;
 
 		void setBackgroundColor(uint32_t color) override;
 		void ClearLayer(uint8_t layer, uint32_t color = 0x000000, float alpha = 0.f) override;

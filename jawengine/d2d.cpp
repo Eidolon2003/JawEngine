@@ -195,7 +195,7 @@ LoadBmp_return1:
 	return p;
 }
 
-bool jaw::D2DGraphics::DrawBmp(std::string filename, Point pt, uint8_t layer, float scale, float alpha, bool interpolation) {
+bool jaw::D2DGraphics::DrawBmp(std::string filename, Rect dest, uint8_t layer, float alpha, bool interpolation) {
 	if (!bitmaps.count(filename))
 		if (!LoadBmp(filename)) return false;
 
@@ -207,13 +207,94 @@ bool jaw::D2DGraphics::DrawBmp(std::string filename, Point pt, uint8_t layer, fl
 	pBitmapTarget->DrawBitmap(
 		pBitmap->pBitmap,
 		D2D1::Rect(
-			(float)pt.x,
-			(float)pt.y,
-			pt.x + (pBitmap->x * scale),
-			pt.y + (pBitmap->y * scale)
+			(float)dest.tl.x,
+			(float)dest.tl.y,
+			(float)dest.br.x,
+			(float)dest.br.y
 		),
 		alpha,
 		interpolation ? D2D1_BITMAP_INTERPOLATION_MODE_LINEAR : D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR
+	);
+	return true;
+}
+
+bool jaw::D2DGraphics::DrawBmp(std::string filename, Point dest, uint8_t layer, float scale, float alpha, bool interpolation) {
+	if (!bitmaps.count(filename))
+		if (!LoadBmp(filename)) return false;
+
+	D2DBitmap* pBitmap = bitmaps[filename];
+
+	if (layer >= LAYERS) layer = LAYERS - 1;
+	auto pBitmapTarget = layers[layer];
+
+	pBitmapTarget->DrawBitmap(
+		pBitmap->pBitmap,
+		D2D1::Rect(
+			(float)dest.x,
+			(float)dest.y,
+			dest.x + (pBitmap->x * scale),
+			dest.y + (pBitmap->y * scale)
+		),
+		alpha,
+		interpolation ? D2D1_BITMAP_INTERPOLATION_MODE_LINEAR : D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR
+	);
+	return true;
+}
+
+bool jaw::D2DGraphics::DrawPartialBmp(std::string filename, Rect dest, Rect src, uint8_t layer, float alpha, bool interpolation) {
+	if (!bitmaps.count(filename))
+		if (!LoadBmp(filename)) return false;
+
+	D2DBitmap* pBitmap = bitmaps[filename];
+
+	if (layer >= LAYERS) layer = LAYERS - 1;
+	auto pBitmapTarget = layers[layer];
+
+	pBitmapTarget->DrawBitmap(
+		pBitmap->pBitmap,
+		D2D1::Rect(
+			(float)dest.tl.x,
+			(float)dest.tl.y,
+			(float)dest.br.x,
+			(float)dest.br.y
+		),
+		alpha,
+		interpolation ? D2D1_BITMAP_INTERPOLATION_MODE_LINEAR : D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
+		D2D1::Rect(
+			(float)src.tl.x,
+			(float)src.tl.y,
+			(float)src.br.x,
+			(float)src.br.y
+		)
+	);
+	return true;
+}
+
+bool jaw::D2DGraphics::DrawPartialBmp(std::string filename, Point dest, Rect src, uint8_t layer, float scale, float alpha, bool interpolation) {
+	if (!bitmaps.count(filename))
+		if (!LoadBmp(filename)) return false;
+
+	D2DBitmap* pBitmap = bitmaps[filename];
+
+	if (layer >= LAYERS) layer = LAYERS - 1;
+	auto pBitmapTarget = layers[layer];
+
+	pBitmapTarget->DrawBitmap(
+		pBitmap->pBitmap,
+		D2D1::Rect(
+			(float)dest.x,
+			(float)dest.y,
+			dest.x + (pBitmap->x * scale),
+			dest.y + (pBitmap->y * scale)
+		),
+		alpha,
+		interpolation ? D2D1_BITMAP_INTERPOLATION_MODE_LINEAR : D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
+		D2D1::Rect(
+			(float)src.tl.x,
+			(float)src.tl.y,
+			(float)src.br.x,
+			(float)src.br.y
+		)
 	);
 	return true;
 }

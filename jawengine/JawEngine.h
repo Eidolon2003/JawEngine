@@ -27,10 +27,17 @@ namespace jaw {
 
 	struct Point {
 		uint16_t x, y;
+
+		Point() { x = y = 0; }
+		Point(uint16_t x, uint16_t y) { this->x = x; this->y = y; }
 	};
 
 	struct Rect {
 		Point tl, br;
+
+		Rect() { tl = Point(); br = Point(); }
+		Rect(Point tl, Point br) { this->tl = tl; this->br = br; }
+		Rect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) { tl = Point(x1, y1); br = Point(x2, y2); }
 	};
 
 	class GraphicsInterface {
@@ -49,10 +56,13 @@ namespace jaw {
 		};
 
 		virtual Bitmap* LoadBmp(std::string filename) = 0;
-		virtual bool DrawBmp(std::string filename, Point pt, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawBmp(std::string filename, Point dest, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawBmp(std::string filename, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawPartialBmp(std::string filename, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawPartialBmp(std::string filename, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
 
 		virtual bool LoadFont(const Font&) = 0;
-		virtual bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font, uint32_t color = 0xFFFFFF) = 0;
+		virtual bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font = Font(), uint32_t color = 0xFFFFFF) = 0;
 
 		virtual void setBackgroundColor(uint32_t color) = 0;
 		virtual void ClearLayer(uint8_t layer, uint32_t color = 0x000000, float alpha = 0.f) = 0;
@@ -86,10 +96,10 @@ namespace jaw {
 		virtual Mouse getMouse() = 0;
 		virtual std::string getString() = 0;
 		virtual bool isKeyPressed(uint8_t) = 0;
-		virtual void BindKeyDown(uint8_t, std::function<void()>) = 0;
-		virtual void BindKeyUp(uint8_t, std::function<void()>) = 0;
-		virtual void BindClickDown(std::function<void(Mouse)>) = 0;
-		virtual void BindClickUp(std::function<void(Mouse)>) = 0;
+		virtual void BindKeyDown(uint8_t, const std::function<void()>&) = 0;
+		virtual void BindKeyUp(uint8_t, const std::function<void()>&) = 0;
+		virtual void BindClickDown(const std::function<void(Mouse)>&) = 0;
+		virtual void BindClickUp(const std::function<void(Mouse)>&) = 0;
 	};
 
 	class AppInterface;

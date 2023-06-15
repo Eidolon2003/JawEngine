@@ -27,18 +27,18 @@ bool jaw::Input::isKeyPressed(uint8_t vkc) {
 	return keybits[vkc >> 4] & 1 << (vkc & 0xF);
 }
 
-void jaw::Input::BindKeyDown(uint8_t vkc, std::function<void()> f) {
+void jaw::Input::BindKeyDown(uint8_t vkc, const std::function<void()>& f) {
 	downJumpTable[vkc] = f;
 }
 
-void jaw::Input::BindKeyUp(uint8_t vkc, std::function<void()> f) {
+void jaw::Input::BindKeyUp(uint8_t vkc, const std::function<void()>& f) {
 	upJumpTable[vkc] = f;
 }
 
-void jaw::Input::BindClickDown(std::function<void(Mouse)> f) {
+void jaw::Input::BindClickDown(const std::function<void(Mouse)>& f) {
 	clickDown = f;
 }
 
-void jaw::Input::BindClickUp(std::function<void(Mouse)> f) {
+void jaw::Input::BindClickUp(const std::function<void(Mouse)>& f) {
 	clickUp = f;
 }
