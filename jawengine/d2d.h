@@ -68,14 +68,14 @@ namespace jaw {
 		void setSize(uint16_t x, uint16_t y) override;
 
 		Bitmap* LoadBmp(std::string filename) override;
-		bool DrawBmp(std::string filename, uint16_t x, uint16_t y, uint8_t layer, float scale = 1.f, float opacity = 1.f, bool interpolation = false) override;
+		bool DrawBmp(std::string filename, Point pt, uint8_t layer, float scale = 1.f, float opacity = 1.f, bool interpolation = false) override;
 
-		bool LoadFont(Font& font) override;
-		bool DrawString(std::wstring str, uint16_t x, uint16_t y, uint8_t layer, Font& font, uint32_t color = 0xFFFFFF) override;
+		bool LoadFont(const Font& font) override;
+		bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font, uint32_t color = 0xFFFFFF) override;
 
 		void setBackgroundColor(uint32_t color) override;
 		void ClearLayer(uint8_t layer, uint32_t color = 0x000000, float alpha = 0.f) override;
-		void FillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color, uint8_t layer) override;
+		void FillRect(Rect dest, uint32_t color, uint8_t layer) override;
 	};
 
 };

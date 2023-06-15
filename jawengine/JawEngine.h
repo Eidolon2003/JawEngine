@@ -25,6 +25,14 @@ namespace jaw {
 		bool enableKeyRepeat = false;
 	};
 
+	struct Point {
+		uint16_t x, y;
+	};
+
+	struct Rect {
+		Point tl, br;
+	};
+
 	class GraphicsInterface {
 	public:
 		class Bitmap {
@@ -41,14 +49,14 @@ namespace jaw {
 		};
 
 		virtual Bitmap* LoadBmp(std::string filename) = 0;
-		virtual bool DrawBmp(std::string filename, uint16_t x, uint16_t y, uint8_t layer, float scale = 1.f, float opacity = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawBmp(std::string filename, Point pt, uint8_t layer, float scale = 1.f, float opacity = 1.f, bool interpolation = false) = 0;
 
-		virtual bool LoadFont(Font&) = 0;
-		virtual bool DrawString(std::wstring str, uint16_t x, uint16_t y, uint8_t layer, Font& font, uint32_t color = 0xFFFFFF) = 0;
+		virtual bool LoadFont(const Font&) = 0;
+		virtual bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font, uint32_t color = 0xFFFFFF) = 0;
 
 		virtual void setBackgroundColor(uint32_t color) = 0;
 		virtual void ClearLayer(uint8_t layer, uint32_t color = 0x000000, float alpha = 0.f) = 0;
-		virtual void FillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color, uint8_t layer) = 0;
+		virtual void FillRect(Rect dest, uint32_t color, uint8_t layer) = 0;
 	};
 
 	class SoundInterface {

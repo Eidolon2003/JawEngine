@@ -7,7 +7,7 @@ public:
 	jaw::GraphicsInterface::Font font;
 
 	void Init() override {
-		pGraphics->DrawString(L"Hello, world!", 10, 10, 0, font);
+		pGraphics->DrawString(L"Hello, world!", {{10,10}, {640,480}}, 0, font);
 	}
 
 	void Loop() override {

@@ -195,7 +195,7 @@ LoadBmp_return1:
 	return p;
 }
 
-bool jaw::D2DGraphics::DrawBmp(std::string filename, uint16_t x, uint16_t y, uint8_t layer, float scale, float opacity, bool interpolation) {
+bool jaw::D2DGraphics::DrawBmp(std::string filename, Point pt, uint8_t layer, float scale, float opacity, bool interpolation) {
 	if (!bitmaps.count(filename))
 		if (!LoadBmp(filename)) return false;
 
@@ -207,10 +207,10 @@ bool jaw::D2DGraphics::DrawBmp(std::string filename, uint16_t x, uint16_t y, uin
 	pBitmapTarget->DrawBitmap(
 		pBitmap->pBitmap,
 		D2D1::Rect(
-			(float)x,
-			(float)y,
-			x + (pBitmap->x * scale),
-			y + (pBitmap->y * scale)
+			(float)pt.x,
+			(float)pt.y,
+			pt.x + (pBitmap->x * scale),
+			pt.y + (pBitmap->y * scale)
 		),
 		opacity,
 		interpolation ? D2D1_BITMAP_INTERPOLATION_MODE_LINEAR : D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR
@@ -223,7 +223,7 @@ bool jaw::D2DGraphics::DrawBmp(std::string filename, uint16_t x, uint16_t y, uin
 	DIRECTWRITE
 */
 
-bool jaw::D2DGraphics::LoadFont(Font& font) {
+bool jaw::D2DGraphics::LoadFont(const Font& font) {
 	if (fonts.count(font)) return true;
 
 	IDWriteTextFormat* pFormat = nullptr;
@@ -243,7 +243,7 @@ bool jaw::D2DGraphics::LoadFont(Font& font) {
 	return true;
 }
 
-bool jaw::D2DGraphics::DrawString(std::wstring str, uint16_t x, uint16_t y, uint8_t layer, Font& font, uint32_t color) {
+bool jaw::D2DGraphics::DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font, uint32_t color) {
 	if (!fonts.count(font))
 		if (!LoadFont(font)) return false;
 
@@ -257,10 +257,10 @@ bool jaw::D2DGraphics::DrawString(std::wstring str, uint16_t x, uint16_t y, uint
 		(UINT32)str.length(),
 		fonts[font],
 		D2D1::Rect(
-			(float)x,
-			(float)y,
-			(float)sizeX,
-			(float)sizeY
+			(float)dest.tl.x,
+			(float)dest.tl.y,
+			(float)dest.br.x,
+			(float)dest.br.y
 		),
 		pSolidBrush
 	);
@@ -283,7 +283,7 @@ void jaw::D2DGraphics::ClearLayer(uint8_t layer, uint32_t color, float alpha) {
 	pBitmapTarget->Clear(D2D1::ColorF(color, alpha));
 }
 
-void jaw::D2DGraphics::FillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color, uint8_t layer) {
+void jaw::D2DGraphics::FillRect(Rect dest, uint32_t color, uint8_t layer) {
 	pSolidBrush->SetColor(D2D1::ColorF(color));
 
 	if (layer >= LAYERS) layer = LAYERS - 1;
@@ -291,10 +291,10 @@ void jaw::D2DGraphics::FillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t 
 
 	pBitmapTarget->FillRectangle(
 		D2D1::Rect(
-			(float)x1,
-			(float)y1,
-			(float)x2,
-			(float)y2
+			(float)dest.tl.x,
+			(float)dest.tl.y,
+			(float)dest.br.x,
+			(float)dest.br.y
 		),
 		pSolidBrush
 	);
