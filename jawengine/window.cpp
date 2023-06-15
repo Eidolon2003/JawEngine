@@ -91,12 +91,13 @@ void jaw::Window::ThreadFunk() {
 		wc.hInstance,								//Instance Handle
 		NULL										//Additional application data
 	);
+	ShowWindow(hWnd, SW_SHOW);
 
 	//Set the window's data to a pointer to this object so it can be accessed in WinProc
 	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)this);
 
 	this->pSound = nullptr;
-	this->pGraphics = new jaw::D2DGraphics(hWnd, sizeX, sizeY);
+	this->pGraphics = new jaw::D2DGraphics(hWnd, sizeX, sizeY, pEngine->getLocale());
 	this->pInput = new jaw::Input(repeat);
 
 	pApp->pWindow = this;
@@ -106,8 +107,6 @@ void jaw::Window::ThreadFunk() {
 	pApp->pInput = pInput;
 
 	pApp->Init();
-
-	ShowWindow(hWnd, SW_SHOW);
 
 	bool running = true;
 	while (running) {

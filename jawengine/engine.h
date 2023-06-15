@@ -15,9 +15,11 @@ namespace jaw {
 		void OpenWindow(AppInterface*, const AppProperties&) override;
 		void CloseWindow(AppInterface*) override;
 		void ShowCMD(bool) override;
+		std::wstring getLocale() override;
 
 	private:
 		std::unordered_map<AppInterface*, Window*> pWindows;
+		std::wstring locale;
 
 		friend void StartEngine(AppInterface*, const AppProperties&, const EngineProperties&);
 	};

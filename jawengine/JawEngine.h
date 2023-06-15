@@ -15,6 +15,7 @@ namespace jaw {
 
 	struct EngineProperties {
 		bool showCMD = false;
+		std::wstring locale = L"en-us";
 	};
 
 	struct AppProperties {
@@ -32,8 +33,18 @@ namespace jaw {
 			virtual std::pair<uint32_t, uint32_t> getSize() = 0;
 		};
 
+		struct Font {
+			std::wstring name = L"Consolas";
+			float size = 12.0f;
+			bool italic = false;
+			bool bold = false;
+		};
+
 		virtual Bitmap* LoadBmp(std::string filename) = 0;
-		virtual void DrawBmp(std::string filename, uint16_t x, uint16_t y, uint8_t layer, float scale = 1.f, float opacity = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawBmp(std::string filename, uint16_t x, uint16_t y, uint8_t layer, float scale = 1.f, float opacity = 1.f, bool interpolation = false) = 0;
+
+		virtual bool LoadFont(Font&) = 0;
+		virtual bool DrawString(std::wstring str, uint16_t x, uint16_t y, uint8_t layer, Font& font, uint32_t color = 0xFFFFFF) = 0;
 
 		virtual void setBackgroundColor(uint32_t color) = 0;
 		virtual void ClearLayer(uint8_t layer, uint32_t color = 0x000000, float alpha = 0.f) = 0;
@@ -79,6 +90,7 @@ namespace jaw {
 		virtual void OpenWindow(AppInterface*, const AppProperties&) = 0;
 		virtual void CloseWindow(AppInterface*) = 0;
 		virtual void ShowCMD(bool) = 0;
+		virtual std::wstring getLocale() = 0;
 	};
 
 	class WindowInterface {

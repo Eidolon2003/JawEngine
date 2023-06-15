@@ -17,11 +17,13 @@ if(WIN32)
 		winmm.lib
 		d2d1.lib
 		windowscodecs.lib
+		dwrite.lib
 	)
 
 	find_library(WINMM "winmm.lib")
 	find_library(D2D1 "d2d1.lib")
 	find_library(WINDOWSCODECS "windowscodecs.lib")
+	find_library(DWRITE "dwrite.lib")
 
 	add_custom_command(
 		TARGET mylib POST_BUILD
@@ -30,5 +32,6 @@ if(WIN32)
 			${WINMM}
 			${D2D1}
 			${WINDOWSCODECS}
+			${DWRITE}
 	)
 endif()

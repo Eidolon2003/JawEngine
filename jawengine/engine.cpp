@@ -21,6 +21,7 @@ void jaw::StartEngine(jaw::AppInterface* pApp, const jaw::AppProperties& appProp
 
 jaw::Engine::Engine(const EngineProperties& props) {
 	ShowCMD(props.showCMD);
+	this->locale = props.locale;
 }
 
 void jaw::Engine::OpenWindow(AppInterface* pApp, const AppProperties& props) {
@@ -41,4 +42,8 @@ void jaw::Engine::ShowCMD(bool show) {
 	else
 		ShowWindow(console, SW_HIDE);
 #endif
+}
+
+std::wstring jaw::Engine::getLocale() {
+	return locale;
 }

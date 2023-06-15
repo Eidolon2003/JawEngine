@@ -4,15 +4,14 @@
 class MyApp : public jaw::AppInterface {
 public:
 
-	static constexpr jaw::AppProperties properties = { 640, 480, 100, false };
+	jaw::GraphicsInterface::Font font;
 
 	void Init() override {
-		
+		pGraphics->DrawString(L"Hello, world!", 10, 10, 0, font);
 	}
 
 	void Loop() override {
-		auto mouse = pInput->getMouse();
-		pGraphics->DrawBmp("D:/Users/julia/Desktop/red.bmp", mouse.x, mouse.y, 1, 0.1f);
+		
 	}
 
 };
@@ -20,8 +19,15 @@ public:
 int main() {
 	jaw::EngineProperties ep;
 	ep.showCMD = false;
+	ep.locale = L"en-us";
 
-	jaw::StartEngine(new MyApp, MyApp::properties, ep);
+	jaw::AppProperties ap;
+	ap.sizeX = 640;
+	ap.sizeY = 480;
+	ap.framerate = 100;
+	ap.enableKeyRepeat = false;
+
+	jaw::StartEngine(new MyApp, ap, ep);
 
 	return 0;
 }

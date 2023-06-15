@@ -4,9 +4,10 @@
 	DIRECT2D SETUP
 */
 
-jaw::D2DGraphics::D2DGraphics(HWND hWnd, uint16_t x, uint16_t y) {
+jaw::D2DGraphics::D2DGraphics(HWND hWnd, uint16_t x, uint16_t y, std::wstring locale) {
 	setSize(x, y);
 	this->hWnd = hWnd;
+	this->locale = locale;
 	backgroundColor = 0x000000;
 	layers.clear();
 	bitmaps.clear();
@@ -29,12 +30,20 @@ jaw::D2DGraphics::D2DGraphics(HWND hWnd, uint16_t x, uint16_t y) {
 	for (int i = 0; i < LAYERS; i++) {
 		layers.push_back(nullptr);
 		pRenderTarget->CreateCompatibleRenderTarget(&layers[i]);
+		layers[i]->BeginDraw();
 	}
 
 	pSolidBrush = nullptr;
 	pRenderTarget->CreateSolidColorBrush(
 		D2D1::ColorF(D2D1::ColorF::Black),
 		&pSolidBrush
+	);
+
+	pDWFactory = nullptr;
+	DWriteCreateFactory(
+		DWRITE_FACTORY_TYPE_SHARED,
+		__uuidof(pDWFactory),
+		reinterpret_cast<IUnknown**>(&pDWFactory)
 	);
 }
 
@@ -45,6 +54,10 @@ jaw::D2DGraphics::~D2DGraphics() {
 	}
 	bitmaps.clear();
 
+	for (auto& [f, p] : fonts)
+		p->Release();
+
+	pDWFactory->Release();
 	pSolidBrush->Release();
 	for (auto x : layers) {
 		x->EndDraw();
@@ -182,9 +195,9 @@ LoadBmp_return1:
 	return p;
 }
 
-void jaw::D2DGraphics::DrawBmp(std::string filename, uint16_t x, uint16_t y, uint8_t layer, float scale, float opacity, bool interpolation) {
+bool jaw::D2DGraphics::DrawBmp(std::string filename, uint16_t x, uint16_t y, uint8_t layer, float scale, float opacity, bool interpolation) {
 	if (!bitmaps.count(filename))
-		if (!LoadBmp(filename)) return;
+		if (!LoadBmp(filename)) return false;
 
 	D2DBitmap* pBitmap = bitmaps[filename];
 
@@ -202,8 +215,58 @@ void jaw::D2DGraphics::DrawBmp(std::string filename, uint16_t x, uint16_t y, uin
 		opacity,
 		interpolation ? D2D1_BITMAP_INTERPOLATION_MODE_LINEAR : D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR
 	);
+	return true;
 }
 
+
+/*
+	DIRECTWRITE
+*/
+
+bool jaw::D2DGraphics::LoadFont(Font& font) {
+	if (fonts.count(font)) return true;
+
+	IDWriteTextFormat* pFormat = nullptr;
+	auto hr = pDWFactory->CreateTextFormat(
+		font.name.c_str(),
+		NULL,
+		font.bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_NORMAL,
+		font.italic ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL,
+		DWRITE_FONT_STRETCH_NORMAL,
+		font.size,
+		locale.c_str(),
+		&pFormat
+	);
+	if (!pFormat || !SUCCEEDED(hr)) return false;
+
+	fonts[font] = pFormat;
+	return true;
+}
+
+bool jaw::D2DGraphics::DrawString(std::wstring str, uint16_t x, uint16_t y, uint8_t layer, Font& font, uint32_t color) {
+	if (!fonts.count(font))
+		if (!LoadFont(font)) return false;
+
+	if (layer >= LAYERS) layer = LAYERS - 1;
+	auto pBitmapTarget = layers[layer];
+
+	pSolidBrush->SetColor(D2D1::ColorF(color));
+
+	pBitmapTarget->DrawText(
+		str.c_str(),
+		(UINT32)str.length(),
+		fonts[font],
+		D2D1::Rect(
+			(float)x,
+			(float)y,
+			(float)sizeX,
+			(float)sizeY
+		),
+		pSolidBrush
+	);
+
+	return true;
+}
 
 /*
 	GRAPHICS ROUTINES
