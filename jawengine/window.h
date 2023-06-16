@@ -23,10 +23,12 @@ namespace jaw {
 
 		std::chrono::duration<double, std::milli> getFrametime() override;
 		std::chrono::duration<uint64_t, std::milli> getLifetime() override;
+		void RegisterSprite(std::shared_ptr<Sprite>) override;
 
 	private:
 		void ThreadFunk();
 		bool FrameLimiter();
+		void HandleSprites();
 
 		uint16_t sizeX;
 		uint16_t sizeY;
@@ -39,6 +41,8 @@ namespace jaw {
 		Input* pInput;
 		EngineInterface* pEngine;
 		AppInterface* pApp;
+
+		std::vector<std::shared_ptr<Sprite>> sprites;
 
 		std::atomic<bool> finished;
 

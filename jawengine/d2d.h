@@ -72,6 +72,8 @@ namespace jaw {
 		bool DrawBmp(std::string filename, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) override;
 		bool DrawPartialBmp(std::string filename, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) override;
 		bool DrawPartialBmp(std::string filename, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
+		bool DrawSprite(Sprite* sprite) override;
+		bool DrawSprite(const Sprite& sprite) override;
 
 		bool LoadFont(const Font& font) override;
 		bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font = Font(), uint32_t color = 0xFFFFFF) override;

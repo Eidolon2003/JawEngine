@@ -10,6 +10,7 @@
 #include <chrono>
 #include <functional>
 #include <algorithm>
+#include <memory>
 
 namespace jaw {
 
@@ -26,10 +27,10 @@ namespace jaw {
 	};
 
 	struct Point {
-		uint16_t x, y;
+		float x, y;
 
 		Point() { x = y = 0; }
-		Point(uint16_t x, uint16_t y) { this->x = x; this->y = y; }
+		Point(float x, float y) { this->x = x; this->y = y; }
 	};
 
 	struct Rect {
@@ -37,7 +38,37 @@ namespace jaw {
 
 		Rect() { tl = Point(); br = Point(); }
 		Rect(Point tl, Point br) { this->tl = tl; this->br = br; }
-		Rect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) { tl = Point(x1, y1); br = Point(x2, y2); }
+		Rect(float x1, float y1, float x2, float y2) { tl = Point(x1, y1); br = Point(x2, y2); }
+	};
+
+	struct Font {
+		std::wstring name = L"Consolas";
+		float size = 12.0f;
+		bool italic = false;
+		bool bold = false;
+	};
+
+	class Sprite {
+	public:
+		Point pos, vel;
+		uint8_t layer;
+		std::string bmp;
+		Rect src;
+		float scale;
+		uint8_t frame;
+		bool dead, animated, hasLifetime;
+		std::chrono::duration<double, std::milli> lifetime;
+
+		Sprite() {
+			pos = vel = Point();
+			layer = 1;
+			bmp = "";
+			src = Rect();
+			scale = 1.f;
+			frame = 0;
+			dead = animated = hasLifetime = false;
+			lifetime = std::chrono::milliseconds(0);
+		}
 	};
 
 	class GraphicsInterface {
@@ -48,18 +79,13 @@ namespace jaw {
 			virtual std::pair<uint32_t, uint32_t> getSize() = 0;
 		};
 
-		struct Font {
-			std::wstring name = L"Consolas";
-			float size = 12.0f;
-			bool italic = false;
-			bool bold = false;
-		};
-
 		virtual Bitmap* LoadBmp(std::string filename) = 0;
 		virtual bool DrawBmp(std::string filename, Point dest, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
 		virtual bool DrawBmp(std::string filename, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
 		virtual bool DrawPartialBmp(std::string filename, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
 		virtual bool DrawPartialBmp(std::string filename, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawSprite(Sprite* sprite) = 0;
+		virtual bool DrawSprite(const Sprite& sprite) = 0;
 
 		virtual bool LoadFont(const Font&) = 0;
 		virtual bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font = Font(), uint32_t color = 0xFFFFFF) = 0;
@@ -115,6 +141,7 @@ namespace jaw {
 	public:
 		virtual std::chrono::duration<double, std::milli> getFrametime() = 0;
 		virtual std::chrono::duration<uint64_t, std::milli> getLifetime() = 0;
+		virtual void RegisterSprite(std::shared_ptr<Sprite>) = 0;
 	};
 
 	class AppInterface {

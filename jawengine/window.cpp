@@ -120,6 +120,7 @@ void jaw::Window::ThreadFunk() {
 		if (FrameLimiter()) {
 			pGraphics->BeginFrame();
 			pApp->Loop();
+			HandleSprites();
 			pGraphics->EndFrame();
 			pInput->Reset();
 		}
@@ -219,3 +220,42 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 }
 
 #endif
+
+
+/*
+	SPRITES
+*/
+
+void jaw::Window::RegisterSprite(std::shared_ptr<Sprite> spr) {
+	sprites.push_back(spr);
+}
+
+void jaw::Window::HandleSprites() {
+	for (auto& spr : sprites) {
+		if (spr->dead) continue;
+
+		if (spr->hasLifetime) {
+			if (spr->lifetime < getFrametime()) {
+				spr->lifetime = std::chrono::milliseconds(0);
+				spr->dead = true;
+				continue;
+			}
+			else {
+				spr->lifetime -= getFrametime();
+			}
+		}
+
+		spr->pos.x += spr->vel.x * (float)getFrametime().count() / 100;
+		spr->pos.y += spr->vel.y * (float)getFrametime().count() / 100;
+
+		pGraphics->DrawSprite(spr.get());
+	}
+
+	auto itr = sprites.begin();
+	while (itr != sprites.end()) {
+		if ((*itr)->dead)
+			sprites.erase(itr);
+		else
+			itr++;
+	}
+}
