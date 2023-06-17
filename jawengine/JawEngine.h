@@ -30,6 +30,8 @@ namespace jaw {
 
 		Point() { x = y = 0; }
 		Point(uint16_t x, uint16_t y) { this->x = x; this->y = y; }
+		
+		bool operator==(const Point& rhs) { return x == rhs.x && y == rhs.y; }
 	};
 
 	struct Rect {
@@ -38,6 +40,8 @@ namespace jaw {
 		Rect() { tl = Point(); br = Point(); }
 		Rect(Point tl, Point br) { this->tl = tl; this->br = br; }
 		Rect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) { tl = Point(x1, y1); br = Point(x2, y2); }
+		
+		bool operator==(const Rect& rhs) { return tl == rhs.tl && br == rhs.br; }
 	};
 
 	struct Font {
