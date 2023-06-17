@@ -6,6 +6,7 @@
 
 #include <atomic>
 #include <thread>
+#include <set>
 
 #if defined WINDOWS
 #include <Windows.h>
@@ -23,7 +24,8 @@ namespace jaw {
 
 		std::chrono::duration<double, std::milli> getFrametime() override;
 		std::chrono::duration<uint64_t, std::milli> getLifetime() override;
-		void RegisterSprite(std::shared_ptr<Sprite>) override;
+		void RegisterSprite(Sprite*) override;
+		void DeleteSprite(Sprite*) override;
 
 	private:
 		void ThreadFunk();
@@ -42,7 +44,7 @@ namespace jaw {
 		EngineInterface* pEngine;
 		AppInterface* pApp;
 
-		std::vector<std::shared_ptr<Sprite>> sprites;
+		std::set<Sprite*> sprites;
 
 		std::atomic<bool> finished;
 

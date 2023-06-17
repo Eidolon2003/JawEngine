@@ -20,6 +20,9 @@ jaw::Window::~Window() {
 	delete pInput;
 	delete pGraphics;
 	delete pApp;
+
+	for (auto spr : sprites) delete spr;
+	sprites.clear();
 }
 
 bool jaw::Window::isClosed() {
@@ -226,18 +229,24 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	SPRITES
 */
 
-void jaw::Window::RegisterSprite(std::shared_ptr<Sprite> spr) {
-	sprites.push_back(spr);
+void jaw::Window::RegisterSprite(Sprite* spr) {
+	sprites.insert(spr);
+}
+
+void jaw::Window::DeleteSprite(Sprite* spr) {
+	delete spr;
+	sprites.erase(spr);
 }
 
 void jaw::Window::HandleSprites() {
-	for (auto& spr : sprites) {
-		if (spr->dead) continue;
+	auto itr = sprites.begin();
+	while (itr != sprites.end()) {
+		auto spr = *itr;
 
 		if (spr->hasLifetime) {
-			if (spr->lifetime < getFrametime()) {
-				spr->lifetime = std::chrono::milliseconds(0);
-				spr->dead = true;
+			if (spr->lifetime <= getFrametime()) {
+				delete *itr;
+				sprites.erase(itr);
 				continue;
 			}
 			else {
@@ -245,17 +254,10 @@ void jaw::Window::HandleSprites() {
 			}
 		}
 
-		spr->pos.x += spr->vel.x * (float)getFrametime().count() / 100;
-		spr->pos.y += spr->vel.y * (float)getFrametime().count() / 100;
+		spr->x += spr->dx * (float)getFrametime().count() / 100;
+		spr->y += spr->dy * (float)getFrametime().count() / 100;
 
-		pGraphics->DrawSprite(spr.get());
-	}
-
-	auto itr = sprites.begin();
-	while (itr != sprites.end()) {
-		if ((*itr)->dead)
-			sprites.erase(itr);
-		else
-			itr++;
+		pGraphics->DrawSprite(spr);
+		itr++;
 	}
 }

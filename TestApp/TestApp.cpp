@@ -4,16 +4,16 @@
 class MyApp : public jaw::AppInterface {
 public:
 
-	std::shared_ptr<jaw::Sprite> testSprite;
+	jaw::Sprite* testSprite = nullptr;
 
 	void Init() override {
 		pGraphics->DrawString(L"Hello, world!", jaw::Rect(10,10,640,480), 0);
 		pGraphics->DrawBmp("D:/Users/julia/Desktop/red.bmp", {300,10}, 0, 0.1f);
 
-		testSprite = std::make_shared<jaw::Sprite>();
+		testSprite = new jaw::Sprite;
 		testSprite->bmp = "D:/Users/julia/Desktop/red.bmp";
-		testSprite->src = jaw::Rect(0, 0, 50, 50);
-		testSprite->vel = jaw::Point(0, 1);
+		testSprite->src = jaw::Rect(100, 100, 200, 200);
+		testSprite->dy = 1;
 		pWindow->RegisterSprite(testSprite);
 	}
 

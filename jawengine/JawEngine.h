@@ -10,7 +10,6 @@
 #include <chrono>
 #include <functional>
 #include <algorithm>
-#include <memory>
 
 namespace jaw {
 
@@ -27,10 +26,10 @@ namespace jaw {
 	};
 
 	struct Point {
-		float x, y;
+		uint16_t x, y;
 
 		Point() { x = y = 0; }
-		Point(float x, float y) { this->x = x; this->y = y; }
+		Point(uint16_t x, uint16_t y) { this->x = x; this->y = y; }
 	};
 
 	struct Rect {
@@ -38,7 +37,7 @@ namespace jaw {
 
 		Rect() { tl = Point(); br = Point(); }
 		Rect(Point tl, Point br) { this->tl = tl; this->br = br; }
-		Rect(float x1, float y1, float x2, float y2) { tl = Point(x1, y1); br = Point(x2, y2); }
+		Rect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) { tl = Point(x1, y1); br = Point(x2, y2); }
 	};
 
 	struct Font {
@@ -48,27 +47,27 @@ namespace jaw {
 		bool bold = false;
 	};
 
-	class Sprite {
-	public:
-		Point pos, vel;
+	struct Sprite {
+		float x, y, dx, dy;
 		uint8_t layer;
 		std::string bmp;
 		Rect src;
 		float scale;
-		uint8_t frame;
-		bool dead, animated, hasLifetime;
+		bool hidden, hasLifetime;
 		std::chrono::duration<double, std::milli> lifetime;
 
 		Sprite() {
-			pos = vel = Point();
+			x = y = dx = dy = 0;
 			layer = 1;
 			bmp = "";
 			src = Rect();
 			scale = 1.f;
-			frame = 0;
-			dead = animated = hasLifetime = false;
+			hidden = hasLifetime = false;
 			lifetime = std::chrono::milliseconds(0);
 		}
+
+		Point getPoint() const { return Point((uint16_t)x, (uint16_t)y); }
+		void setPoint(Point pos) { x = pos.x; y = pos.y; }
 	};
 
 	class GraphicsInterface {
@@ -141,7 +140,8 @@ namespace jaw {
 	public:
 		virtual std::chrono::duration<double, std::milli> getFrametime() = 0;
 		virtual std::chrono::duration<uint64_t, std::milli> getLifetime() = 0;
-		virtual void RegisterSprite(std::shared_ptr<Sprite>) = 0;
+		virtual void RegisterSprite(Sprite*) = 0;
+		virtual void DeleteSprite(Sprite*) = 0;
 	};
 
 	class AppInterface {
