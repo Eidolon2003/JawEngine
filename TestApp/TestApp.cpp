@@ -4,17 +4,13 @@
 class MyApp : public jaw::AppInterface {
 public:
 
-	jaw::Sprite* testSprite = nullptr;
-
 	void Init() override {
-		pGraphics->DrawString(L"Hello, world!", jaw::Rect(10,10,640,480), 0);
-		pGraphics->DrawBmp("D:/Users/julia/Desktop/red.bmp", {300,10}, 0, 0.1f);
+		auto font = jaw::Font();
+		font.alignment = jaw::Font::Alignment::CENTER;
+		font.italic = true;
+		font.bold = true;
 
-		testSprite = new jaw::Sprite;
-		testSprite->bmp = "D:/Users/julia/Desktop/red.bmp";
-		testSprite->src = jaw::Rect(100, 100, 200, 200);
-		testSprite->dy = 1;
-		pWindow->RegisterSprite(testSprite);
+		pGraphics->DrawString(L"Testing", jaw::Rect(0, 0, 640, 480), 0, font);
 	}
 
 	void Loop() override {

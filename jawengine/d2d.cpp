@@ -337,6 +337,20 @@ bool jaw::D2DGraphics::LoadFont(const Font& font) {
 	);
 	if (!pFormat || !SUCCEEDED(hr)) return false;
 
+	switch (font.alignment) {
+	case jaw::Font::LEFT:
+		pFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+		break;
+
+	case jaw::Font::RIGHT:
+		pFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+		break;
+
+	case jaw::Font::CENTER:
+		pFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+		break;
+	}
+
 	fonts[font] = pFormat;
 	return true;
 }

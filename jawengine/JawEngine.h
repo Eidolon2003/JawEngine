@@ -45,10 +45,13 @@ namespace jaw {
 	};
 
 	struct Font {
+		enum Alignment { CENTER, LEFT, RIGHT };
+
 		std::wstring name = L"Consolas";
 		float size = 12.0f;
 		bool italic = false;
 		bool bold = false;
+		Alignment alignment = LEFT;
 	};
 
 	struct Sprite {
