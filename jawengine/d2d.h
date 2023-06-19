@@ -49,6 +49,9 @@ namespace jaw {
 				if (lhs.italic != rhs.italic)
 					return lhs.italic < rhs.italic;
 
+				if (lhs.alignment != rhs.alignment)
+					return lhs.alignment < rhs.alignment;
+
 				return lhs.size < rhs.size;
 			}
 		};
