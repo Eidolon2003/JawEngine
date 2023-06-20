@@ -243,14 +243,26 @@ void jaw::Window::HandleSprites() {
 	while (itr != sprites.end()) {
 		auto spr = *itr;
 
-		if (spr->hasLifetime) {
+		if (spr->lifetime.count() != 0) {
 			if (spr->lifetime <= getFrametime()) {
-				delete *itr;
-				sprites.erase(itr);
+				delete spr;
+				sprites.erase(itr++);
 				continue;
 			}
 			else {
 				spr->lifetime -= getFrametime();
+			}
+		}
+
+		if (spr->animationTiming.count() != 0) {
+			spr->animationCounter += getFrametime();
+			if (spr->animationCounter >= spr->animationTiming) {
+				spr->animationCounter = std::chrono::milliseconds(0);
+
+				uint16_t width = spr->src.br.x - spr->src.tl.x;
+				uint16_t numFrames = spr->bmp->getSize().x / width;
+				spr->frame++;
+				if (spr->frame > numFrames) spr->frame = 0;
 			}
 		}
 

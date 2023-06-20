@@ -29,6 +29,7 @@ jaw::D2DGraphics::D2DGraphics(HWND hWnd, uint16_t x, uint16_t y, std::wstring lo
 
 	for (int i = 0; i < LAYERS; i++) {
 		layers.push_back(nullptr);
+		layersChanged.push_back(false);
 		pRenderTarget->CreateCompatibleRenderTarget(&layers[i]);
 		layers[i]->BeginDraw();
 	}
@@ -56,6 +57,7 @@ jaw::D2DGraphics::~D2DGraphics() {
 
 	for (auto& [f, p] : fonts)
 		p->Release();
+	fonts.clear();
 
 	pDWFactory->Release();
 	pSolidBrush->Release();
@@ -79,6 +81,7 @@ void jaw::D2DGraphics::BeginFrame() {
 	for (int i = 1; i < LAYERS; i++) {
 		layers[i]->BeginDraw();
 		layers[i]->Clear(D2D1::ColorF(0, 0, 0, 0));
+		layersChanged[i] = false;
 	}
 }
 
@@ -89,10 +92,14 @@ void jaw::D2DGraphics::EndFrame() {
 	pRenderTarget->BeginDraw();
 	pRenderTarget->Clear(D2D1::ColorF(backgroundColor));
 
-	for (auto x : layers) {
+	for (int i = 0; i < LAYERS; i++) {
+		//always draw layer zero
+		if (i && !layersChanged[i]) continue;
+
 		ID2D1Bitmap* pBitmap = nullptr;
-		x->GetBitmap(&pBitmap);
+		layers[i]->GetBitmap(&pBitmap);
 		if (!pBitmap) continue;
+
 		pRenderTarget->DrawBitmap(
 			pBitmap,
 			D2D1::Rect(
@@ -125,11 +132,11 @@ std::string jaw::D2DGraphics::D2DBitmap::getName() {
 	return name;
 }
 
-std::pair<uint32_t, uint32_t> jaw::D2DGraphics::D2DBitmap::getSize() {
-	return std::pair<uint32_t, uint32_t>(x, y);
+jaw::Point jaw::D2DGraphics::D2DBitmap::getSize() {
+	return jaw::Point(x, y);
 }
 
-jaw::D2DGraphics::Bitmap* jaw::D2DGraphics::LoadBmp(std::string filename) {
+jaw::Bitmap* jaw::D2DGraphics::LoadBmp(std::string filename) {
 	if (bitmaps.count(filename)) return bitmaps[filename];
 
 	IWICImagingFactory* pIWICFactory = nullptr;
@@ -215,6 +222,8 @@ bool jaw::D2DGraphics::DrawBmp(std::string filename, Rect dest, uint8_t layer, f
 		alpha,
 		interpolation ? D2D1_BITMAP_INTERPOLATION_MODE_LINEAR : D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR
 	);
+
+	layersChanged[layer] = true;
 	return true;
 }
 
@@ -238,6 +247,8 @@ bool jaw::D2DGraphics::DrawBmp(std::string filename, Point dest, uint8_t layer, 
 		alpha,
 		interpolation ? D2D1_BITMAP_INTERPOLATION_MODE_LINEAR : D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR
 	);
+
+	layersChanged[layer] = true;
 	return true;
 }
 
@@ -267,6 +278,8 @@ bool jaw::D2DGraphics::DrawPartialBmp(std::string filename, Rect dest, Rect src,
 			(float)src.br.y
 		)
 	);
+
+	layersChanged[layer] = true;
 	return true;
 }
 
@@ -287,15 +300,21 @@ bool jaw::D2DGraphics::DrawSprite(Sprite* sprite) {
 
 bool jaw::D2DGraphics::DrawSprite(const Sprite& sprite) {
 	if (sprite.hidden) return true;
+	if (!sprite.bmp) return true;
 
-	if (!bitmaps.count(sprite.bmp))
-		if (!LoadBmp(sprite.bmp)) return false;
+	if (!bitmaps.count(sprite.bmp->getName()))
+		if (!LoadBmp(sprite.bmp->getName())) return false;
 
-	D2DBitmap* pBitmap = bitmaps[sprite.bmp];
+	D2DBitmap* pBitmap = bitmaps[sprite.bmp->getName()];
 
 	auto layer = sprite.layer;
 	if (layer >= LAYERS) layer = LAYERS - 1;
 	auto pBitmapTarget = layers[layer];
+
+	auto src = sprite.src;
+	uint16_t width = src.br.x - src.tl.x;
+	src.tl.x += width * sprite.frame;
+	src.br.x += width * sprite.frame;
 
 	pBitmapTarget->DrawBitmap(
 		pBitmap->pBitmap,
@@ -308,12 +327,14 @@ bool jaw::D2DGraphics::DrawSprite(const Sprite& sprite) {
 		1.f,
 		D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
 		D2D1::Rect(
-			(float)sprite.src.tl.x,
-			(float)sprite.src.tl.y,
-			(float)sprite.src.br.x,
-			(float)sprite.src.br.y
+			(float)src.tl.x,
+			(float)src.tl.y,
+			(float)src.br.x,
+			(float)src.br.y
 		)
 	);
+
+	layersChanged[layer] = true;
 	return true;
 }
 
@@ -337,7 +358,7 @@ bool jaw::D2DGraphics::LoadFont(const Font& font) {
 	);
 	if (!pFormat || !SUCCEEDED(hr)) return false;
 
-	switch (font.alignment) {
+	switch (font.align) {
 	case jaw::Font::LEFT:
 		pFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 		break;
@@ -377,6 +398,7 @@ bool jaw::D2DGraphics::DrawString(std::wstring str, Rect dest, uint8_t layer, co
 		pSolidBrush
 	);
 
+	layersChanged[layer] = true;
 	return true;
 }
 
@@ -393,6 +415,8 @@ void jaw::D2DGraphics::ClearLayer(uint8_t layer, uint32_t color, float alpha) {
 	auto pBitmapTarget = layers[layer];
 
 	pBitmapTarget->Clear(D2D1::ColorF(color, alpha));
+
+	layersChanged[layer] = true;
 }
 
 void jaw::D2DGraphics::FillRect(Rect dest, uint32_t color, uint8_t layer) {
@@ -410,4 +434,6 @@ void jaw::D2DGraphics::FillRect(Rect dest, uint32_t color, uint8_t layer) {
 		),
 		pSolidBrush
 	);
+
+	layersChanged[layer] = true;
 }

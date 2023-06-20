@@ -51,26 +51,35 @@ namespace jaw {
 		float size = 12.0f;
 		bool italic = false;
 		bool bold = false;
-		Alignment alignment = LEFT;
+		Alignment align = LEFT;
 	};
 
+	class Bitmap {
+	public:
+		virtual std::string getName() = 0;
+		virtual Point getSize() = 0;
+	};
+	
 	struct Sprite {
 		float x, y, dx, dy;
-		uint8_t layer;
-		std::string bmp;
-		Rect src;
 		float scale;
-		bool hidden, hasLifetime;
-		std::chrono::duration<double, std::milli> lifetime;
+		Bitmap* bmp;
+		Rect src;
+		uint8_t layer, frame;
+		bool hidden;
+		std::chrono::duration<float, std::milli> lifetime;
+		std::chrono::duration<float, std::milli> animationTiming;
+		std::chrono::duration<float, std::milli> animationCounter;
 
 		Sprite() {
 			x = y = dx = dy = 0;
+			frame = 0;
 			layer = 1;
-			bmp = "";
+			bmp = nullptr;
 			src = Rect();
 			scale = 1.f;
-			hidden = hasLifetime = false;
-			lifetime = std::chrono::milliseconds(0);
+			hidden = false;
+			lifetime = animationTiming = animationCounter = std::chrono::milliseconds(0);
 		}
 
 		Point getPoint() const { return Point((uint16_t)x, (uint16_t)y); }
@@ -79,12 +88,6 @@ namespace jaw {
 
 	class GraphicsInterface {
 	public:
-		class Bitmap {
-		public:
-			virtual std::string getName() = 0;
-			virtual std::pair<uint32_t, uint32_t> getSize() = 0;
-		};
-
 		virtual Bitmap* LoadBmp(std::string filename) = 0;
 		virtual bool DrawBmp(std::string filename, Point dest, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
 		virtual bool DrawBmp(std::string filename, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;

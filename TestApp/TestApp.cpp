@@ -5,16 +5,25 @@ class MyApp : public jaw::AppInterface {
 public:
 
 	void Init() override {
-		auto font = jaw::Font();
-		font.alignment = jaw::Font::Alignment::CENTER;
-		font.italic = true;
-		font.bold = true;
+		auto testSprite = new jaw::Sprite();
+		testSprite->bmp = pGraphics->LoadBmp("D:/Users/julia/Desktop/red.bmp");
+		testSprite->src = jaw::Rect(0, 0, 50, 50);
+		testSprite->animationTiming = std::chrono::milliseconds(50);
+		testSprite->lifetime = std::chrono::seconds(5);
+		pWindow->RegisterSprite(testSprite);
 
-		pGraphics->DrawString(L"Testing", jaw::Rect(0, 0, 640, 480), 0, font);
+		testSprite = new jaw::Sprite();
+		testSprite->bmp = pGraphics->LoadBmp("D:/Users/julia/Desktop/red.bmp");
+		testSprite->src = jaw::Rect(0, 0, 50, 50);
+		testSprite->y = 100;
+		testSprite->dx = 5;
+		pWindow->RegisterSprite(testSprite);
+
+		pGraphics->DrawBmp("D:/Users/julia/Desktop/red.bmp", jaw::Point(200, 200), 0);
 	}
 
 	void Loop() override {
-
+		
 	}
 
 };

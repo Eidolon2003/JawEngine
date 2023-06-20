@@ -22,8 +22,8 @@ namespace jaw {
 			std::string name;
 			std::string getName() override;
 
-			uint32_t x, y;
-			std::pair<uint32_t, uint32_t> getSize() override;
+			uint16_t x, y;
+			Point getSize() override;
 		};
 
 	private:
@@ -32,8 +32,9 @@ namespace jaw {
 		ID2D1SolidColorBrush* pSolidBrush;
 		IDWriteFactory* pDWFactory;
 
-		static constexpr uint8_t LAYERS = 8;
+		static constexpr uint8_t LAYERS = 16;
 		std::vector<ID2D1BitmapRenderTarget*> layers;
+		std::vector<bool> layersChanged;
 
 		std::unordered_map<std::string, D2DBitmap*> bitmaps;
 
@@ -49,8 +50,8 @@ namespace jaw {
 				if (lhs.italic != rhs.italic)
 					return lhs.italic < rhs.italic;
 
-				if (lhs.alignment != rhs.alignment)
-					return lhs.alignment < rhs.alignment;
+				if (lhs.align != rhs.align)
+					return lhs.align < rhs.align;
 
 				return lhs.size < rhs.size;
 			}
