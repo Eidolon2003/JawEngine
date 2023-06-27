@@ -4,8 +4,9 @@
 	DIRECT2D SETUP
 */
 
-jaw::D2DGraphics::D2DGraphics(HWND hWnd, uint16_t x, uint16_t y, std::wstring locale) {
+jaw::D2DGraphics::D2DGraphics(HWND hWnd, uint16_t x, uint16_t y, float scale, std::wstring locale) {
 	setSize(x, y);
+	this->scale = scale;
 	this->hWnd = hWnd;
 	this->locale = locale;
 	backgroundColor = 0x000000;
@@ -21,7 +22,7 @@ jaw::D2DGraphics::D2DGraphics(HWND hWnd, uint16_t x, uint16_t y, std::wstring lo
 		),
 		D2D1::HwndRenderTargetProperties(
 			hWnd,
-			D2D1::SizeU(sizeX, sizeY),
+			D2D1::SizeU(ScaleUp(sizeX, scale), ScaleUp(sizeY, scale)),
 			D2D1_PRESENT_OPTIONS_IMMEDIATELY
 		),
 		&pRenderTarget
@@ -30,7 +31,7 @@ jaw::D2DGraphics::D2DGraphics(HWND hWnd, uint16_t x, uint16_t y, std::wstring lo
 	for (int i = 0; i < LAYERS; i++) {
 		layers.push_back(nullptr);
 		layersChanged.push_back(false);
-		pRenderTarget->CreateCompatibleRenderTarget(&layers[i]);
+		pRenderTarget->CreateCompatibleRenderTarget(D2D1::SizeF(sizeX, sizeY), &layers[i]);
 		layers[i]->BeginDraw();
 	}
 
@@ -92,6 +93,9 @@ void jaw::D2DGraphics::EndFrame() {
 	pRenderTarget->BeginDraw();
 	pRenderTarget->Clear(D2D1::ColorF(backgroundColor));
 
+	D2D1_BITMAP_INTERPOLATION_MODE mode = D2D1_BITMAP_INTERPOLATION_MODE_LINEAR;
+	if (ceilf(scale) == scale) mode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
+
 	for (int i = 0; i < LAYERS; i++) {
 		//always draw layer zero
 		if (i && !layersChanged[i]) continue;
@@ -105,11 +109,11 @@ void jaw::D2DGraphics::EndFrame() {
 			D2D1::Rect(
 				0.f,
 				0.f,
-				(float)sizeX,
-				(float)sizeY
+				(float)ScaleUp(sizeX, scale),
+				(float)ScaleUp(sizeY, scale)
 			),
 			1.0,
-			D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR
+			mode
 		);
 		pBitmap->Release();
 	}

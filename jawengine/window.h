@@ -32,10 +32,7 @@ namespace jaw {
 		bool FrameLimiter();
 		void HandleSprites();
 
-		uint16_t sizeX;
-		uint16_t sizeY;
-		double framerate;
-		bool repeat;
+		AppProperties properties;
 		std::chrono::high_resolution_clock::time_point start, thisFrame, lastFrame;
 
 		SoundInterface* pSound;

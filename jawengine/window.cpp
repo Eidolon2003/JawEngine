@@ -8,10 +8,7 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 	this->pApp = pApp;
 	this->pEngine = pEngine;
 
-	framerate = props.framerate;
-	sizeX = props.sizeX;
-	sizeY = props.sizeY;
-	repeat = props.enableKeyRepeat;
+	properties = props;
 
 	std::thread(&Window::ThreadFunk, this).detach();
 }
@@ -32,11 +29,11 @@ bool jaw::Window::isClosed() {
 bool jaw::Window::FrameLimiter() {
 	using namespace std::chrono;
 
-	if (framerate == 0) return true;
+	if (properties.framerate == 0) return true;
 
 	auto now = high_resolution_clock::now();
 	duration<uint64_t, std::nano> frametime = now - thisFrame;
-	duration<uint64_t, std::nano> target = duration<uint64_t, std::nano>((uint64_t)(1000000000 / framerate));
+	duration<uint64_t, std::nano> target = duration<uint64_t, std::nano>((uint64_t)(1000000000 / properties.framerate));
 
 	if (frametime + milliseconds(1) < target)
 		std::this_thread::sleep_until(thisFrame + target - milliseconds(1));
@@ -57,7 +54,6 @@ std::chrono::duration <uint64_t, std::milli> jaw::Window::getLifetime() {
 	return duration_cast<duration<uint64_t, std::milli>>(thisFrame - start);
 }
 
-
 #if defined WINDOWS
 
 void jaw::Window::ThreadFunk() {
@@ -65,7 +61,12 @@ void jaw::Window::ThreadFunk() {
 
 	constexpr DWORD STYLE = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 
-	RECT rect = { 0, 0, sizeX, sizeY };
+	RECT rect = { 
+		0,
+		0,
+		ScaleUp(properties.sizeX, properties.scale),
+		ScaleUp(properties.sizeY, properties.scale)
+	};
 	AdjustWindowRect(&rect, STYLE, false);
 
 	wc.cbSize = sizeof(wc);
@@ -100,8 +101,8 @@ void jaw::Window::ThreadFunk() {
 	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)this);
 
 	this->pSound = nullptr;
-	this->pGraphics = new jaw::D2DGraphics(hWnd, sizeX, sizeY, pEngine->getLocale());
-	this->pInput = new jaw::Input(repeat);
+	this->pGraphics = new jaw::D2DGraphics(hWnd, properties.sizeX, properties.sizeY, properties.scale, pEngine->getLocale());
+	this->pInput = new jaw::Input(properties.enableKeyRepeat);
 
 	pApp->pWindow = this;
 	pApp->pEngine = pEngine;
@@ -147,8 +148,8 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	case WM_XBUTTONDOWN: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouse.x = max(0, *(short*)&x);
-		_this->pInput->mouse.y = max(0, *(short*)&y);
+		_this->pInput->mouse.x = ScaleDown(max(0, *(short*)&x), _this->properties.scale);
+		_this->pInput->mouse.y = ScaleDown(max(0, *(short*)&y), _this->properties.scale);
 		_this->pInput->mouse.flags = wParam & 0xFF;
 
 		if (_this->pInput->clickDown)
@@ -163,8 +164,8 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	case WM_XBUTTONUP: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouse.x = max(0, *(short*)&x);
-		_this->pInput->mouse.y = max(0, *(short*)&y);
+		_this->pInput->mouse.x = ScaleDown(max(0, *(short*)&x), _this->properties.scale);
+		_this->pInput->mouse.y = ScaleDown(max(0, *(short*)&y), _this->properties.scale);
 		_this->pInput->mouse.flags = wParam & 0xFF;
 
 		if (_this->pInput->clickUp)
@@ -176,8 +177,8 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	case WM_MOUSEMOVE: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouse.x = max(0, *(short*)&x);
-		_this->pInput->mouse.y = max(0, *(short*)&y);
+		_this->pInput->mouse.x = ScaleDown(max(0, *(short*)&x), _this->properties.scale);
+		_this->pInput->mouse.y = ScaleDown(max(0, *(short*)&y), _this->properties.scale);
 		_this->pInput->mouse.flags = wParam & 0xFF;
 		goto def;
 	}

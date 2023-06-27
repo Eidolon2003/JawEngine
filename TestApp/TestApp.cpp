@@ -5,38 +5,28 @@ class MyApp : public jaw::AppInterface {
 public:
 
 	void Init() override {
-		auto testSprite = new jaw::Sprite();
-		testSprite->bmp = pGraphics->LoadBmp("D:/Users/julia/Pictures/red.bmp");
-		testSprite->src = jaw::Rect(0, 0, 50, 50);
-		testSprite->animationTiming = std::chrono::milliseconds(50);
-		testSprite->lifetime = std::chrono::seconds(5);
-		pWindow->RegisterSprite(testSprite);
-
-		testSprite = new jaw::Sprite();
-		testSprite->bmp = pGraphics->LoadBmp("D:/Users/julia/Pictures/red.bmp");
-		testSprite->src = jaw::Rect(0, 0, 50, 50);
-		testSprite->y = 100;
-		testSprite->dx = 5;
-		pWindow->RegisterSprite(testSprite);
-
-		pGraphics->DrawBmp("D:/Users/julia/Pictures/red.bmp", jaw::Point(200, 200), 0);
+		pGraphics->DrawString(L"Hello, World!", jaw::Rect(1, 1, 64, 48), 0);
 	}
 
 	void Loop() override {
-		
+		auto mouse = pInput->getMouse();
+		std::cout << mouse.x << ", " << mouse.y << std::endl;
+
+		pGraphics->FillRect(jaw::Rect(mouse.x, mouse.y, mouse.x + 1, mouse.y + 1), 0xFF0000, 1);
 	}
 
 };
 
 int main() {
 	jaw::EngineProperties ep;
-	ep.showCMD = false;
+	ep.showCMD = true;
 	ep.locale = L"en-us";
 
 	jaw::AppProperties ap;
-	ap.sizeX = 640;
-	ap.sizeY = 480;
-	ap.framerate = 100;
+	ap.sizeX = 40;
+	ap.sizeY = 30;
+	ap.scale = 20;
+	ap.framerate = 60;
 	ap.enableKeyRepeat = false;
 
 	jaw::StartEngine(new MyApp, ap, ep);

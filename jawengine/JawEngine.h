@@ -21,7 +21,8 @@ namespace jaw {
 	struct AppProperties {
 		uint16_t sizeX = 640;
 		uint16_t sizeY = 480;
-		double framerate = 60;
+		float scale = 1.f;
+		float framerate = 60;
 		bool enableKeyRepeat = false;
 	};
 

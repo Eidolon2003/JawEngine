@@ -60,11 +60,12 @@ namespace jaw {
 
 		HWND hWnd;
 		uint16_t sizeX, sizeY;
+		float scale;
 		std::wstring locale;
 		uint32_t backgroundColor;
 
 	public:
-		D2DGraphics(HWND hWnd, uint16_t x, uint16_t y, std::wstring locale);
+		D2DGraphics(HWND hWnd, uint16_t x, uint16_t y, float scale, std::wstring locale);
 		~D2DGraphics() override;
 
 		void BeginFrame() override;
