@@ -376,7 +376,7 @@ bool jaw::D2DGraphics::LoadFont(const Font& font) {
 	return true;
 }
 
-bool jaw::D2DGraphics::DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font, uint32_t color) {
+bool jaw::D2DGraphics::DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font, uint32_t color, float alpha) {
 	if (!fonts.count(font))
 		if (!LoadFont(font)) return false;
 
@@ -384,6 +384,7 @@ bool jaw::D2DGraphics::DrawString(std::wstring str, Rect dest, uint8_t layer, co
 	auto pBitmapTarget = layers[layer];
 
 	pSolidBrush->SetColor(D2D1::ColorF(color));
+	pSolidBrush->SetOpacity(alpha);
 
 	pBitmapTarget->DrawText(
 		str.c_str(),
@@ -419,8 +420,9 @@ void jaw::D2DGraphics::ClearLayer(uint8_t layer, uint32_t color, float alpha) {
 	layersChanged[layer] = true;
 }
 
-void jaw::D2DGraphics::FillRect(Rect dest, uint32_t color, uint8_t layer) {
+void jaw::D2DGraphics::FillRect(Rect dest, uint32_t color, uint8_t layer, float alpha) {
 	pSolidBrush->SetColor(D2D1::ColorF(color));
+	pSolidBrush->SetOpacity(alpha);
 
 	if (layer >= LAYERS) layer = LAYERS - 1;
 	auto pBitmapTarget = layers[layer];

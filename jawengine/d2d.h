@@ -80,11 +80,11 @@ namespace jaw {
 		bool DrawSprite(const Sprite& sprite) override;
 
 		bool LoadFont(const Font& font) override;
-		bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font = Font(), uint32_t color = 0xFFFFFF) override;
+		bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font = Font(), uint32_t color = 0xFFFFFF, float alpha = 1.f) override;
 
 		void setBackgroundColor(uint32_t color) override;
 		void ClearLayer(uint8_t layer, uint32_t color = 0x000000, float alpha = 0.f) override;
-		void FillRect(Rect dest, uint32_t color, uint8_t layer) override;
+		void FillRect(Rect dest, uint32_t color, uint8_t layer, float alpha = 1.f) override;
 	};
 
 };

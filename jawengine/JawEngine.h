@@ -97,11 +97,11 @@ namespace jaw {
 		virtual bool DrawSprite(const Sprite& sprite) = 0;
 
 		virtual bool LoadFont(const Font&) = 0;
-		virtual bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font = Font(), uint32_t color = 0xFFFFFF) = 0;
+		virtual bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font = Font(), uint32_t color = 0xFFFFFF, float alpha = 1.f) = 0;
 
 		virtual void setBackgroundColor(uint32_t color) = 0;
 		virtual void ClearLayer(uint8_t layer, uint32_t color = 0x000000, float alpha = 0.f) = 0;
-		virtual void FillRect(Rect dest, uint32_t color, uint8_t layer) = 0;
+		virtual void FillRect(Rect dest, uint32_t color, uint8_t layer, float alpha = 0.f) = 0;
 	};
 
 	class SoundInterface {
