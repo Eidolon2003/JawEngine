@@ -101,7 +101,7 @@ namespace jaw {
 
 		virtual void setBackgroundColor(uint32_t color) = 0;
 		virtual void ClearLayer(uint8_t layer, uint32_t color = 0x000000, float alpha = 0.f) = 0;
-		virtual void FillRect(Rect dest, uint32_t color, uint8_t layer, float alpha = 0.f) = 0;
+		virtual void FillRect(Rect dest, uint32_t color, uint8_t layer, float alpha = 1.f) = 0;
 	};
 
 	class SoundInterface {
