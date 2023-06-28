@@ -23,6 +23,7 @@ int main() {
 	ep.locale = L"en-us";
 
 	jaw::AppProperties ap;
+	ap.title = "Custom Title!";
 	ap.sizeX = 40;
 	ap.sizeY = 30;
 	ap.scale = 20;
@@ -30,6 +31,8 @@ int main() {
 	ap.enableKeyRepeat = false;
 
 	jaw::StartEngine(new MyApp, ap, ep);
+
+	sizeof(jaw::AppProperties);
 
 	return 0;
 }

@@ -79,7 +79,7 @@ void jaw::Window::ThreadFunk() {
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground = NULL;
 	wc.lpszMenuName = NULL;
-	wc.lpszClassName = "Test";
+	wc.lpszClassName = properties.title;
 	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 	RegisterClassEx(&wc);
 	hWnd = CreateWindowEx(

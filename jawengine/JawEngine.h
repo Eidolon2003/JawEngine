@@ -19,6 +19,7 @@ namespace jaw {
 	};
 
 	struct AppProperties {
+		const char* title = "";
 		uint16_t sizeX = 640;
 		uint16_t sizeY = 480;
 		float scale = 1.f;
