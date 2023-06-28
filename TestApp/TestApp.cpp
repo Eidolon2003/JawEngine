@@ -1,38 +1,43 @@
-﻿#include <iostream>
-#include "../jawengine/JawEngine.h"
+﻿#include "../jawengine/JawEngine.h"
 
 class MyApp : public jaw::AppInterface {
 public:
+	std::wstring text;
 
 	void Init() override {
-		pGraphics->DrawString(L"Hello, World!", jaw::Rect(1, 1, 64, 48), 0);
+		
 	}
 
 	void Loop() override {
-		auto mouse = pInput->getMouse();
-		std::cout << mouse.x << ", " << mouse.y << std::endl;
+		auto oldlen = text.length();
 
-		pGraphics->FillRect(jaw::Rect(mouse.x, mouse.y, mouse.x + 1, mouse.y + 1), 0xFF0000, 1);
+		text.append(pInput->getString());
+
+		//Handle backspaces
+		for (;;) {
+			auto pos = text.find(L'\b', oldlen);
+			if (pos == std::wstring::npos) break;
+			
+			if (pos == 0)
+				text.erase(0, 1);
+			else
+				text.erase(pos - 1, 2);
+		}
+
+		auto halfSeconds = pWindow->getLifetime().count() / 500;
+		auto output = halfSeconds % 2 ? text : text + L'_';
+		pGraphics->DrawString(output, jaw::Rect(2, 2, 640, 480), 1);
+		pGraphics->DrawString(std::to_wstring(text.length()), jaw::Rect(2, 465, 640, 480), 1);
 	}
 
 };
 
 int main() {
 	jaw::EngineProperties ep;
-	ep.showCMD = true;
-	ep.locale = L"en-us";
 
 	jaw::AppProperties ap;
-	ap.title = "Custom Title!";
-	ap.sizeX = 40;
-	ap.sizeY = 30;
-	ap.scale = 20;
-	ap.framerate = 60;
-	ap.enableKeyRepeat = false;
+	ap.title = "Simple Text Input";
 
 	jaw::StartEngine(new MyApp, ap, ep);
-
-	sizeof(jaw::AppProperties);
-
 	return 0;
 }

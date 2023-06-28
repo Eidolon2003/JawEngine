@@ -190,7 +190,7 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	}
 
 	case WM_CHAR:
-		_this->pInput->charInput.push_back((char)wParam);
+		_this->pInput->charInput.push_back((wchar_t)wParam);
 		goto def;
 
 	case WM_KEYDOWN:

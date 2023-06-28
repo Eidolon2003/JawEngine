@@ -19,7 +19,7 @@ namespace jaw {
 	};
 
 	struct AppProperties {
-		const char* title = "";
+		const char* title = " ";
 		uint16_t sizeX = 640;
 		uint16_t sizeY = 480;
 		float scale = 1.f;
@@ -131,7 +131,7 @@ namespace jaw {
 		};
 
 		virtual Mouse getMouse() = 0;
-		virtual std::string getString() = 0;
+		virtual std::wstring getString() = 0;
 		virtual bool isKeyPressed(uint8_t) = 0;
 		virtual void BindKeyDown(uint8_t, const std::function<void()>&) = 0;
 		virtual void BindKeyUp(uint8_t, const std::function<void()>&) = 0;

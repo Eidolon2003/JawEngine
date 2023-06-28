@@ -12,8 +12,8 @@ namespace jaw {
 		Mouse mouse;
 		Mouse getMouse() override;
 
-		std::string charInput;
-		std::string getString() override;
+		std::wstring charInput;
+		std::wstring getString() override;
 
 		bool enableKeyRepeat;
 

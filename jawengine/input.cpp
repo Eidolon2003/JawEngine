@@ -3,7 +3,7 @@
 jaw::Input::Input(bool repeat) {
 	enableKeyRepeat = repeat;
 	mouse = { 0, 0, 0, 0 };
-	charInput = "";
+	charInput.clear();
 	memset(keybits, 0, sizeof(keybits));
 	std::fill(downJumpTable, downJumpTable + TABLELEN, nullptr);
 	std::fill(upJumpTable, upJumpTable + TABLELEN, nullptr);
@@ -12,14 +12,14 @@ jaw::Input::Input(bool repeat) {
 }
 
 void jaw::Input::Reset() {
-	charInput = "";
+	charInput.clear();
 }
 
 jaw::Input::Mouse jaw::Input::getMouse() {
 	return mouse;
 }
 
-std::string jaw::Input::getString() {
+std::wstring jaw::Input::getString() {
 	return charInput;
 }
 
