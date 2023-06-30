@@ -10,6 +10,9 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 
 	properties = props;
 
+	if (properties.framerate <= 0)
+		properties.framerate = FLT_MAX;
+
 	std::thread(&Window::ThreadFunk, this).detach();
 }
 
@@ -29,11 +32,19 @@ bool jaw::Window::isClosed() {
 bool jaw::Window::FrameLimiter() {
 	using namespace std::chrono;
 
-	if (properties.framerate == 0) return true;
-
 	auto now = high_resolution_clock::now();
 	duration<uint64_t, std::nano> frametime = now - thisFrame;
 	duration<uint64_t, std::nano> target = duration<uint64_t, std::nano>((uint64_t)(1000000000 / properties.framerate));
+
+	//Check if the frametime is unusually high
+	//Probably caused by the user moving the window
+	//In this case, skip the next frame
+	//This is to stop sprites from jumping too far in a single frame
+	if (frametime > target * 5) {
+		lastFrame = thisFrame;
+		thisFrame = now;
+		return false;
+	}
 
 	if (frametime + milliseconds(1) < target)
 		std::this_thread::sleep_until(thisFrame + target - milliseconds(1));
@@ -263,7 +274,7 @@ void jaw::Window::HandleSprites() {
 				uint16_t width = spr->src.br.x - spr->src.tl.x;
 				uint16_t numFrames = spr->bmp->getSize().x / width;
 				spr->frame++;
-				if (spr->frame > numFrames) spr->frame = 0;
+				if (spr->frame >= numFrames) spr->frame = 0;
 			}
 		}
 

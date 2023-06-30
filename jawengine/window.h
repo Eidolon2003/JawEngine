@@ -35,11 +35,11 @@ namespace jaw {
 		AppProperties properties;
 		std::chrono::high_resolution_clock::time_point start, thisFrame, lastFrame;
 
-		SoundInterface* pSound;
-		InternalGraphicsInterface* pGraphics;
-		Input* pInput;
-		EngineInterface* pEngine;
-		AppInterface* pApp;
+		SoundInterface* pSound = nullptr;
+		InternalGraphicsInterface* pGraphics = nullptr;
+		Input* pInput = nullptr;
+		EngineInterface* pEngine = nullptr;
+		AppInterface* pApp = nullptr;
 
 		std::set<Sprite*> sprites;
 
@@ -51,8 +51,8 @@ namespace jaw {
 		HWND getHWND() { return hWnd; }
 
 	private:
-		WNDCLASSEX wc;
-		HWND hWnd;
+		WNDCLASSEX wc = WNDCLASSEX();
+		HWND hWnd = NULL;
 
 		static LRESULT __stdcall WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 #endif

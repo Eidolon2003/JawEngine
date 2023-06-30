@@ -10,10 +10,8 @@ public:
 
 	void Loop() override {
 		auto oldlen = text.length();
-
 		text.append(pInput->getString());
 
-		//Handle backspaces
 		for (;;) {
 			auto pos = text.find(L'\b', oldlen);
 			if (pos == std::wstring::npos) break;
@@ -23,7 +21,7 @@ public:
 			else
 				text.erase(pos - 1, 2);
 		}
-
+		
 		auto halfSeconds = pWindow->getLifetime().count() / 500;
 		auto output = halfSeconds % 2 ? text : text + L'_';
 		pGraphics->DrawString(output, jaw::Rect(2, 2, 640, 480), 1);

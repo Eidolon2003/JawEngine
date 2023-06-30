@@ -320,6 +320,10 @@ bool jaw::D2DGraphics::DrawSprite(const Sprite& sprite) {
 	src.tl.x += width * sprite.frame;
 	src.br.x += width * sprite.frame;
 
+	auto mode = D2D1_BITMAP_INTERPOLATION_MODE_LINEAR;
+	if (ceilf(sprite.scale) == sprite.scale)
+		mode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
+
 	pBitmapTarget->DrawBitmap(
 		pBitmap->pBitmap,
 		D2D1::Rect(
@@ -329,7 +333,7 @@ bool jaw::D2DGraphics::DrawSprite(const Sprite& sprite) {
 			sprite.y + ((sprite.src.br.y - sprite.src.tl.y) * sprite.scale)
 		),
 		1.f,
-		D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
+		mode,
 		D2D1::Rect(
 			(float)src.tl.x,
 			(float)src.tl.y,

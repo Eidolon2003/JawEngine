@@ -7,6 +7,7 @@
 #endif
 
 #include <cstdint>
+#include <string>
 #include <chrono>
 #include <functional>
 #include <algorithm>
