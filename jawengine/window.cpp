@@ -10,8 +10,9 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 
 	properties = props;
 
-	if (properties.framerate <= 0)
-		properties.framerate = FLT_MAX;
+	const float MAXFPS = 5000;
+	if (properties.framerate <= 0 || properties.framerate > MAXFPS)
+		properties.framerate = MAXFPS;
 
 	std::thread(&Window::ThreadFunk, this).detach();
 }
@@ -40,7 +41,7 @@ bool jaw::Window::FrameLimiter() {
 	//Probably caused by the user moving the window
 	//In this case, skip the next frame
 	//This is to stop sprites from jumping too far in a single frame
-	if (frametime > target * 5) {
+	if (frametime > target * 10) {
 		lastFrame = thisFrame;
 		thisFrame = now;
 		return false;

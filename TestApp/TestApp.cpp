@@ -5,7 +5,7 @@ public:
 	std::wstring text;
 
 	void Init() override {
-		
+		pInput->BindKeyDown(jaw::ESC, [&]() {pEngine->CloseWindow(this); });
 	}
 
 	void Loop() override {
