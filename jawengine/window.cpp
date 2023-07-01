@@ -20,6 +20,7 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 jaw::Window::~Window() {
 	delete pInput;
 	delete pGraphics;
+	delete pSound;
 	delete pApp;
 
 	for (auto spr : sprites) delete spr;
@@ -112,7 +113,7 @@ void jaw::Window::ThreadFunk() {
 	//Set the window's data to a pointer to this object so it can be accessed in WinProc
 	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)this);
 
-	this->pSound = nullptr;
+	this->pSound = new jaw::DirectSound(hWnd);
 	this->pGraphics = new jaw::D2DGraphics(hWnd, properties.sizeX, properties.sizeY, properties.scale, pEngine->getLocale());
 	this->pInput = new jaw::Input(properties.enableKeyRepeat);
 

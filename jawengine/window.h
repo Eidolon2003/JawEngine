@@ -11,6 +11,7 @@
 #if defined WINDOWS
 #include <Windows.h>
 #include "d2d.h"
+#include "dsound.h"
 #endif
 
 namespace jaw {

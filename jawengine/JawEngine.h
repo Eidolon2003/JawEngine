@@ -108,7 +108,12 @@ namespace jaw {
 	};
 
 	class SoundInterface {
-
+	public:
+		virtual bool Load(std::string) = 0;
+		virtual bool Play(std::string) = 0;
+		virtual bool Loop(std::string) = 0;
+		virtual bool Stop(std::string) = 0;
+		virtual void StopAll() = 0;
 	};
 
 	class InputInterface {
