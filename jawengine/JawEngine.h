@@ -84,9 +84,17 @@ namespace jaw {
 			hidden = false;
 			lifetime = animationTiming = animationCounter = std::chrono::milliseconds(0);
 		}
+		virtual ~Sprite();
 
 		Point getPoint() const { return Point((uint16_t)x, (uint16_t)y); }
-		void setPoint(Point pos) { x = pos.x; y = pos.y; }
+		void setPoint(Point pos) { x = (float)pos.x; y = (float)pos.y; }
+
+		Point getSize() const {
+			Point a;
+			a.x = (uint16_t)((src.br.x - src.tl.x) * scale);
+			a.y = (uint16_t)((src.br.y - src.tl.y) * scale);
+			return a;
+		}
 	};
 
 	class GraphicsInterface {
