@@ -73,10 +73,17 @@ namespace jaw {
 		void setSize(uint16_t x, uint16_t y) override;
 
 		Bitmap* LoadBmp(std::string filename) override;
+		
 		bool DrawBmp(std::string filename, Point dest, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
 		bool DrawBmp(std::string filename, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) override;
+		bool DrawBmp(Bitmap* bmp, Point dest, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
+		bool DrawBmp(Bitmap* bmp, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) override;
+		
 		bool DrawPartialBmp(std::string filename, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) override;
 		bool DrawPartialBmp(std::string filename, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
+		bool DrawPartialBmp(Bitmap* bmp, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) override;
+		bool DrawPartialBmp(Bitmap* bmp, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
+
 		bool DrawSprite(Sprite* sprite) override;
 		bool DrawSprite(const Sprite& sprite) override;
 

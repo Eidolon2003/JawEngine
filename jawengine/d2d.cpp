@@ -210,7 +210,33 @@ bool jaw::D2DGraphics::DrawBmp(std::string filename, Rect dest, uint8_t layer, f
 	if (!bitmaps.count(filename))
 		if (!LoadBmp(filename)) return false;
 
-	D2DBitmap* pBitmap = bitmaps[filename];
+	return DrawBmp(bitmaps[filename], dest, layer, alpha, interpolation);
+}
+
+bool jaw::D2DGraphics::DrawBmp(std::string filename, Point dest, uint8_t layer, float scale, float alpha, bool interpolation) {
+	if (!bitmaps.count(filename))
+		if (!LoadBmp(filename)) return false;
+
+	return DrawBmp(bitmaps[filename], dest, layer, scale, alpha, interpolation);
+}
+
+bool jaw::D2DGraphics::DrawBmp(Bitmap* bmp, Point dest, uint8_t layer, float scale, float alpha, bool interpolation) {
+	if (!bmp) return false;
+	
+	jaw::Rect destRect(
+		dest.x,
+		dest.y,
+		dest.x + (uint16_t)(bmp->getSize().x * scale),
+		dest.y + (uint16_t)(bmp->getSize().y * scale)
+	);
+
+	return DrawBmp(bmp, destRect, layer, alpha, interpolation);
+}
+
+bool jaw::D2DGraphics::DrawBmp(Bitmap* bmp, Rect dest, uint8_t layer, float alpha, bool interpolation) {
+	if (!bmp) return false;
+
+	D2DBitmap* pBitmap = (D2DBitmap*)bmp;
 
 	if (layer >= LAYERS) layer = LAYERS - 1;
 	auto pBitmapTarget = layers[layer];
@@ -231,36 +257,35 @@ bool jaw::D2DGraphics::DrawBmp(std::string filename, Rect dest, uint8_t layer, f
 	return true;
 }
 
-bool jaw::D2DGraphics::DrawBmp(std::string filename, Point dest, uint8_t layer, float scale, float alpha, bool interpolation) {
-	if (!bitmaps.count(filename))
-		if (!LoadBmp(filename)) return false;
-
-	D2DBitmap* pBitmap = bitmaps[filename];
-
-	if (layer >= LAYERS) layer = LAYERS - 1;
-	auto pBitmapTarget = layers[layer];
-
-	pBitmapTarget->DrawBitmap(
-		pBitmap->pBitmap,
-		D2D1::Rect(
-			(float)dest.x,
-			(float)dest.y,
-			dest.x + (pBitmap->x * scale),
-			dest.y + (pBitmap->y * scale)
-		),
-		alpha,
-		interpolation ? D2D1_BITMAP_INTERPOLATION_MODE_LINEAR : D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR
-	);
-
-	layersChanged[layer] = true;
-	return true;
-}
-
 bool jaw::D2DGraphics::DrawPartialBmp(std::string filename, Rect dest, Rect src, uint8_t layer, float alpha, bool interpolation) {
 	if (!bitmaps.count(filename))
 		if (!LoadBmp(filename)) return false;
 
-	D2DBitmap* pBitmap = bitmaps[filename];
+	return DrawPartialBmp(bitmaps[filename], dest, src, layer, alpha, interpolation);
+}
+
+bool jaw::D2DGraphics::DrawPartialBmp(std::string filename, Point dest, Rect src, uint8_t layer, float scale, float alpha, bool interpolation) {
+	if (!bitmaps.count(filename))
+		if (!LoadBmp(filename)) return false;
+
+	return DrawPartialBmp(bitmaps[filename], dest, src, layer, scale, alpha, interpolation);
+}
+
+bool jaw::D2DGraphics::DrawPartialBmp(Bitmap* bmp, Point dest, Rect src, uint8_t layer, float scale, float alpha, bool interpolation) {
+	Rect destRect(
+		dest.x,
+		dest.y,
+		dest.x + (uint16_t)(bmp->getSize().x * scale),
+		dest.y + (uint16_t)(bmp->getSize().y * scale)
+	);
+
+	return DrawPartialBmp(bmp, destRect, src, layer, alpha, interpolation);
+}
+
+bool jaw::D2DGraphics::DrawPartialBmp(Bitmap* bmp, Rect dest, Rect src, uint8_t layer, float alpha, bool interpolation) {
+	if (!bmp) return false;
+	
+	D2DBitmap* pBitmap = (D2DBitmap*)bmp;
 
 	if (layer >= LAYERS) layer = LAYERS - 1;
 	auto pBitmapTarget = layers[layer];
@@ -285,17 +310,6 @@ bool jaw::D2DGraphics::DrawPartialBmp(std::string filename, Rect dest, Rect src,
 
 	layersChanged[layer] = true;
 	return true;
-}
-
-bool jaw::D2DGraphics::DrawPartialBmp(std::string filename, Point dest, Rect src, uint8_t layer, float scale, float alpha, bool interpolation) {
-	auto destRect = Rect(
-		dest.x,
-		dest.y,
-		dest.x + (uint16_t)(dest.x * scale),
-		dest.y + (uint16_t)(dest.y * scale)
-	);
-
-	return DrawPartialBmp(filename, destRect, src, layer);
 }
 
 bool jaw::D2DGraphics::DrawSprite(Sprite* sprite) {

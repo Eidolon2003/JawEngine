@@ -34,7 +34,7 @@ namespace jaw {
 		Point() { x = y = 0; }
 		Point(uint16_t x, uint16_t y) { this->x = x; this->y = y; }
 		
-		bool operator==(const Point& rhs) { return x == rhs.x && y == rhs.y; }
+		bool operator==(const Point& rhs) const { return x == rhs.x && y == rhs.y; }
 	};
 
 	struct Rect {
@@ -44,7 +44,7 @@ namespace jaw {
 		Rect(Point tl, Point br) { this->tl = tl; this->br = br; }
 		Rect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) { tl = Point(x1, y1); br = Point(x2, y2); }
 		
-		bool operator==(const Rect& rhs) { return tl == rhs.tl && br == rhs.br; }
+		bool operator==(const Rect& rhs) const { return tl == rhs.tl && br == rhs.br; }
 	};
 
 	struct Font {
@@ -100,10 +100,17 @@ namespace jaw {
 	class GraphicsInterface {
 	public:
 		virtual Bitmap* LoadBmp(std::string filename) = 0;
+
 		virtual bool DrawBmp(std::string filename, Point dest, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
 		virtual bool DrawBmp(std::string filename, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawBmp(Bitmap* bmp, Point dest, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawBmp(Bitmap* bmp, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
+
 		virtual bool DrawPartialBmp(std::string filename, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
 		virtual bool DrawPartialBmp(std::string filename, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawPartialBmp(Bitmap* bmp, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawPartialBmp(Bitmap* bmp, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
+
 		virtual bool DrawSprite(Sprite* sprite) = 0;
 		virtual bool DrawSprite(const Sprite& sprite) = 0;
 
@@ -144,9 +151,9 @@ namespace jaw {
 			int16_t wheel;
 		};
 
-		virtual Mouse getMouse() = 0;
-		virtual std::wstring getString() = 0;
-		virtual bool isKeyPressed(uint8_t) = 0;
+		virtual Mouse getMouse() const = 0;
+		virtual std::wstring getString() const = 0;
+		virtual bool isKeyPressed(uint8_t) const = 0;
 		virtual void BindKeyDown(uint8_t, const std::function<void()>&) = 0;
 		virtual void BindKeyUp(uint8_t, const std::function<void()>&) = 0;
 		virtual void BindClickDown(const std::function<void(Mouse)>&) = 0;
@@ -159,15 +166,16 @@ namespace jaw {
 		virtual void OpenWindow(AppInterface*, const AppProperties&) = 0;
 		virtual void CloseWindow(AppInterface*) = 0;
 		virtual void ShowCMD(bool) = 0;
-		virtual std::wstring getLocale() = 0;
+		virtual std::wstring getLocale() const = 0;
 	};
 
 	class WindowInterface {
 	public:
-		virtual std::chrono::duration<double, std::milli> getFrametime() = 0;
-		virtual std::chrono::duration<uint64_t, std::milli> getLifetime() = 0;
+		virtual std::chrono::duration<double, std::milli> getFrametime() const = 0;
+		virtual std::chrono::duration<uint64_t, std::milli> getLifetime() const = 0;
 		virtual void RegisterSprite(Sprite*) = 0;
 		virtual void DeleteSprite(Sprite*) = 0;
+		virtual const AppProperties& getProperties() const = 0;
 	};
 
 	class AppInterface {

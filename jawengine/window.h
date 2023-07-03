@@ -23,10 +23,11 @@ namespace jaw {
 
 		bool isClosed();
 
-		std::chrono::duration<double, std::milli> getFrametime() override;
-		std::chrono::duration<uint64_t, std::milli> getLifetime() override;
+		std::chrono::duration<double, std::milli> getFrametime() const override;
+		std::chrono::duration<uint64_t, std::milli> getLifetime() const override;
 		void RegisterSprite(Sprite*) override;
 		void DeleteSprite(Sprite*) override;
+		const AppProperties& getProperties() const override { return properties; }
 
 	private:
 		void ThreadFunk();

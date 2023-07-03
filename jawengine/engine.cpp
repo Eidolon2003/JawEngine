@@ -44,6 +44,6 @@ void jaw::Engine::ShowCMD(bool show) {
 #endif
 }
 
-std::wstring jaw::Engine::getLocale() {
+std::wstring jaw::Engine::getLocale() const {
 	return locale;
 }

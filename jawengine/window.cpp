@@ -58,11 +58,11 @@ bool jaw::Window::FrameLimiter() {
 	return true;
 }
 
-std::chrono::duration<double, std::milli> jaw::Window::getFrametime() {
+std::chrono::duration<double, std::milli> jaw::Window::getFrametime() const {
 	return thisFrame - lastFrame;
 }
 
-std::chrono::duration <uint64_t, std::milli> jaw::Window::getLifetime() {
+std::chrono::duration <uint64_t, std::milli> jaw::Window::getLifetime() const {
 	using namespace std::chrono;
 	return duration_cast<duration<uint64_t, std::milli>>(thisFrame - start);
 }

@@ -10,15 +10,15 @@ namespace jaw {
 		void Reset();
 
 		Mouse mouse;
-		Mouse getMouse() override;
+		Mouse getMouse() const override;
 
 		std::wstring charInput;
-		std::wstring getString() override;
+		std::wstring getString() const override;
 
 		bool enableKeyRepeat;
 
 		uint16_t keybits[16];
-		bool isKeyPressed(uint8_t) override;
+		bool isKeyPressed(uint8_t) const override;
 
 		static constexpr int TABLELEN = 256;
 		std::function<void()> downJumpTable[TABLELEN];

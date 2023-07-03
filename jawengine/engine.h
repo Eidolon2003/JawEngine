@@ -15,7 +15,7 @@ namespace jaw {
 		void OpenWindow(AppInterface*, const AppProperties&) override;
 		void CloseWindow(AppInterface*) override;
 		void ShowCMD(bool) override;
-		std::wstring getLocale() override;
+		std::wstring getLocale() const override;
 
 	private:
 		std::unordered_map<AppInterface*, Window*> pWindows;

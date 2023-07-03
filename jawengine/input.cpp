@@ -15,15 +15,15 @@ void jaw::Input::Reset() {
 	charInput.clear();
 }
 
-jaw::Input::Mouse jaw::Input::getMouse() {
+jaw::Input::Mouse jaw::Input::getMouse() const {
 	return mouse;
 }
 
-std::wstring jaw::Input::getString() {
+std::wstring jaw::Input::getString() const {
 	return charInput;
 }
 
-bool jaw::Input::isKeyPressed(uint8_t vkc) {
+bool jaw::Input::isKeyPressed(uint8_t vkc) const {
 	return keybits[vkc >> 4] & 1 << (vkc & 0xF);
 }
 
