@@ -32,7 +32,7 @@ namespace jaw {
 		uint16_t x, y;
 
 		Point() { x = y = 0; }
-		Point(uint16_t x, uint16_t y) { this->x = x; this->y = y; }
+		Point(int16_t x, int16_t y) { this->x = x; this->y = y; }
 		
 		bool operator==(const Point& rhs) const { return x == rhs.x && y == rhs.y; }
 	};
@@ -42,7 +42,7 @@ namespace jaw {
 
 		Rect() { tl = Point(); br = Point(); }
 		Rect(Point tl, Point br) { this->tl = tl; this->br = br; }
-		Rect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) { tl = Point(x1, y1); br = Point(x2, y2); }
+		Rect(int16_t x1, int16_t y1, int16_t x2, int16_t y2) { tl = Point(x1, y1); br = Point(x2, y2); }
 		
 		bool operator==(const Rect& rhs) const { return tl == rhs.tl && br == rhs.br; }
 	};
@@ -86,13 +86,13 @@ namespace jaw {
 		}
 		virtual ~Sprite() {}
 
-		Point getPoint() const { return Point((uint16_t)x, (uint16_t)y); }
+		Point getPoint() const { return Point((int16_t)x, (int16_t)y); }
 		void setPoint(Point pos) { x = (float)pos.x; y = (float)pos.y; }
 
 		Point getSize() const {
 			Point a;
-			a.x = (uint16_t)((src.br.x - src.tl.x) * scale);
-			a.y = (uint16_t)((src.br.y - src.tl.y) * scale);
+			a.x = (int16_t)((src.br.x - src.tl.x) * scale);
+			a.y = (int16_t)((src.br.y - src.tl.y) * scale);
 			return a;
 		}
 	};

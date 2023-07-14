@@ -226,8 +226,8 @@ bool jaw::D2DGraphics::DrawBmp(Bitmap* bmp, Point dest, uint8_t layer, float sca
 	jaw::Rect destRect(
 		dest.x,
 		dest.y,
-		dest.x + (uint16_t)(bmp->getSize().x * scale),
-		dest.y + (uint16_t)(bmp->getSize().y * scale)
+		dest.x + (int16_t)(bmp->getSize().x * scale),
+		dest.y + (int16_t)(bmp->getSize().y * scale)
 	);
 
 	return DrawBmp(bmp, destRect, layer, alpha, interpolation);
@@ -275,8 +275,8 @@ bool jaw::D2DGraphics::DrawPartialBmp(Bitmap* bmp, Point dest, Rect src, uint8_t
 	Rect destRect(
 		dest.x,
 		dest.y,
-		dest.x + (uint16_t)(bmp->getSize().x * scale),
-		dest.y + (uint16_t)(bmp->getSize().y * scale)
+		dest.x + (int16_t)(bmp->getSize().x * scale),
+		dest.y + (int16_t)(bmp->getSize().y * scale)
 	);
 
 	return DrawPartialBmp(bmp, destRect, src, layer, alpha, interpolation);
