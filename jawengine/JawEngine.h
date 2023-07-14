@@ -29,7 +29,7 @@ namespace jaw {
 	};
 
 	struct Point {
-		uint16_t x, y;
+		int16_t x, y;
 
 		Point() { x = y = 0; }
 		Point(int16_t x, int16_t y) { this->x = x; this->y = y; }
