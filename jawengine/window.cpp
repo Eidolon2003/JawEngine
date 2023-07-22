@@ -10,8 +10,8 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 
 	properties = props;
 
-	const float MAXFPS = 5000;
-	if (properties.framerate <= 0 || properties.framerate > MAXFPS)
+	const float MAXFPS = 1000;
+	if (properties.framerate < 0 || properties.framerate > MAXFPS)
 		properties.framerate = MAXFPS;
 
 	std::thread(&Window::ThreadFunk, this).detach();
@@ -36,6 +36,13 @@ bool jaw::Window::FrameLimiter() {
 
 	auto now = high_resolution_clock::now();
 	duration<uint64_t, std::nano> frametime = now - thisFrame;
+
+	if (properties.framerate == 0) {
+		lastFrame = thisFrame;
+		thisFrame = now;
+		return true;
+	}
+
 	duration<uint64_t, std::nano> target = duration<uint64_t, std::nano>((uint64_t)(1000000000 / properties.framerate));
 
 	//Check if the frametime is unusually high
