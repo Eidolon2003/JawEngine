@@ -11,7 +11,7 @@
 	"d2d.cpp"
 	"dsound.h"
 	"dsound.cpp"
-)
+ "sprite.cpp")
 set_property(TARGET mylib PROPERTY CXX_STANDARD 20)
 
 if(WIN32)

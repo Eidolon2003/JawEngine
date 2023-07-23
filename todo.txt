@@ -1,4 +1,3 @@
-- virtual UpdateSprite() method for custom sprite behavior
 - Multiple functions on the same keybind?
 - Engine handled gamestates
 	- gamestates are on a stack (when you close the menu it goes back to where you were automatically)
@@ -10,4 +9,3 @@
 	- detects when the sprite is clicked on
 	- pass a mouse struct with all the necessary info
 - Sprite collision detection
-- 0fps = uncapped framerate

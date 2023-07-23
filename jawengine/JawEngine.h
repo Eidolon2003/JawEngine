@@ -63,7 +63,9 @@ namespace jaw {
 		virtual Point getSize() = 0;
 	};
 	
-	struct Sprite {
+	class AppInterface;
+	class Sprite {
+	public:
 		float x, y, dx, dy;
 		float scale;
 		Bitmap* bmp;
@@ -74,27 +76,18 @@ namespace jaw {
 		std::chrono::duration<float, std::milli> animationTiming;
 		std::chrono::duration<float, std::milli> animationCounter;
 
-		Sprite() {
-			x = y = dx = dy = 0;
-			frame = 0;
-			layer = 1;
-			bmp = nullptr;
-			src = Rect();
-			scale = 1.f;
-			hidden = false;
-			lifetime = animationTiming = animationCounter = std::chrono::milliseconds(0);
-		}
+		Sprite();
 		virtual ~Sprite() {}
 
-		Point getPoint() const { return Point((int16_t)x, (int16_t)y); }
-		void setPoint(Point pos) { x = (float)pos.x; y = (float)pos.y; }
+		//These two functions are called by the engine automatically in this order
+		//Returns true if the sprite should be deleted
+		virtual bool Update(AppInterface*);
+		//Called if the sprite wasn't deleted
+		virtual void Draw(AppInterface*);
 
-		Point getSize() const {
-			Point a;
-			a.x = (int16_t)((src.br.x - src.tl.x) * scale);
-			a.y = (int16_t)((src.br.y - src.tl.y) * scale);
-			return a;
-		}
+		Point getPoint() const;
+		void setPoint(Point pos);
+		Point getSize() const;
 	};
 
 	class GraphicsInterface {
@@ -160,7 +153,6 @@ namespace jaw {
 		virtual void BindClickUp(const std::function<void(Mouse)>&) = 0;
 	};
 
-	class AppInterface;
 	class EngineInterface {
 	public:
 		virtual void OpenWindow(AppInterface*, const AppProperties&) = 0;
