@@ -34,7 +34,11 @@ namespace jaw {
 		Point() { x = y = 0; }
 		Point(int16_t x, int16_t y) { this->x = x; this->y = y; }
 		
-		bool operator==(const Point& rhs) const { return x == rhs.x && y == rhs.y; }
+		bool operator==(Point rhs) const { return x == rhs.x && y == rhs.y; }
+		Point operator+(Point rhs) const { return Point(x + rhs.x, y + rhs.y); }
+		Point operator-(Point rhs) const { return Point(x - rhs.x, y - rhs.y); }
+		Point operator*(Point rhs) const { return Point(x * rhs.x, y * rhs.y); }
+		Point operator/(Point rhs) const { return Point(x / rhs.x, y / rhs.y); }
 	};
 
 	struct Rect {
