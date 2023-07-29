@@ -1,4 +1,5 @@
-#pragma once
+#ifndef WINDOWS
+#ifndef LINUX
 
 #if (defined _WIN32 || defined _WIN64)
 #define WINDOWS
@@ -36,13 +37,13 @@ namespace jaw {
 		
 		bool operator==(Point rhs) const { return x == rhs.x && y == rhs.y; }
 		Point operator+(Point rhs) const { return Point(x + rhs.x, y + rhs.y); }
-		Point operator+(double rhs) const { return Point(x + rhs, y + rhs); }
+		Point operator+(int16_t rhs) const { return Point(x + rhs, y + rhs); }
 		Point operator-(Point rhs) const { return Point(x - rhs.x, y - rhs.y); }
-		Point operator-(double rhs) const { return Point(x - rhs, y - rhs); }
+		Point operator-(int16_t rhs) const { return Point(x - rhs, y - rhs); }
 		Point operator*(Point rhs) const { return Point(x * rhs.x, y * rhs.y); }
-		Point operator*(double rhs) const { return Point(x * rhs, y * rhs); }
+		Point operator*(int16_t rhs) const { return Point(x * rhs, y * rhs); }
 		Point operator/(Point rhs) const { return Point(x / rhs.x, y / rhs.y); }
-		Point operator/(double rhs) const { return Point(x / rhs, y / rhs); }
+		Point operator/(int16_t rhs) const { return Point(x / rhs, y / rhs); }
 	};
 
 	struct Rect {
@@ -311,3 +312,6 @@ namespace jaw {
 	constexpr uint8_t RCTRL = 0xA3;
 #endif
 };
+
+#endif
+#endif
