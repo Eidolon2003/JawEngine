@@ -15,20 +15,6 @@
 
 namespace jaw {
 
-	struct EngineProperties {
-		bool showCMD = false;
-		std::wstring locale = L"en-us";
-	};
-
-	struct AppProperties {
-		const char* title = " ";
-		uint16_t sizeX = 640;
-		uint16_t sizeY = 480;
-		float scale = 1.f;
-		float framerate = 60;
-		bool enableKeyRepeat = false;
-	};
-
 	struct Point {
 		int16_t x, y;
 
@@ -54,6 +40,19 @@ namespace jaw {
 		Rect(int16_t x1, int16_t y1, int16_t x2, int16_t y2) { tl = Point(x1, y1); br = Point(x2, y2); }
 		
 		bool operator==(const Rect& rhs) const { return tl == rhs.tl && br == rhs.br; }
+	};
+
+	struct EngineProperties {
+		bool showCMD = false;
+		std::wstring locale = L"en-us";
+	};
+
+	struct AppProperties {
+		const char* title = " ";
+		jaw::Point size = jaw::Point(640, 480);
+		float scale = 1.f;
+		float framerate = 60;
+		bool enableKeyRepeat = false;
 	};
 
 	struct Font {
@@ -149,8 +148,7 @@ namespace jaw {
 				};
 				uint8_t flags;
 			};
-			uint16_t x;
-			uint16_t y;
+			jaw::Point pos;
 			int16_t wheel;
 		};
 

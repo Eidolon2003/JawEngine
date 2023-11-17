@@ -84,8 +84,8 @@ void jaw::Window::ThreadFunk() {
 	RECT rect = { 
 		0,
 		0,
-		ScaleUp(properties.sizeX, properties.scale),
-		ScaleUp(properties.sizeY, properties.scale)
+		ScaleUp(properties.size.x, properties.scale),
+		ScaleUp(properties.size.y, properties.scale)
 	};
 	AdjustWindowRect(&rect, STYLE, false);
 
@@ -121,7 +121,7 @@ void jaw::Window::ThreadFunk() {
 	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)this);
 
 	this->pSound = new jaw::DirectSound(hWnd);
-	this->pGraphics = new jaw::D2DGraphics(hWnd, properties.sizeX, properties.sizeY, properties.scale, pEngine->getLocale());
+	this->pGraphics = new jaw::D2DGraphics(hWnd, properties.size.x, properties.size.y, properties.scale, pEngine->getLocale());
 	this->pInput = new jaw::Input(properties.enableKeyRepeat);
 
 	pApp->pWindow = this;
@@ -168,8 +168,8 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	case WM_XBUTTONDOWN: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouse.x = ScaleDown(max(0, *(short*)&x), _this->properties.scale);
-		_this->pInput->mouse.y = ScaleDown(max(0, *(short*)&y), _this->properties.scale);
+		_this->pInput->mouse.pos.x = ScaleDown(max(0, *(short*)&x), _this->properties.scale);
+		_this->pInput->mouse.pos.y = ScaleDown(max(0, *(short*)&y), _this->properties.scale);
 		_this->pInput->mouse.flags = wParam & 0xFF;
 
 		if (_this->pInput->clickDown)
@@ -184,8 +184,8 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	case WM_XBUTTONUP: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouse.x = ScaleDown(max(0, *(short*)&x), _this->properties.scale);
-		_this->pInput->mouse.y = ScaleDown(max(0, *(short*)&y), _this->properties.scale);
+		_this->pInput->mouse.pos.x = ScaleDown(max(0, *(short*)&x), _this->properties.scale);
+		_this->pInput->mouse.pos.y = ScaleDown(max(0, *(short*)&y), _this->properties.scale);
 		_this->pInput->mouse.flags = wParam & 0xFF;
 
 		if (_this->pInput->clickUp)
@@ -197,8 +197,8 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	case WM_MOUSEMOVE: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouse.x = ScaleDown(max(0, *(short*)&x), _this->properties.scale);
-		_this->pInput->mouse.y = ScaleDown(max(0, *(short*)&y), _this->properties.scale);
+		_this->pInput->mouse.pos.x = ScaleDown(max(0, *(short*)&x), _this->properties.scale);
+		_this->pInput->mouse.pos.y = ScaleDown(max(0, *(short*)&y), _this->properties.scale);
 		_this->pInput->mouse.flags = wParam & 0xFF;
 		goto def;
 	}
