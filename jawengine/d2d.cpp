@@ -461,3 +461,20 @@ void jaw::D2DGraphics::FillRect(Rect dest, uint32_t color, uint8_t layer, float 
 
 	layersChanged[layer] = true;
 }
+
+void jaw::D2DGraphics::DrawLine(Point start, Point end, float width, uint32_t color, uint8_t layer, float alpha) {
+	pSolidBrush->SetColor(D2D1::ColorF(color));
+	pSolidBrush->SetOpacity(alpha);
+
+	if (layer >= LAYERS) layer = LAYERS - 1;
+	auto pBitmapTarget = layers[layer];
+
+	pBitmapTarget->DrawLine(
+		D2D1::Point2((float)start.x, (float)start.y),
+		D2D1::Point2((float)end.x, (float)end.y),
+		pSolidBrush,
+		width
+	);
+
+	layersChanged[layer] = true;
+}

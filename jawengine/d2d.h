@@ -93,6 +93,7 @@ namespace jaw {
 		void setBackgroundColor(uint32_t color) override;
 		void ClearLayer(uint8_t layer, uint32_t color = 0x000000, float alpha = 0.f) override;
 		void FillRect(Rect dest, uint32_t color, uint8_t layer, float alpha = 1.f) override;
+		void DrawLine(Point start, Point end, float width, uint32_t color, uint8_t layer, float alpha = 1.f) override;
 	};
 
 };

@@ -8,7 +8,8 @@ public:
 	}
 
 	void Loop() override {
-		
+		jaw::Point x(2, 3);
+		x = x * 5;
 	}
 
 	void ClickDown(jaw::InputInterface::Mouse mouse) {
