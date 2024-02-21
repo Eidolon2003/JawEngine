@@ -254,8 +254,7 @@ void jaw::Window::RegisterSprite(Sprite* spr) {
 	sprites.insert(spr);
 }
 
-void jaw::Window::DeleteSprite(Sprite* spr) {
-	delete spr;
+void jaw::Window::DeregisterSprite(Sprite* spr) {
 	sprites.erase(spr);
 }
 
@@ -265,7 +264,7 @@ void jaw::Window::HandleSprites() {
 		auto spr = *itr;
 		itr++;
 		if (spr->Update(pApp))
-			DeleteSprite(spr);
+			DeregisterSprite(spr);
 		else
 			spr->Draw(pApp);
 	}

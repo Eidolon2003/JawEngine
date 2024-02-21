@@ -174,7 +174,7 @@ namespace jaw {
 		virtual std::chrono::duration<double, std::milli> getFrametime() const = 0;
 		virtual std::chrono::duration<uint64_t, std::milli> getLifetime() const = 0;
 		virtual void RegisterSprite(Sprite*) = 0;
-		virtual void DeleteSprite(Sprite*) = 0;
+		virtual void DeregisterSprite(Sprite*) = 0;
 		virtual const AppProperties& getProperties() const = 0;
 	};
 
