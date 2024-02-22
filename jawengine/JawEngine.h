@@ -12,6 +12,8 @@
 #include <chrono>
 #include <functional>
 #include <algorithm>
+#include <memory>
+#include <set>
 
 namespace jaw {
 
@@ -112,6 +114,8 @@ namespace jaw {
 		virtual bool DrawPartialBmp(Bitmap* bmp, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
 		virtual bool DrawPartialBmp(Bitmap* bmp, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
 
+		//Default sprite drawing routine
+		//This will not call an overloaded Sprite::Draw method
 		virtual bool DrawSprite(Sprite* sprite) = 0;
 		virtual bool DrawSprite(const Sprite& sprite) = 0;
 
@@ -170,12 +174,35 @@ namespace jaw {
 	};
 
 	class WindowInterface {
+	protected:
+		std::set<std::shared_ptr<Sprite>> sprites;
 	public:
 		virtual std::chrono::duration<double, std::milli> getFrametime() const = 0;
 		virtual std::chrono::duration<uint64_t, std::milli> getLifetime() const = 0;
-		virtual void RegisterSprite(Sprite*) = 0;
-		virtual void DeregisterSprite(Sprite*) = 0;
 		virtual const AppProperties& getProperties() const = 0;
+
+		//Turn ownership of your sprite over to the engine
+		//You retain access via a weak_ptr
+		template <typename SPR>
+		std::weak_ptr<SPR> RegisterSprite(SPR* spr) {
+			static_assert(std::is_base_of<Sprite, SPR>::value);
+
+			auto shared = std::shared_ptr<SPR>(spr);
+			std::weak_ptr<SPR> weak = shared;
+			sprites.insert(shared);
+			return weak;
+		}
+
+		//Take ownership of sprite back from the engine
+		template <typename SPR>
+		SPR* DeregisterSprite(std::weak_ptr<SPR> spr) {
+			static_assert(std::is_base_of<Sprite, SPR>::value);
+
+			if (spr.expired()) return nullptr;
+			std::shared_ptr<SPR> new_shared = spr.lock();
+			sprites.erase(new_shared);
+			return new_shared.get();
+		}
 	};
 
 	class AppInterface {

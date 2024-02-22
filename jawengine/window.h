@@ -6,7 +6,6 @@
 
 #include <atomic>
 #include <thread>
-#include <set>
 
 #if defined WINDOWS
 #include <Windows.h>
@@ -15,7 +14,7 @@
 #endif
 
 namespace jaw {
-	
+
 	class Window : public WindowInterface {
 	public:
 		Window(AppInterface* pApp, const AppProperties&, EngineInterface* pEngine);
@@ -25,8 +24,6 @@ namespace jaw {
 
 		std::chrono::duration<double, std::milli> getFrametime() const override;
 		std::chrono::duration<uint64_t, std::milli> getLifetime() const override;
-		void RegisterSprite(Sprite*) override;
-		void DeregisterSprite(Sprite*) override;
 		const AppProperties& getProperties() const override { return properties; }
 
 	private:
@@ -42,8 +39,6 @@ namespace jaw {
 		Input* pInput = nullptr;
 		EngineInterface* pEngine = nullptr;
 		AppInterface* pApp = nullptr;
-
-		std::set<Sprite*> sprites;
 
 		std::atomic<bool> finished;
 

@@ -5,34 +5,36 @@ class MySprite : public jaw::Sprite {
 public:
 	MySprite() {
 		x = y = 50;
-		lifetime = std::chrono::seconds(5);
+		lifetime = std::chrono::seconds(10);
 	}
 
 	void Draw(jaw::AppInterface* pApp) override {
-		auto rect = jaw::Rect(x, y, x + 20, y + 20);
-		pApp->pGraphics->FillRect(rect, 0xFFFFFF, layer);
+		auto rect = jaw::Rect(x, y, x + 50, y + 50);
+		pApp->pGraphics->FillRect(rect, 0xC0FFEE, layer);
 	}
 };
 
 class MyApp : public jaw::AppInterface {
 public:
 
-	MySprite* sprite = nullptr;
+	std::weak_ptr<MySprite> sprite;
 
 	void Init() override {
-		sprite = new MySprite;
-		pWindow->RegisterSprite(sprite);
+		sprite = pWindow->RegisterSprite(new MySprite);
 	}
 
 	void Loop() override {
-
+		if (!sprite.expired())
+			sprite.lock()->x++;
 	}
 };
 
 int main() {
 	jaw::EngineProperties ep;
+	ep.showCMD = false;
+
 	jaw::AppProperties ap;
-	ap.framerate = 100;
+	ap.framerate = 60;
 	ap.size = { 800,600 };
 
 	jaw::StartEngine(new MyApp, ap, ep);

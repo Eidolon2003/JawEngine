@@ -23,7 +23,7 @@ jaw::Window::~Window() {
 	delete pSound;
 	delete pApp;
 
-	for (auto spr : sprites) delete spr;
+	for (auto spr : sprites) spr.reset();
 	sprites.clear();
 }
 
@@ -250,22 +250,16 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	SPRITES
 */
 
-void jaw::Window::RegisterSprite(Sprite* spr) {
-	sprites.insert(spr);
-}
-
-void jaw::Window::DeregisterSprite(Sprite* spr) {
-	sprites.erase(spr);
-}
-
 void jaw::Window::HandleSprites() {
 	auto itr = sprites.begin();
 	while (itr != sprites.end()) {
-		auto spr = *itr;
+		auto spr = itr;
 		itr++;
-		if (spr->Update(pApp))
-			DeregisterSprite(spr);
-		else
-			spr->Draw(pApp);
+		if ((*spr)->Update(pApp)) {
+			sprites.erase(spr);
+		}
+		else {
+			(*spr)->Draw(pApp);
+		}
 	}
 }
