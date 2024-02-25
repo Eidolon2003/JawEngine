@@ -4,9 +4,11 @@
 	DIRECT2D SETUP
 */
 
-jaw::D2DGraphics::D2DGraphics(HWND hWnd, uint16_t x, uint16_t y, float scale, std::wstring locale) {
-	setSize(x, y);
-	this->scale = scale;
+jaw::D2DGraphics::D2DGraphics(HWND hWnd, AppProperties properties, std::wstring locale) {
+	setSize(properties.size.x, properties.size.y);
+	layerCount = properties.layerCount;
+	backgroundCount = properties.layerCount;
+	this->scale = properties.scale;
 	this->hWnd = hWnd;
 	this->locale = locale;
 	backgroundColor = 0x000000;
@@ -28,7 +30,7 @@ jaw::D2DGraphics::D2DGraphics(HWND hWnd, uint16_t x, uint16_t y, float scale, st
 		&pRenderTarget
 	);
 
-	for (int i = 0; i < LAYERS; i++) {
+	for (int i = 0; i < layerCount; i++) {
 		layers.push_back(nullptr);
 		layersChanged.push_back(false);
 		pRenderTarget->CreateCompatibleRenderTarget(D2D1::SizeF(sizeX, sizeY), &layers[i]);
@@ -79,7 +81,7 @@ void jaw::D2DGraphics::setSize(uint16_t x, uint16_t y) {
 void jaw::D2DGraphics::BeginFrame() {
 	layers[0]->BeginDraw();
 
-	for (int i = 1; i < LAYERS; i++) {
+	for (int i = backgroundCount; i < layerCount; i++) {
 		layers[i]->BeginDraw();
 		layers[i]->Clear(D2D1::ColorF(0, 0, 0, 0));
 		layersChanged[i] = false;
@@ -96,9 +98,9 @@ void jaw::D2DGraphics::EndFrame() {
 	D2D1_BITMAP_INTERPOLATION_MODE mode = D2D1_BITMAP_INTERPOLATION_MODE_LINEAR;
 	if (ceilf(scale) == scale) mode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
 
-	for (int i = 0; i < LAYERS; i++) {
-		//always draw layer zero
-		if (i && !layersChanged[i]) continue;
+	for (int i = 0; i < layerCount; i++) {
+		//Always draw background layers, and skip unmodified non-background layers
+		if ((i >= backgroundCount) && !layersChanged[i]) continue;
 
 		ID2D1Bitmap* pBitmap = nullptr;
 		layers[i]->GetBitmap(&pBitmap);
@@ -238,7 +240,7 @@ bool jaw::D2DGraphics::DrawBmp(Bitmap* bmp, Rect dest, uint8_t layer, float alph
 
 	D2DBitmap* pBitmap = (D2DBitmap*)bmp;
 
-	if (layer >= LAYERS) layer = LAYERS - 1;
+	if (layer >= layerCount) layer = layerCount - 1;
 	auto pBitmapTarget = layers[layer];
 
 	pBitmapTarget->DrawBitmap(
@@ -287,7 +289,7 @@ bool jaw::D2DGraphics::DrawPartialBmp(Bitmap* bmp, Rect dest, Rect src, uint8_t 
 	
 	D2DBitmap* pBitmap = (D2DBitmap*)bmp;
 
-	if (layer >= LAYERS) layer = LAYERS - 1;
+	if (layer >= layerCount) layer = layerCount - 1;
 	auto pBitmapTarget = layers[layer];
 
 	pBitmapTarget->DrawBitmap(
@@ -326,7 +328,7 @@ bool jaw::D2DGraphics::DrawSprite(const Sprite& sprite) {
 	D2DBitmap* pBitmap = bitmaps[sprite.bmp->getName()];
 
 	auto layer = sprite.layer;
-	if (layer >= LAYERS) layer = LAYERS - 1;
+	if (layer >= layerCount) layer = layerCount - 1;
 	auto pBitmapTarget = layers[layer];
 
 	auto src = sprite.src;
@@ -402,7 +404,7 @@ bool jaw::D2DGraphics::DrawString(std::wstring str, Rect dest, uint8_t layer, co
 	if (!fonts.count(font))
 		if (!LoadFont(font)) return false;
 
-	if (layer >= LAYERS) layer = LAYERS - 1;
+	if (layer >= layerCount) layer = layerCount - 1;
 	auto pBitmapTarget = layers[layer];
 
 	pSolidBrush->SetColor(D2D1::ColorF(color));
@@ -434,7 +436,7 @@ void jaw::D2DGraphics::setBackgroundColor(uint32_t color) {
 }
 
 void jaw::D2DGraphics::ClearLayer(uint8_t layer, uint32_t color, float alpha) {
-	if (layer >= LAYERS) layer = LAYERS - 1;
+	if (layer >= layerCount) layer = layerCount - 1;
 	auto pBitmapTarget = layers[layer];
 
 	pBitmapTarget->Clear(D2D1::ColorF(color, alpha));
@@ -446,7 +448,7 @@ void jaw::D2DGraphics::FillRect(Rect dest, uint32_t color, uint8_t layer, float 
 	pSolidBrush->SetColor(D2D1::ColorF(color));
 	pSolidBrush->SetOpacity(alpha);
 
-	if (layer >= LAYERS) layer = LAYERS - 1;
+	if (layer >= layerCount) layer = layerCount - 1;
 	auto pBitmapTarget = layers[layer];
 
 	pBitmapTarget->FillRectangle(
@@ -466,7 +468,7 @@ void jaw::D2DGraphics::DrawLine(Point start, Point end, float width, uint32_t co
 	pSolidBrush->SetColor(D2D1::ColorF(color));
 	pSolidBrush->SetOpacity(alpha);
 
-	if (layer >= LAYERS) layer = LAYERS - 1;
+	if (layer >= layerCount) layer = layerCount - 1;
 	auto pBitmapTarget = layers[layer];
 
 	pBitmapTarget->DrawLine(

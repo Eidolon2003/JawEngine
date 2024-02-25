@@ -3,6 +3,7 @@
 
 #if (defined _WIN32 || defined _WIN64)
 #define WINDOWS
+#define NOMINMAX	//Suppress Microsoft's #defined min and max macros
 #elif (defined LINUX || defined __linux__)
 #define LINUX
 #endif
@@ -55,6 +56,8 @@ namespace jaw {
 		float scale = 1.f;
 		float framerate = 60;
 		bool enableKeyRepeat = false;
+		uint8_t layerCount = 8;
+		uint8_t backgroundCount = 1;
 	};
 
 	struct Font {

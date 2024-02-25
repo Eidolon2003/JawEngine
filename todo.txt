@@ -9,8 +9,5 @@
 	- detects when the sprite is clicked on
 	- pass a mouse struct with all the necessary info
 - Sprite collision detection
-- Dynamic number of layers
-	- add and remove at will
-	- set to auto-clear or not
 - Timers
 	- ability to write a function that gets called automatically at some time interval

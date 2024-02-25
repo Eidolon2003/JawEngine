@@ -32,7 +32,8 @@ namespace jaw {
 		ID2D1SolidColorBrush* pSolidBrush;
 		IDWriteFactory* pDWFactory;
 
-		static constexpr uint8_t LAYERS = 16;
+		uint8_t layerCount;
+		uint8_t backgroundCount;
 		std::vector<ID2D1BitmapRenderTarget*> layers;
 		std::vector<bool> layersChanged;
 
@@ -65,7 +66,7 @@ namespace jaw {
 		uint32_t backgroundColor;
 
 	public:
-		D2DGraphics(HWND hWnd, uint16_t x, uint16_t y, float scale, std::wstring locale);
+		D2DGraphics(HWND hWnd, AppProperties properties, std::wstring locale);
 		~D2DGraphics() override;
 
 		void BeginFrame() override;

@@ -1,42 +1,20 @@
 ﻿#include "../jawengine/JawEngine.h"
-#include <iostream>
 
-class MySprite : public jaw::Sprite {
+class TestApp : public jaw::AppInterface {
 public:
-	MySprite() {
-		x = y = 50;
-		lifetime = std::chrono::seconds(10);
-	}
+    void Init() override {
+        pGraphics->FillRect(jaw::Rect(0, 0, 200, 200), 0xFF0000, 0, 1);
+        pGraphics->FillRect(jaw::Rect(100, 100, 300, 300), 0x0000FF, 1, 0.5f);
+    }
 
-	void Draw(jaw::AppInterface* pApp) override {
-		auto rect = jaw::Rect(x, y, x + 50, y + 50);
-		pApp->pGraphics->FillRect(rect, 0xC0FFEE, layer);
-	}
-};
-
-class MyApp : public jaw::AppInterface {
-public:
-
-	std::weak_ptr<MySprite> sprite;
-
-	void Init() override {
-		sprite = pWindow->RegisterSprite(new MySprite);
-	}
-
-	void Loop() override {
-		if (!sprite.expired())
-			sprite.lock()->x++;
-	}
+    void Loop() override {}
 };
 
 int main() {
-	jaw::EngineProperties ep;
-	ep.showCMD = false;
+    jaw::EngineProperties ep;
+    jaw::AppProperties ap;
+    ap.layerCount = 2;
+    ap.backgroundCount = 2;
 
-	jaw::AppProperties ap;
-	ap.framerate = 60;
-	ap.size = { 800,600 };
-
-	jaw::StartEngine(new MyApp, ap, ep);
-	return 0;
+    jaw::StartEngine(new TestApp, ap, ep);
 }
