@@ -7,7 +7,7 @@
 jaw::D2DGraphics::D2DGraphics(HWND hWnd, AppProperties properties, std::wstring locale) {
 	setSize(properties.size.x, properties.size.y);
 	layerCount = properties.layerCount;
-	backgroundCount = properties.layerCount;
+	backgroundCount = properties.backgroundCount;
 	this->scale = properties.scale;
 	this->hWnd = hWnd;
 	this->locale = locale;
