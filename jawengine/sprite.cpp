@@ -26,8 +26,8 @@ jaw::Point jaw::Sprite::getSize() const {
 	return a;
 }
 
-bool jaw::Sprite::Update(jaw::AppInterface* pApp) {
-	auto frametime = pApp->pWindow->getFrametime();
+bool jaw::Sprite::Update(jaw::AppInterface* app) {
+	auto frametime = app->window->getFrametime();
 
 	if (lifetime.count() != 0) {
 		if (lifetime <= frametime)
@@ -54,6 +54,6 @@ bool jaw::Sprite::Update(jaw::AppInterface* pApp) {
 	return false;
 }
 
-void jaw::Sprite::Draw(jaw::AppInterface* pApp) {
-	pApp->pGraphics->DrawSprite(this);
+void jaw::Sprite::Draw(jaw::AppInterface* app) {
+	app->graphics->DrawSprite(this);
 }

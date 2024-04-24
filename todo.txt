@@ -1,3 +1,4 @@
+- Make LoadBMP return a weak ptr
 - Multiple functions on the same keybind?
 - Engine handled gamestates
 	- gamestates are on a stack (when you close the menu it goes back to where you were automatically)

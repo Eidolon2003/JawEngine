@@ -20,10 +20,10 @@ namespace jaw {
 			ID2D1Bitmap* pBitmap;
 
 			std::string name;
-			std::string getName() override;
+			std::string getName() const override;
 
 			uint16_t x, y;
-			Point getSize() override;
+			Point getSize() const override;
 		};
 
 	private:
@@ -77,15 +77,15 @@ namespace jaw {
 		
 		bool DrawBmp(std::string filename, Point dest, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
 		bool DrawBmp(std::string filename, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) override;
-		bool DrawBmp(Bitmap* bmp, Point dest, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
-		bool DrawBmp(Bitmap* bmp, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) override;
+		bool DrawBmp(const Bitmap* bmp, Point dest, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
+		bool DrawBmp(const Bitmap* bmp, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) override;
 		
 		bool DrawPartialBmp(std::string filename, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) override;
 		bool DrawPartialBmp(std::string filename, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
-		bool DrawPartialBmp(Bitmap* bmp, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) override;
-		bool DrawPartialBmp(Bitmap* bmp, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
+		bool DrawPartialBmp(const Bitmap* bmp, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) override;
+		bool DrawPartialBmp(const Bitmap* bmp, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) override;
 
-		bool DrawSprite(Sprite* sprite) override;
+		bool DrawSprite(const Sprite* sprite) override;
 		bool DrawSprite(const Sprite& sprite) override;
 
 		bool LoadFont(const Font& font) override;

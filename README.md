@@ -21,7 +21,7 @@ At this point, you can either edit "TestApp.cpp", or create your own project and
 class HelloWorld : public jaw::AppInterface {
 public:
     void Init() override {
-        pGraphics->DrawString(L"Hello, world!", jaw::Rect(0, 0, 200, 20), 0);
+        graphics->DrawString(L"Hello, world!", jaw::Rect(0, 0, 200, 20), 0);
     }
 
     void Loop() override {}

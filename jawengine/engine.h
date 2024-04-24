@@ -18,7 +18,7 @@ namespace jaw {
 		std::wstring getLocale() const override;
 
 	private:
-		std::unordered_map<AppInterface*, Window*> pWindows;
+		std::unordered_map<AppInterface*, Window*> windows;
 		std::wstring locale;
 
 		friend void StartEngine(AppInterface*, const AppProperties&, const EngineProperties&);

@@ -72,8 +72,8 @@ namespace jaw {
 
 	class Bitmap {
 	public:
-		virtual std::string getName() = 0;
-		virtual Point getSize() = 0;
+		virtual std::string getName() const = 0;
+		virtual Point getSize() const = 0;
 	};
 	
 	class AppInterface;
@@ -109,17 +109,17 @@ namespace jaw {
 
 		virtual bool DrawBmp(std::string filename, Point dest, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
 		virtual bool DrawBmp(std::string filename, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
-		virtual bool DrawBmp(Bitmap* bmp, Point dest, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
-		virtual bool DrawBmp(Bitmap* bmp, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawBmp(const Bitmap* bmp, Point dest, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawBmp(const Bitmap* bmp, Rect dest, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
 
 		virtual bool DrawPartialBmp(std::string filename, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
 		virtual bool DrawPartialBmp(std::string filename, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
-		virtual bool DrawPartialBmp(Bitmap* bmp, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
-		virtual bool DrawPartialBmp(Bitmap* bmp, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawPartialBmp(const Bitmap* bmp, Rect dest, Rect src, uint8_t layer, float alpha = 1.f, bool interpolation = false) = 0;
+		virtual bool DrawPartialBmp(const Bitmap* bmp, Point dest, Rect src, uint8_t layer, float scale = 1.f, float alpha = 1.f, bool interpolation = false) = 0;
 
 		//Default sprite drawing routine
 		//This will not call an overloaded Sprite::Draw method
-		virtual bool DrawSprite(Sprite* sprite) = 0;
+		virtual bool DrawSprite(const Sprite* sprite) = 0;
 		virtual bool DrawSprite(const Sprite& sprite) = 0;
 
 		virtual bool LoadFont(const Font&) = 0;
@@ -187,8 +187,8 @@ namespace jaw {
 		//Turn ownership of your sprite over to the engine
 		//You retain access via a weak_ptr
 		template <typename SPR>
-		std::weak_ptr<SPR> RegisterSprite(SPR* spr) {
-			static_assert(std::is_base_of<Sprite, SPR>::value);
+		std::weak_ptr<SPR> RegisterSprite(const SPR* spr) {
+			static_assert(std::is_base_of<Sprite, SPR>::value, "Your sprite should inherit from jaw::Sprite");
 
 			auto shared = std::shared_ptr<SPR>(spr);
 			std::weak_ptr<SPR> weak = shared;
@@ -198,8 +198,8 @@ namespace jaw {
 
 		//Take ownership of sprite back from the engine
 		template <typename SPR>
-		SPR* DeregisterSprite(std::weak_ptr<SPR> spr) {
-			static_assert(std::is_base_of<Sprite, SPR>::value);
+		SPR* DeregisterSprite(const std::weak_ptr<SPR> spr) {
+			static_assert(std::is_base_of<Sprite, SPR>::value, "Your sprite should inherit from jaw::Sprite");
 
 			if (spr.expired()) return nullptr;
 			std::shared_ptr<SPR> new_shared = spr.lock();
@@ -210,11 +210,11 @@ namespace jaw {
 
 	class AppInterface {
 	public:
-		GraphicsInterface* pGraphics = nullptr;
-		SoundInterface* pSound = nullptr;
-		InputInterface* pInput = nullptr;
-		WindowInterface* pWindow = nullptr;
-		EngineInterface* pEngine = nullptr;
+		GraphicsInterface* graphics = nullptr;
+		SoundInterface* sound = nullptr;
+		InputInterface* input = nullptr;
+		WindowInterface* window = nullptr;
+		EngineInterface* engine = nullptr;
 
 		virtual ~AppInterface() {}
 		virtual void Init() = 0;

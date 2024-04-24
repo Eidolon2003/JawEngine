@@ -1,18 +1,19 @@
 #include "engine.h"
 
-void jaw::StartEngine(jaw::AppInterface* pApp, const jaw::AppProperties& appProps, const jaw::EngineProperties& engProps) {
+void jaw::StartEngine(jaw::AppInterface* app, const jaw::AppProperties& appProps, const jaw::EngineProperties& engProps) {
 	jaw::Engine engine(engProps);
-	engine.OpenWindow(pApp, appProps);
+	engine.OpenWindow(app, appProps);
 
-	while (!engine.pWindows.empty()) {
-		auto iter = engine.pWindows.begin();
-		while (iter != engine.pWindows.end()) {
+	while (!engine.windows.empty()) {
+		auto iter = engine.windows.begin();
+		while (iter != engine.windows.end()) {
 			if (iter->second->isClosed()) {
 				delete iter->second;
-				iter = engine.pWindows.erase(iter);
+				iter = engine.windows.erase(iter);
 			}
-			else 
+			else {
 				iter++;
+			}
 		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -24,23 +25,20 @@ jaw::Engine::Engine(const EngineProperties& props) {
 	this->locale = props.locale;
 }
 
-void jaw::Engine::OpenWindow(AppInterface* pApp, const AppProperties& props) {
-	pWindows[pApp] = new Window(pApp, props, this);
+void jaw::Engine::OpenWindow(AppInterface* app, const AppProperties& props) {
+	windows[app] = new Window(app, props, this);
 }
 
-void jaw::Engine::CloseWindow(AppInterface* pApp) {
+void jaw::Engine::CloseWindow(AppInterface* app) {
 #if defined WINDOWS
-	PostMessage(pWindows[pApp]->getHWND(), WM_CLOSE, NULL, NULL);
+	PostMessage(windows[app]->getHWND(), WM_CLOSE, NULL, NULL);
 #endif
 }
 
 void jaw::Engine::ShowCMD(bool show) {
 #if defined WINDOWS
 	HWND console = GetConsoleWindow();
-	if (show)
-		ShowWindow(console, SW_SHOW);
-	else
-		ShowWindow(console, SW_HIDE);
+	ShowWindow(console, show ? SW_SHOW : SW_HIDE);
 #endif
 }
 

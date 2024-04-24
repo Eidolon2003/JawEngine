@@ -76,15 +76,15 @@ bool jaw::DirectSound::Load(std::string filename) {
 	secondaryBuffers[filename] = nullptr;
 	pTempBuffer = nullptr;
 	pDirectSound->CreateSoundBuffer(&secondaryDesc, &pTempBuffer, NULL);
-	pTempBuffer->QueryInterface(IID_IDirectSoundBuffer, (void**)&secondaryBuffers[filename]);
+	pTempBuffer->QueryInterface(IID_IDirectSoundBuffer, (LPVOID*)&secondaryBuffers[filename]);
 	pTempBuffer->Release();
 	pTempBuffer = nullptr;
 
 	char* pBuffer = nullptr;
 	unsigned bufferSize;
-	secondaryBuffers[filename]->Lock(0, header.dataSize, (void**)&pBuffer, (DWORD*)&bufferSize, NULL, 0, 0);
+	secondaryBuffers[filename]->Lock(0, header.dataSize, (LPVOID*)&pBuffer, (DWORD*)&bufferSize, NULL, 0, 0);
 	memcpy(pBuffer, data, header.dataSize);
-	secondaryBuffers[filename]->Unlock((void*)pBuffer, bufferSize, NULL, 0);
+	secondaryBuffers[filename]->Unlock((LPVOID)pBuffer, bufferSize, NULL, 0);
 
 	delete[] data;
 	data = nullptr;
@@ -92,8 +92,8 @@ bool jaw::DirectSound::Load(std::string filename) {
 }
 
 bool jaw::DirectSound::Play(std::string filename) {
-	if (!secondaryBuffers[filename])
-		if (!Load(filename)) return false;
+	if (!secondaryBuffers[filename] && !Load(filename))
+		return false;
 
 	secondaryBuffers[filename]->SetCurrentPosition(0);
 	secondaryBuffers[filename]->SetVolume(-1000);
@@ -102,8 +102,8 @@ bool jaw::DirectSound::Play(std::string filename) {
 }
 
 bool jaw::DirectSound::Loop(std::string filename) {
-	if (!secondaryBuffers[filename])
-		if (!Load(filename)) return false;
+	if (!secondaryBuffers[filename] && !Load(filename))
+		return false;
 
 	secondaryBuffers[filename]->SetCurrentPosition(0);
 	secondaryBuffers[filename]->SetVolume(-1000);

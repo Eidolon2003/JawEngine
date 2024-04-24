@@ -17,7 +17,7 @@ namespace jaw {
 
 	class Window : public WindowInterface {
 	public:
-		Window(AppInterface* pApp, const AppProperties&, EngineInterface* pEngine);
+		Window(AppInterface* app, const AppProperties&, EngineInterface* engine);
 		~Window();
 
 		bool isClosed();
@@ -34,11 +34,11 @@ namespace jaw {
 		AppProperties properties;
 		std::chrono::high_resolution_clock::time_point start, thisFrame, lastFrame;
 
-		SoundInterface* pSound = nullptr;
-		InternalGraphicsInterface* pGraphics = nullptr;
-		Input* pInput = nullptr;
-		EngineInterface* pEngine = nullptr;
-		AppInterface* pApp = nullptr;
+		SoundInterface* sound = nullptr;
+		InternalGraphicsInterface* graphics = nullptr;
+		Input* input = nullptr;
+		EngineInterface* engine = nullptr;
+		AppInterface* app = nullptr;
 
 		std::atomic<bool> finished;
 

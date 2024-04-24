@@ -1,12 +1,12 @@
 #include "window.h"
 
-jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, jaw::EngineInterface* pEngine) {
+jaw::Window::Window(jaw::AppInterface* app, const jaw::AppProperties& props, jaw::EngineInterface* engine) {
 	finished.store(false);
 
 	start = thisFrame = lastFrame = std::chrono::high_resolution_clock::now();
 
-	this->pApp = pApp;
-	this->pEngine = pEngine;
+	this->app = app;
+	this->engine = engine;
 
 	properties = props;
 	properties.layerCount = std::max(properties.layerCount, properties.backgroundCount);
@@ -19,10 +19,10 @@ jaw::Window::Window(jaw::AppInterface* pApp, const jaw::AppProperties& props, ja
 }
 
 jaw::Window::~Window() {
-	delete pInput;
-	delete pGraphics;
-	delete pSound;
-	delete pApp;
+	delete input;
+	delete graphics;
+	delete sound;
+	delete app;
 
 	sprites.clear();
 }
@@ -37,6 +37,7 @@ bool jaw::Window::FrameLimiter() {
 	auto now = high_resolution_clock::now();
 	duration<uint64_t, std::nano> frametime = now - thisFrame;
 
+	//Uncapped
 	if (properties.framerate == 0) {
 		lastFrame = thisFrame;
 		thisFrame = now;
@@ -120,17 +121,17 @@ void jaw::Window::ThreadFunk() {
 	//Set the window's data to a pointer to this object so it can be accessed in WinProc
 	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)this);
 
-	this->pSound = new jaw::DirectSound(hWnd);
-	this->pGraphics = new jaw::D2DGraphics(hWnd, properties, pEngine->getLocale());
-	this->pInput = new jaw::Input(properties.enableKeyRepeat);
+	this->sound = new jaw::DirectSound(hWnd);
+	this->graphics = new jaw::D2DGraphics(hWnd, properties, engine->getLocale());
+	this->input = new jaw::Input(properties.enableKeyRepeat);
 
-	pApp->pWindow = this;
-	pApp->pEngine = pEngine;
-	pApp->pGraphics = pGraphics;
-	pApp->pSound = pSound;
-	pApp->pInput = pInput;
+	app->window = this;
+	app->engine = engine;
+	app->graphics = graphics;
+	app->sound = sound;
+	app->input = input;
 
-	pApp->Init();
+	app->Init();
 
 	bool running = true;
 	while (running) {
@@ -142,11 +143,11 @@ void jaw::Window::ThreadFunk() {
 		}
 
 		if (FrameLimiter()) {
-			pGraphics->BeginFrame();
-			pApp->Loop();
+			graphics->BeginFrame();
+			app->Loop();
 			HandleSprites();
-			pGraphics->EndFrame();
-			pInput->Reset();
+			graphics->EndFrame();
+			input->Reset();
 		}
 	}
 
@@ -168,12 +169,12 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	case WM_XBUTTONDOWN: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouse.pos.x = ScaleDown(std::max((short)0, *(short*)&x), _this->properties.scale);
-		_this->pInput->mouse.pos.y = ScaleDown(std::max((short)0, *(short*)&y), _this->properties.scale);
-		_this->pInput->mouse.flags = wParam & 0xFF;
+		_this->input->mouse.pos.x = ScaleDown(std::max((short)0, *(short*)&x), _this->properties.scale);
+		_this->input->mouse.pos.y = ScaleDown(std::max((short)0, *(short*)&y), _this->properties.scale);
+		_this->input->mouse.flags = wParam & 0xFF;
 
-		if (_this->pInput->clickDown)
-			_this->pInput->clickDown(_this->pInput->mouse);
+		if (_this->input->clickDown)
+			_this->input->clickDown(_this->input->mouse);
 
 		goto def;
 	}
@@ -184,12 +185,12 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	case WM_XBUTTONUP: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouse.pos.x = ScaleDown(std::max((short)0, *(short*)&x), _this->properties.scale);
-		_this->pInput->mouse.pos.y = ScaleDown(std::max((short)0, *(short*)&y), _this->properties.scale);
-		_this->pInput->mouse.flags = wParam & 0xFF;
+		_this->input->mouse.pos.x = ScaleDown(std::max((short)0, *(short*)&x), _this->properties.scale);
+		_this->input->mouse.pos.y = ScaleDown(std::max((short)0, *(short*)&y), _this->properties.scale);
+		_this->input->mouse.flags = wParam & 0xFF;
 
-		if (_this->pInput->clickUp)
-			_this->pInput->clickUp(_this->pInput->mouse);
+		if (_this->input->clickUp)
+			_this->input->clickUp(_this->input->mouse);
 
 		goto def;
 	}
@@ -197,43 +198,43 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	case WM_MOUSEMOVE: {
 		unsigned short x = lParam & 0xFFFF;
 		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->pInput->mouse.pos.x = ScaleDown(std::max((short)0, *(short*)&x), _this->properties.scale);
-		_this->pInput->mouse.pos.y = ScaleDown(std::max((short)0, *(short*)&y), _this->properties.scale);
-		_this->pInput->mouse.flags = wParam & 0xFF;
+		_this->input->mouse.pos.x = ScaleDown(std::max((short)0, *(short*)&x), _this->properties.scale);
+		_this->input->mouse.pos.y = ScaleDown(std::max((short)0, *(short*)&y), _this->properties.scale);
+		_this->input->mouse.flags = wParam & 0xFF;
 		goto def;
 	}
 
 	case WM_MOUSEWHEEL: {
-		_this->pInput->mouse.flags = wParam & 0xFF;
-		_this->pInput->mouse.wheel += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
+		_this->input->mouse.flags = wParam & 0xFF;
+		_this->input->mouse.wheel += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
 		goto def;
 	}
 
 	case WM_CHAR:
-		_this->pInput->charInput.push_back((wchar_t)wParam);
+		_this->input->charInput.push_back((wchar_t)wParam);
 		goto def;
 
 	case WM_KEYDOWN:
 		//Check for repeat
-		if ((lParam & 0x40000000) && !_this->pInput->enableKeyRepeat)
+		if ((lParam & 0x40000000) && !_this->input->enableKeyRepeat)
 			goto def;
 
 		//set appropriate bit
-		_this->pInput->keybits[wParam >> 4 & 0xF] |= 1 << (wParam & 0xF);
+		_this->input->keybits[wParam >> 4 & 0xF] |= 1 << (wParam & 0xF);
 
 		//call keybind
-		if (_this->pInput->downJumpTable[wParam & 0xFF])
-			_this->pInput->downJumpTable[wParam & 0xFF]();
+		if (_this->input->downJumpTable[wParam & 0xFF])
+			_this->input->downJumpTable[wParam & 0xFF]();
 
 		goto def;
 
 	case WM_KEYUP:
 		//reset appropriate bit
-		_this->pInput->keybits[wParam >> 4 & 0xF] &= ~(1 << (wParam & 0xF));
+		_this->input->keybits[wParam >> 4 & 0xF] &= ~(1 << (wParam & 0xF));
 
 		//call keybind
-		if (_this->pInput->upJumpTable[wParam & 0xFF])
-			_this->pInput->upJumpTable[wParam & 0xFF]();
+		if (_this->input->upJumpTable[wParam & 0xFF])
+			_this->input->upJumpTable[wParam & 0xFF]();
 
 		goto def;
 
@@ -255,11 +256,11 @@ void jaw::Window::HandleSprites() {
 	while (itr != sprites.end()) {
 		auto spr = itr;
 		itr++;
-		if ((*spr)->Update(pApp)) {
+		if ((*spr)->Update(app)) {
 			sprites.erase(spr);
 		}
 		else {
-			(*spr)->Draw(pApp);
+			(*spr)->Draw(app);
 		}
 	}
 }
