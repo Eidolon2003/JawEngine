@@ -5,7 +5,7 @@ JawEngine is a simple 2D game engine written in C++. Features include:
 - WAV audio
 - Event-driven input
 
-This project is a work-in-progress. For now, only Windows is supported via DirectX, but cross-platform support is planned. Programs built using this engine work under Wine in my experience.
+This project is a work-in-progress. For now, only Windows is supported via DirectX, but cross-platform support is planned. Programs built using this engine work under Wine in my experience. Check out [my snake clone](https://github.com/Eidolon2003/Snake) as an example
 
 ## Setup
 For Windows development, I use [Microsoft Visual Studio Community Edition](https://visualstudio.microsoft.com/vs/community/). This project requires the "Desktop development with C++" and "Game development with C++" packages. If you already have Visual Studio installed but don't have these packages, they can be added via `Tools > Get Tools and Features...`.
