@@ -32,6 +32,7 @@ namespace jaw {
 		void HandleSprites();
 
 		AppProperties properties;
+		jaw::Point winSize;
 		std::chrono::high_resolution_clock::time_point start, thisFrame, lastFrame;
 
 		SoundInterface* sound = nullptr;
@@ -52,6 +53,7 @@ namespace jaw {
 		HWND hWnd = NULL;
 
 		static LRESULT __stdcall WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+		void HandleMouse(LPARAM lParam, WPARAM wParam);
 #endif
 
 	};

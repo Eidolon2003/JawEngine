@@ -1,11 +1,13 @@
+#include <iostream>
 #include "d2d.h"
 
 /*
 	DIRECT2D SETUP
 */
 
-jaw::D2DGraphics::D2DGraphics(HWND hWnd, AppProperties properties, std::wstring locale) {
-	setSize(properties.size.x, properties.size.y);
+jaw::D2DGraphics::D2DGraphics(HWND hWnd, AppProperties properties, jaw::Point winSize, std::wstring locale) {
+	renderSize = properties.size;
+	this->winSize = winSize;
 	layerCount = properties.layerCount;
 	backgroundCount = properties.backgroundCount;
 	this->scale = properties.scale;
@@ -24,16 +26,39 @@ jaw::D2DGraphics::D2DGraphics(HWND hWnd, AppProperties properties, std::wstring 
 		),
 		D2D1::HwndRenderTargetProperties(
 			hWnd,
-			D2D1::SizeU(ScaleUp(sizeX, scale), ScaleUp(sizeY, scale)),
+			D2D1::SizeU(winSize.x, winSize.y),
 			D2D1_PRESENT_OPTIONS_IMMEDIATELY
 		),
 		&pRenderTarget
 	);
 
+	pDWFactory = nullptr;
+	DWriteCreateFactory(
+		DWRITE_FACTORY_TYPE_SHARED,
+		__uuidof(pDWFactory),
+		reinterpret_cast<IUnknown**>(&pDWFactory)
+	);
+
+	HMONITOR primaryMonitor = MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTOPRIMARY);
+	pDWFactory->CreateMonitorRenderingParams(primaryMonitor, &pParams);
+	pDWFactory->CreateCustomRenderingParams(
+		pParams->GetGamma(),
+		pParams->GetEnhancedContrast(),
+		pParams->GetClearTypeLevel(),
+		pParams->GetPixelGeometry(),
+		properties.enableSubpixelTextRendering ?
+			pParams->GetRenderingMode() : DWRITE_RENDERING_MODE_ALIASED,
+		&pParams
+	);
+
 	for (int i = 0; i < layerCount; i++) {
 		layers.push_back(nullptr);
 		layersChanged.push_back(false);
-		pRenderTarget->CreateCompatibleRenderTarget(D2D1::SizeF(sizeX, sizeY), &layers[i]);
+		pRenderTarget->CreateCompatibleRenderTarget(
+			D2D1::SizeF(renderSize.x, renderSize.y),
+			&layers[i]
+		);
+		layers[i]->SetTextRenderingParams(pParams);
 		layers[i]->BeginDraw();
 	}
 
@@ -43,12 +68,22 @@ jaw::D2DGraphics::D2DGraphics(HWND hWnd, AppProperties properties, std::wstring 
 		&pSolidBrush
 	);
 
-	pDWFactory = nullptr;
-	DWriteCreateFactory(
-		DWRITE_FACTORY_TYPE_SHARED,
-		__uuidof(pDWFactory),
-		reinterpret_cast<IUnknown**>(&pDWFactory)
-	);
+	//List available fonts
+	/*
+	IDWriteFontCollection* pFontCollection = NULL;
+	pDWFactory->GetSystemFontCollection(&pFontCollection);
+	UINT32 count = 0;
+	wchar_t* str = new wchar_t[1000];
+	count = pFontCollection->GetFontFamilyCount();
+	for (UINT32 i = 0; i < count; i++) {
+		IDWriteFontFamily* pFontFamily;
+		pFontCollection->GetFontFamily(i, &pFontFamily);
+		IDWriteLocalizedStrings* pFamilyNames;
+		pFontFamily->GetFamilyNames(&pFamilyNames);
+		pFamilyNames->GetString(0, str, 1000);
+		std::wcout << str << '\t';
+	}
+	*/
 }
 
 jaw::D2DGraphics::~D2DGraphics() {
@@ -71,11 +106,6 @@ jaw::D2DGraphics::~D2DGraphics() {
 	pRenderTarget->EndDraw();
 	pRenderTarget->Release();
 	pD2DFactory->Release();
-}
-
-void jaw::D2DGraphics::setSize(uint16_t x, uint16_t y) {
-	sizeX = x;
-	sizeY = y;
 }
 
 void jaw::D2DGraphics::BeginFrame() {
@@ -106,13 +136,18 @@ void jaw::D2DGraphics::EndFrame() {
 		layers[i]->GetBitmap(&pBitmap);
 		if (!pBitmap) continue;
 
+		jaw::Point offset(
+			(winSize.x - ScaleUp(renderSize.x, scale)) / 2,
+			(winSize.y - ScaleUp(renderSize.y, scale)) / 2
+		);
+
 		pRenderTarget->DrawBitmap(
 			pBitmap,
 			D2D1::Rect(
-				0.f,
-				0.f,
-				(float)ScaleUp(sizeX, scale),
-				(float)ScaleUp(sizeY, scale)
+				(float)offset.x,
+				(float)offset.y,
+				(float)(winSize.x - offset.x),
+				(float)(winSize.y - offset.y)
 			),
 			1.0,
 			mode
@@ -340,13 +375,15 @@ bool jaw::D2DGraphics::DrawSprite(const Sprite& sprite) {
 	if (ceilf(sprite.scale) == sprite.scale)
 		mode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
 
+	jaw::Point pos = sprite.getPoint();
+
 	pBitmapTarget->DrawBitmap(
 		pBitmap->pBitmap,
 		D2D1::Rect(
-			sprite.x,
-			sprite.y,
-			sprite.x + ((sprite.src.br.x - sprite.src.tl.x) * sprite.scale),
-			sprite.y + ((sprite.src.br.y - sprite.src.tl.y) * sprite.scale)
+			(float)pos.x,
+			(float)pos.y,
+			pos.x + ((sprite.src.br.x - sprite.src.tl.x) * sprite.scale),
+			pos.y + ((sprite.src.br.y - sprite.src.tl.y) * sprite.scale)
 		),
 		1.f,
 		mode,

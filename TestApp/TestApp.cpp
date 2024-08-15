@@ -1,25 +1,22 @@
 ﻿#include "../jawengine/JawEngine.h"
+#include <iostream>
 
 class TestApp : public jaw::AppInterface {
 public:
-    int x = 0;
+	void Init() override {
+		engine->ShowCMD(true);
+	}
 
-    void Init() override {
-        graphics->FillRect(jaw::Rect(100, 100, 300, 300), 0x0000FF, 1, 0.5f);
-        graphics->FillRect(jaw::Rect(0, 0, 200, 200), 0xFF0000, 0, 1);
-    }
+	void Loop() override {
+		if (window->getLifetime() > std::chrono::seconds(5))
+			engine->CloseWindow(this);
 
-    void Loop() override {
-        graphics->FillRect(jaw::Rect(x, 10, x + 10, 20), 0x00FF00, 2, 0.5f);
-        x++;
-    }
+		std::cout << window->getFrametime() << std::endl;
+	}
 };
 
 int main() {
-    jaw::EngineProperties ep;
-    jaw::AppProperties ap;
-    ap.layerCount = 3;
-    ap.backgroundCount = 2;
-
-    jaw::StartEngine(new TestApp, ap, ep);
+	jaw::EngineProperties ep;
+	jaw::AppProperties ap;
+	jaw::StartEngine(new TestApp, ap, ep);
 }

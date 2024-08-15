@@ -53,21 +53,21 @@ namespace jaw {
 	struct AppProperties {
 		const char* title = " ";
 		jaw::Point size = jaw::Point(640, 480);
+		enum { WINDOWED, WINDOWED_FULLSCREEN } mode = WINDOWED;
 		float scale = 1.f;
 		float framerate = 60;
 		bool enableKeyRepeat = false;
+		bool enableSubpixelTextRendering = false;
 		uint8_t layerCount = 8;
 		uint8_t backgroundCount = 1;
 	};
 
 	struct Font {
-		enum Alignment { CENTER, LEFT, RIGHT };
-
 		std::wstring name = L"Consolas";
 		float size = 12.0f;
 		bool italic = false;
 		bool bold = false;
-		Alignment align = LEFT;
+		enum { CENTER, LEFT, RIGHT } align = LEFT;
 	};
 
 	class Bitmap {
@@ -126,7 +126,7 @@ namespace jaw {
 		virtual bool DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font = Font(), uint32_t color = 0xFFFFFF, float alpha = 1.f) = 0;
 
 		virtual void setBackgroundColor(uint32_t color) = 0;
-		virtual void ClearLayer(uint8_t layer, uint32_t color = 0x000000, float alpha = 0.f) = 0;
+		virtual void ClearLayer(uint8_t layer, uint32_t color = 0x000000, float alpha = 1.f) = 0;
 		virtual void FillRect(Rect dest, uint32_t color, uint8_t layer, float alpha = 1.f) = 0;
 		virtual void DrawLine(Point start, Point end, float width, uint32_t color, uint8_t layer, float alpha = 1.f) = 0;
 	};
@@ -187,7 +187,7 @@ namespace jaw {
 		//Turn ownership of your sprite over to the engine
 		//You retain access via a weak_ptr
 		template <typename SPR>
-		std::weak_ptr<SPR> RegisterSprite(const SPR* spr) {
+		std::weak_ptr<SPR> RegisterSprite(SPR* spr) {
 			static_assert(std::is_base_of<Sprite, SPR>::value, "Your sprite should inherit from jaw::Sprite");
 
 			auto shared = std::shared_ptr<SPR>(spr);
@@ -198,7 +198,7 @@ namespace jaw {
 
 		//Take ownership of sprite back from the engine
 		template <typename SPR>
-		SPR* DeregisterSprite(const std::weak_ptr<SPR> spr) {
+		SPR* DeregisterSprite(std::weak_ptr<SPR> spr) {
 			static_assert(std::is_base_of<Sprite, SPR>::value, "Your sprite should inherit from jaw::Sprite");
 
 			if (spr.expired()) return nullptr;

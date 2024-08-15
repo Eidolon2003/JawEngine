@@ -12,7 +12,7 @@ jaw::Sprite::Sprite() {
 }
 
 jaw::Point jaw::Sprite::getPoint() const {
-	return Point((int16_t)x, (int16_t)y);
+	return Point((int16_t)round(x), (int16_t)round(y));
 }
 
 void jaw::Sprite::setPoint(jaw::Point pos) {

@@ -80,15 +80,44 @@ std::chrono::duration <uint64_t, std::milli> jaw::Window::getLifetime() const {
 void jaw::Window::ThreadFunk() {
 	timeBeginPeriod(1);
 
-	constexpr DWORD STYLE = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+	DWORD style = 0;
+	RECT rect = RECT();
+	struct { int x, y; } location = { 0,0 };
+	switch (properties.mode) {
+	case AppProperties::WINDOWED:
+		style = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+		winSize = jaw::Point(
+			ScaleUp(properties.size.x, properties.scale),
+			ScaleUp(properties.size.y, properties.scale)
+		);
+		rect = {
+			0,
+			0,
+			winSize.x,
+			winSize.y
+		};
+		AdjustWindowRect(&rect, style, false);
+		location = { CW_USEDEFAULT, CW_USEDEFAULT };
+		break;
 
-	RECT rect = { 
-		0,
-		0,
-		ScaleUp(properties.size.x, properties.scale),
-		ScaleUp(properties.size.y, properties.scale)
-	};
-	AdjustWindowRect(&rect, STYLE, false);
+	case AppProperties::WINDOWED_FULLSCREEN:
+		style = WS_POPUP;
+		winSize = jaw::Point(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+
+		if (properties.size.x == 0)
+			properties.size.x = ScaleDown(winSize.x, properties.scale);
+		if (properties.size.y == 0)
+			properties.size.y = ScaleDown(winSize.y, properties.scale);
+
+		rect = {
+			0,
+			0,
+			winSize.x,
+			winSize.y
+		};
+		location = { 0, 0 };
+		break;
+	}
 
 	wc.cbSize = sizeof(wc);
 	wc.style = CS_DBLCLKS;
@@ -107,8 +136,8 @@ void jaw::Window::ThreadFunk() {
 		0,											//Optional styling
 		wc.lpszClassName,							//Window Class
 		wc.lpszClassName,							//Window Text
-		STYLE,										//Window Style (not resizable)
-		CW_USEDEFAULT, CW_USEDEFAULT,				//Location (Top left is 0,0)
+		style,										//Window Style (not resizable)
+		location.x, location.y,						//Location (Top left is 0,0)
 		rect.right - rect.left,						//width of the window
 		rect.bottom - rect.top,						//height of the window							
 		NULL,										//Parent window
@@ -122,7 +151,7 @@ void jaw::Window::ThreadFunk() {
 	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)this);
 
 	this->sound = new jaw::DirectSound(hWnd);
-	this->graphics = new jaw::D2DGraphics(hWnd, properties, engine->getLocale());
+	this->graphics = new jaw::D2DGraphics(hWnd, properties, winSize, engine->getLocale());
 	this->input = new jaw::Input(properties.enableKeyRepeat);
 
 	app->window = this;
@@ -166,49 +195,27 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	case WM_LBUTTONDOWN:
 	case WM_RBUTTONDOWN:
 	case WM_MBUTTONDOWN:
-	case WM_XBUTTONDOWN: {
-		unsigned short x = lParam & 0xFFFF;
-		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->input->mouse.pos.x = ScaleDown(std::max((short)0, *(short*)&x), _this->properties.scale);
-		_this->input->mouse.pos.y = ScaleDown(std::max((short)0, *(short*)&y), _this->properties.scale);
-		_this->input->mouse.flags = wParam & 0xFF;
-
+	case WM_XBUTTONDOWN:
+		_this->HandleMouse(lParam, wParam);
 		if (_this->input->clickDown)
 			_this->input->clickDown(_this->input->mouse);
 
 		goto def;
-	}
 
 	case WM_LBUTTONUP:
 	case WM_RBUTTONUP:
 	case WM_MBUTTONUP:
-	case WM_XBUTTONUP: {
-		unsigned short x = lParam & 0xFFFF;
-		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->input->mouse.pos.x = ScaleDown(std::max((short)0, *(short*)&x), _this->properties.scale);
-		_this->input->mouse.pos.y = ScaleDown(std::max((short)0, *(short*)&y), _this->properties.scale);
-		_this->input->mouse.flags = wParam & 0xFF;
-
+	case WM_XBUTTONUP:
+		_this->HandleMouse(lParam, wParam);
 		if (_this->input->clickUp)
 			_this->input->clickUp(_this->input->mouse);
 
 		goto def;
-	}
 
-	case WM_MOUSEMOVE: {
-		unsigned short x = lParam & 0xFFFF;
-		unsigned short y = (lParam >> 16) & 0xFFFF;
-		_this->input->mouse.pos.x = ScaleDown(std::max((short)0, *(short*)&x), _this->properties.scale);
-		_this->input->mouse.pos.y = ScaleDown(std::max((short)0, *(short*)&y), _this->properties.scale);
-		_this->input->mouse.flags = wParam & 0xFF;
+	case WM_MOUSEMOVE: 
+	case WM_MOUSEWHEEL:
+		_this->HandleMouse(lParam, wParam);
 		goto def;
-	}
-
-	case WM_MOUSEWHEEL: {
-		_this->input->mouse.flags = wParam & 0xFF;
-		_this->input->mouse.wheel += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
-		goto def;
-	}
 
 	case WM_CHAR:
 		_this->input->charInput.push_back((wchar_t)wParam);
@@ -242,6 +249,33 @@ LRESULT __stdcall jaw::Window::WinProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	default:
 		return DefWindowProc(hWnd, uMsg, wParam, lParam);
 	}
+}
+
+void jaw::Window::HandleMouse(LPARAM lParam, WPARAM wParam) {
+	short x = lParam & 0xFFFF;
+	short y = (lParam >> 16) & 0xFFFF;
+	input->mouse.flags = wParam & 0xFF;
+	input->mouse.wheel += GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
+
+	static const jaw::Point realSize(
+		ScaleUp(properties.size.x, properties.scale),
+		ScaleUp(properties.size.y, properties.scale)
+	);
+
+	static const jaw::Point offset(
+		(winSize.x - realSize.x) / 2,
+		(winSize.y - realSize.y) / 2
+	);
+
+	input->mouse.pos.x = ScaleDown(
+		std::min(realSize.x, (int16_t)std::max(0, x - offset.x)),
+		properties.scale
+	);
+
+	input->mouse.pos.y = ScaleDown(
+		std::min(realSize.y, (int16_t)std::max(0, y - offset.y)),
+		properties.scale
+	);
 }
 
 #endif

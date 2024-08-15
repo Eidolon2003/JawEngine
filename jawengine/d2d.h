@@ -31,6 +31,7 @@ namespace jaw {
 		ID2D1Factory* pD2DFactory;
 		ID2D1SolidColorBrush* pSolidBrush;
 		IDWriteFactory* pDWFactory;
+		IDWriteRenderingParams* pParams;
 
 		uint8_t layerCount;
 		uint8_t backgroundCount;
@@ -60,18 +61,19 @@ namespace jaw {
 		std::map<Font, IDWriteTextFormat*, CmpFont> fonts;
 
 		HWND hWnd;
-		uint16_t sizeX, sizeY;
+		jaw::Point renderSize;
+		jaw::Point winSize;
+
 		float scale;
 		std::wstring locale;
 		uint32_t backgroundColor;
 
 	public:
-		D2DGraphics(HWND hWnd, AppProperties properties, std::wstring locale);
+		D2DGraphics(HWND hWnd, AppProperties properties, jaw::Point winSize, std::wstring locale);
 		~D2DGraphics() override;
 
 		void BeginFrame() override;
 		void EndFrame() override;
-		void setSize(uint16_t x, uint16_t y) override;
 
 		Bitmap* LoadBmp(std::string filename) override;
 		
