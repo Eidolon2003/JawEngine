@@ -36,7 +36,7 @@ bool jaw::Sprite::Update(jaw::AppInterface* app) {
 			lifetime -= frametime;
 	}
 
-	if (animationTiming.count() != 0) {
+	if (bmp && animationTiming.count() != 0) {
 		animationCounter += frametime;
 		if (animationCounter >= animationTiming) {
 			animationCounter = std::chrono::milliseconds(0);

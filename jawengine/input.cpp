@@ -19,6 +19,10 @@ jaw::Input::Mouse jaw::Input::getMouse() const {
 	return mouse;
 }
 
+void jaw::Input::ResetWheel() {
+	mouse.wheel = 0;
+}
+
 std::wstring jaw::Input::getString() const {
 	return charInput;
 }

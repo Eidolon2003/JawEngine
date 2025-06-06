@@ -1,22 +1,32 @@
 ﻿#include "../jawengine/JawEngine.h"
 #include <iostream>
 
-class TestApp : public jaw::AppInterface {
+class Fire : public jaw::Sprite {
 public:
-	void Init() override {
-		engine->ShowCMD(true);
-	}
+    Fire(jaw::Bitmap *bmp) {
+        x = y = 50;
+        dx = dy = 0;
+        scale = 3.0f;
+        this->bmp = bmp;
+        src = jaw::Rect(0, 0, 50, 50);
+        animationTiming = std::chrono::milliseconds(200);
+    }
+};
 
-	void Loop() override {
-		if (window->getLifetime() > std::chrono::seconds(5))
-			engine->CloseWindow(this);
 
-		std::cout << window->getFrametime() << std::endl;
-	}
+class Hello final : public jaw::AppInterface {
+public:
+    void Init() override {
+        jaw::Bitmap* bmp = graphics->LoadBmp("fire.png");
+        window->RegisterSprite(new Fire(bmp));
+    }
+
+    void Loop() override { /*We don’t need this for now*/ }
 };
 
 int main() {
-	jaw::EngineProperties ep;
-	jaw::AppProperties ap;
-	jaw::StartEngine(new TestApp, ap, ep);
+    jaw::AppProperties ap;
+    jaw::EngineProperties ep;
+
+    jaw::StartEngine(new Hello, ap, ep);
 }

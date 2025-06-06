@@ -11,6 +11,7 @@ namespace jaw {
 
 		Mouse mouse;
 		Mouse getMouse() const override;
+		void ResetWheel() override;
 
 		std::wstring charInput;
 		std::wstring getString() const override;

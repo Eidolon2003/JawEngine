@@ -19,10 +19,10 @@ jaw::Window::Window(jaw::AppInterface* app, const jaw::AppProperties& props, jaw
 }
 
 jaw::Window::~Window() {
+	delete app;
 	delete input;
 	delete graphics;
 	delete sound;
-	delete app;
 
 	sprites.clear();
 }
@@ -172,11 +172,11 @@ void jaw::Window::ThreadFunk() {
 		}
 
 		if (FrameLimiter()) {
-			graphics->BeginFrame();
 			app->Loop();
 			HandleSprites();
 			graphics->EndFrame();
 			input->Reset();
+			graphics->BeginFrame();
 		}
 	}
 

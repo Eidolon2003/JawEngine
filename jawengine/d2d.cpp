@@ -109,7 +109,9 @@ jaw::D2DGraphics::~D2DGraphics() {
 }
 
 void jaw::D2DGraphics::BeginFrame() {
-	layers[0]->BeginDraw();
+	for (int i = 0; i < backgroundCount; i++) {
+		layers[i]->BeginDraw();
+	}
 
 	for (int i = backgroundCount; i < layerCount; i++) {
 		layers[i]->BeginDraw();
@@ -129,7 +131,7 @@ void jaw::D2DGraphics::EndFrame() {
 	if (ceilf(scale) == scale) mode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
 
 	for (int i = 0; i < layerCount; i++) {
-		//Skip background layers and unmodified non-background layers
+		//Skip unmodified non-background layers
 		if ((i >= backgroundCount) && !layersChanged[i]) continue;
 
 		ID2D1Bitmap* pBitmap = nullptr;
@@ -501,18 +503,20 @@ void jaw::D2DGraphics::FillRect(Rect dest, uint32_t color, uint8_t layer, float 
 	layersChanged[layer] = true;
 }
 
-void jaw::D2DGraphics::DrawLine(Point start, Point end, float width, uint32_t color, uint8_t layer, float alpha) {
+void jaw::D2DGraphics::DrawLine(Point start, Point end, uint32_t width, uint32_t color, uint8_t layer, float alpha) {
 	pSolidBrush->SetColor(D2D1::ColorF(color));
 	pSolidBrush->SetOpacity(alpha);
 
 	if (layer >= layerCount) layer = layerCount - 1;
 	auto pBitmapTarget = layers[layer];
 
+	float offset = width % 2 ? 0.5f : 0.f;
+
 	pBitmapTarget->DrawLine(
-		D2D1::Point2((float)start.x, (float)start.y),
-		D2D1::Point2((float)end.x, (float)end.y),
+		D2D1::Point2((float)start.x + offset, (float)start.y + offset),
+		D2D1::Point2((float)end.x + offset, (float)end.y + offset),
 		pSolidBrush,
-		width
+		(float)width
 	);
 
 	layersChanged[layer] = true;

@@ -25,6 +25,7 @@ namespace jaw {
 		Point(int16_t x, int16_t y) { this->x = x; this->y = y; }
 		
 		bool operator==(Point rhs) const { return x == rhs.x && y == rhs.y; }
+		bool operator<(Point rhs) const { if (x == rhs.x) return y < rhs.y; else return x < rhs.x; }
 		Point operator+(Point rhs) const { return Point(x + rhs.x, y + rhs.y); }
 		Point operator+(int16_t rhs) const { return Point(x + rhs, y + rhs); }
 		Point operator-(Point rhs) const { return Point(x - rhs.x, y - rhs.y); }
@@ -128,7 +129,7 @@ namespace jaw {
 		virtual void setBackgroundColor(uint32_t color) = 0;
 		virtual void ClearLayer(uint8_t layer, uint32_t color = 0x000000, float alpha = 1.f) = 0;
 		virtual void FillRect(Rect dest, uint32_t color, uint8_t layer, float alpha = 1.f) = 0;
-		virtual void DrawLine(Point start, Point end, float width, uint32_t color, uint8_t layer, float alpha = 1.f) = 0;
+		virtual void DrawLine(Point start, Point end, uint32_t width, uint32_t color, uint8_t layer, float alpha = 1.f) = 0;
 	};
 
 	class SoundInterface {
@@ -160,6 +161,7 @@ namespace jaw {
 		};
 
 		virtual Mouse getMouse() const = 0;
+		virtual void ResetWheel() = 0;
 		virtual std::wstring getString() const = 0;
 		virtual bool isKeyPressed(uint8_t) const = 0;
 		virtual void BindKeyDown(uint8_t, const std::function<void()>&) = 0;
@@ -188,7 +190,8 @@ namespace jaw {
 		//You retain access via a weak_ptr
 		template <typename SPR>
 		std::weak_ptr<SPR> RegisterSprite(SPR* spr) {
-			static_assert(std::is_base_of<Sprite, SPR>::value, "Your sprite should inherit from jaw::Sprite");
+			static_assert(std::is_base_of<Sprite, SPR>::value,
+				"Your sprite should inherit from jaw::Sprite");
 
 			auto shared = std::shared_ptr<SPR>(spr);
 			std::weak_ptr<SPR> weak = shared;
@@ -199,7 +202,8 @@ namespace jaw {
 		//Take ownership of sprite back from the engine
 		template <typename SPR>
 		SPR* DeregisterSprite(std::weak_ptr<SPR> spr) {
-			static_assert(std::is_base_of<Sprite, SPR>::value, "Your sprite should inherit from jaw::Sprite");
+			static_assert(std::is_base_of<Sprite, SPR>::value, 
+				"Your sprite should inherit from jaw::Sprite");
 
 			if (spr.expired()) return nullptr;
 			std::shared_ptr<SPR> new_shared = spr.lock();
