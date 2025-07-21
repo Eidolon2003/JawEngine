@@ -1,17 +1,11 @@
 ﻿add_library(mylib STATIC 
-	"engine.cpp" 
-	"engine.h"
 	"JawEngine.h"
-	"window.cpp"
-	"window.h"
-	"input.cpp"
-	"input.h"
-	"graphics.h"
-	"d2d.h"
-	"d2d.cpp"
-	"dsound.h"
-	"dsound.cpp"
- "sprite.cpp")
+	"winvkc.h"
+	"win32_internal.h"
+	"win32.cpp"
+	"structs.h"
+	"engine.cpp"
+ "draw.h" "d2d.cpp" "windraw_internal.h")
 set_property(TARGET mylib PROPERTY CXX_STANDARD 20)
 
 if(WIN32)
@@ -23,7 +17,7 @@ if(WIN32)
 		dsound.lib
 		dxguid.lib
 	)
-
+	#[[]
 	find_library(WINMM "winmm.lib")
 	find_library(D2D1 "d2d1.lib")
 	find_library(WINDOWSCODECS "windowscodecs.lib")
@@ -42,4 +36,5 @@ if(WIN32)
 			${DSOUND}
 			${DXGUID}
 	)
+	]]
 endif()

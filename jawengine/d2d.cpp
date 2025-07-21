@@ -1,21 +1,39 @@
-#include <iostream>
-#include "d2d.h"
+#define _CRT_SECURE_NO_WARNINGS
+#include <d2d1.h>
+#include <dwrite.h>
+#include "draw.h"
+#include "windraw_internal.h"
 
-/*
-	DIRECT2D SETUP
-*/
+static jaw::vec2i renderSize = { 0 };
+static jaw::vec2i windowSize = { 0 };
+float scale = 0.f;
 
-jaw::D2DGraphics::D2DGraphics(HWND hWnd, AppProperties properties, jaw::Point winSize, std::wstring locale) {
-	renderSize = properties.size;
-	this->winSize = winSize;
-	layerCount = properties.layerCount;
-	backgroundCount = properties.backgroundCount;
-	this->scale = properties.scale;
-	this->hWnd = hWnd;
-	this->locale = locale;
-	backgroundColor = 0x000000;
-	layers.clear();
-	bitmaps.clear();
+static ID2D1Factory* pD2DFactory = nullptr;
+static ID2D1HwndRenderTarget* pRenderTarget = nullptr;
+static ID2D1BitmapRenderTarget* pBitmapTarget = nullptr;
+static IDWriteFactory* pDWFactory = nullptr;
+static IDWriteRenderingParams* pParams = nullptr;
+static ID2D1SolidColorBrush* pSolidBrush = nullptr;
+
+static draw::drawCall writeQueue[draw::MAX_QUEUE_SIZE];
+static draw::drawCall renderQueue[draw::MAX_QUEUE_SIZE];
+static size_t writeQueueFront = 0;
+static size_t renderQueueFront = 0;
+
+static IDWriteTextFormat* fonts[draw::MAX_NUM_FONTS];
+static size_t numFonts = 0;
+
+static wchar_t wstrBuffer[1024];
+size_t towstr(const char* str) {
+	if (str == nullptr) return static_cast<std::size_t>(-1);
+	return mbstowcs(wstrBuffer, str, 1024);
+}
+
+void draw::init(jaw::properties* props, HWND hwnd) {
+	setlocale(LC_ALL, "en_US.UTF-8");	//Needed for wchar_t conversion
+	renderSize = props->size;
+	windowSize = props->winsize;
+	scale = props->scale;
 
 	D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &pD2DFactory);
 
@@ -25,14 +43,18 @@ jaw::D2DGraphics::D2DGraphics(HWND hWnd, AppProperties properties, jaw::Point wi
 			D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
 		),
 		D2D1::HwndRenderTargetProperties(
-			hWnd,
-			D2D1::SizeU(winSize.x, winSize.y),
+			hwnd,
+			D2D1::SizeU(windowSize.x, windowSize.y),
 			D2D1_PRESENT_OPTIONS_IMMEDIATELY
 		),
 		&pRenderTarget
 	);
 
-	pDWFactory = nullptr;
+	pRenderTarget->CreateCompatibleRenderTarget(
+		D2D1::SizeF((float)renderSize.x, (float)renderSize.y),
+		&pBitmapTarget
+	);
+
 	DWriteCreateFactory(
 		DWRITE_FACTORY_TYPE_SHARED,
 		__uuidof(pDWFactory),
@@ -46,478 +68,231 @@ jaw::D2DGraphics::D2DGraphics(HWND hWnd, AppProperties properties, jaw::Point wi
 		pParams->GetEnhancedContrast(),
 		pParams->GetClearTypeLevel(),
 		pParams->GetPixelGeometry(),
-		properties.enableSubpixelTextRendering ?
-			pParams->GetRenderingMode() : DWRITE_RENDERING_MODE_ALIASED,
+		props->enableSubpixelTextRendering ?
+		DWRITE_RENDERING_MODE_NATURAL : DWRITE_RENDERING_MODE_ALIASED,
 		&pParams
 	);
+	pBitmapTarget->SetTextRenderingParams(pParams);
 
-	for (int i = 0; i < layerCount; i++) {
-		layers.push_back(nullptr);
-		layersChanged.push_back(false);
-		pRenderTarget->CreateCompatibleRenderTarget(
-			D2D1::SizeF(renderSize.x, renderSize.y),
-			&layers[i]
-		);
-		layers[i]->SetTextRenderingParams(pParams);
-		layers[i]->BeginDraw();
-	}
-
-	pSolidBrush = nullptr;
 	pRenderTarget->CreateSolidColorBrush(
 		D2D1::ColorF(D2D1::ColorF::Black),
 		&pSolidBrush
 	);
 
-	//List available fonts
-	/*
-	IDWriteFontCollection* pFontCollection = NULL;
-	pDWFactory->GetSystemFontCollection(&pFontCollection);
-	UINT32 count = 0;
-	wchar_t* str = new wchar_t[1000];
-	count = pFontCollection->GetFontFamilyCount();
-	for (UINT32 i = 0; i < count; i++) {
-		IDWriteFontFamily* pFontFamily;
-		pFontCollection->GetFontFamily(i, &pFontFamily);
-		IDWriteLocalizedStrings* pFamilyNames;
-		pFontFamily->GetFamilyNames(&pFamilyNames);
-		pFamilyNames->GetString(0, str, 1000);
-		std::wcout << str << '\t';
-	}
-	*/
+	auto f = fontOptions();
+	auto _ = draw::newFont(&f);
 }
 
-jaw::D2DGraphics::~D2DGraphics() {
-	for (auto& [n, p] : bitmaps) {
-		//p->pBitmap->Release();
-		delete p;
-	}
-	bitmaps.clear();
-
-	for (auto& [f, p] : fonts)
-		p->Release();
-	fonts.clear();
-
-	pDWFactory->Release();
+void draw::deinit() {
 	pSolidBrush->Release();
-	for (auto x : layers) {
-		x->EndDraw();
-		x->Release();
-	}
-	pRenderTarget->EndDraw();
+	pParams->Release();
+	pDWFactory->Release();
 	pRenderTarget->Release();
 	pD2DFactory->Release();
-}
 
-void jaw::D2DGraphics::BeginFrame() {
-	for (int i = 0; i < backgroundCount; i++) {
-		layers[i]->BeginDraw();
-	}
-
-	for (int i = backgroundCount; i < layerCount; i++) {
-		layers[i]->BeginDraw();
-		layers[i]->Clear(D2D1::ColorF(0, 0, 0, 0));
-		layersChanged[i] = false;
+	for (int i = 0; i < numFonts; i++) {
+		fonts[i]->Release();
 	}
 }
 
-void jaw::D2DGraphics::EndFrame() {
-	for (auto x : layers)
-		x->EndDraw();
+//Sort from the writeQueue into the renderQueue, reset writeQueue
+void draw::prepareRender() {
+	//Counting sort:
+	size_t counts[256] = { 0 };
 
-	pRenderTarget->BeginDraw();
-	pRenderTarget->Clear(D2D1::ColorF(backgroundColor));
-
-	D2D1_BITMAP_INTERPOLATION_MODE mode = D2D1_BITMAP_INTERPOLATION_MODE_LINEAR;
-	if (ceilf(scale) == scale) mode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
-
-	for (int i = 0; i < layerCount; i++) {
-		//Skip unmodified non-background layers
-		if ((i >= backgroundCount) && !layersChanged[i]) continue;
-
-		ID2D1Bitmap* pBitmap = nullptr;
-		layers[i]->GetBitmap(&pBitmap);
-		if (!pBitmap) continue;
-
-		jaw::Point offset(
-			(winSize.x - ScaleUp(renderSize.x, scale)) / 2,
-			(winSize.y - ScaleUp(renderSize.y, scale)) / 2
-		);
-
-		pRenderTarget->DrawBitmap(
-			pBitmap,
-			D2D1::Rect(
-				(float)offset.x,
-				(float)offset.y,
-				(float)(winSize.x - offset.x),
-				(float)(winSize.y - offset.y)
-			),
-			1.0,
-			mode
-		);
-		pBitmap->Release();
+	//Step 1: Count number of calls for each possible z
+	for (size_t i = 0; i < writeQueueFront; i++) {
+		counts[writeQueue[i].z]++;
 	}
-	pRenderTarget->EndDraw();
+
+	//Step 2: Calculate indicies based on these counts
+	size_t sum = 0;
+	size_t tmp = 0;
+	for (size_t& count : counts) {
+		tmp = count;
+		count = sum;
+		sum += tmp;
+	}
+
+	//Step 3: Place draw calls into renderQueue in sorted order
+	for (size_t i = 0; i < writeQueueFront; i++) {
+		renderQueue[counts[writeQueue[i].z]++] = writeQueue[i];
+	}
+
+	//Finalize sizes
+	renderQueueFront = writeQueueFront;
+	writeQueueFront = 0;
 }
 
+static void inline renderLine(draw::drawCall& c) {
+	draw::lineOptions* opt = (draw::lineOptions*)(c.data);
+	pSolidBrush->SetColor(D2D1::ColorF(opt->color, (opt->color >> 24) / 255.f));
 
-/*
-	BITMAPS
-*/
+	float offset = opt->width % 2 ? 0.5f : 0.f;
 
-jaw::D2DGraphics::D2DBitmap::D2DBitmap(std::string n, ID2D1Bitmap* p) {
-	pBitmap = p;
-	name = n;
-	x = (uint32_t)(p->GetSize().width);
-	y = (uint32_t)(p->GetSize().height);
-}
-
-std::string jaw::D2DGraphics::D2DBitmap::getName() const {
-	return name;
-}
-
-jaw::Point jaw::D2DGraphics::D2DBitmap::getSize() const {
-	return jaw::Point(x, y);
-}
-
-jaw::Bitmap* jaw::D2DGraphics::LoadBmp(std::string filename) {
-	if (bitmaps.count(filename)) return bitmaps[filename];
-
-	IWICImagingFactory* pIWICFactory = nullptr;
-	IWICBitmapDecoder* pDecoder = nullptr;
-	IWICBitmapFrameDecode* pFrame = nullptr;
-	IWICFormatConverter* pFormatConverter = nullptr;
-	ID2D1Bitmap* pBitmap = nullptr;
-
-	D2DBitmap* p = nullptr;
-
-	HRESULT hr = CoCreateInstance(
-		CLSID_WICImagingFactory,
-		NULL,
-		CLSCTX_INPROC_SERVER,
-		IID_IWICImagingFactory,
-		(LPVOID*)&pIWICFactory
+	pBitmapTarget->DrawLine(
+		D2D1::Point2((float)(opt->p1.x) + offset, (float)(opt->p1.y) + offset),
+		D2D1::Point2((float)(opt->p2.x) + offset, (float)(opt->p2.y) + offset),
+		pSolidBrush,
+		(float)opt->width
 	);
-	if (!SUCCEEDED(hr)) return nullptr;
-
-	hr = pIWICFactory->CreateDecoderFromFilename(
-		std::wstring(filename.begin(), filename.end()).c_str(),
-		NULL,
-		GENERIC_READ,
-		WICDecodeMetadataCacheOnDemand,
-		&pDecoder
-	);
-	if (!SUCCEEDED(hr)) goto LoadBmp_return1;
-
-	hr = pDecoder->GetFrame(0, &pFrame);
-	if (!SUCCEEDED(hr)) goto LoadBmp_return2;
-
-	hr = pIWICFactory->CreateFormatConverter(&pFormatConverter);
-	if (!SUCCEEDED(hr)) goto LoadBmp_return3;
-
-	hr = pFormatConverter->Initialize(
-		pFrame,
-		GUID_WICPixelFormat32bppPBGRA,
-		WICBitmapDitherTypeNone,
-		NULL,
-		0.f,
-		WICBitmapPaletteTypeCustom
-	);
-	if (!SUCCEEDED(hr)) goto LoadBmp_return4;
-
-	hr = pRenderTarget->CreateBitmapFromWicBitmap(
-		pFormatConverter,
-		NULL,
-		&pBitmap
-	);
-	if (!SUCCEEDED(hr)) goto LoadBmp_return4;
-
-	p = new D2DBitmap(filename, pBitmap);
-	bitmaps[filename] = p;
-
-LoadBmp_return4:
-	pFormatConverter->Release();
-LoadBmp_return3:
-	pFrame->Release();
-LoadBmp_return2:
-	pDecoder->Release();
-LoadBmp_return1:
-	pIWICFactory->Release();
-	return p;
 }
 
-bool jaw::D2DGraphics::DrawBmp(std::string filename, Rect dest, uint8_t layer, float alpha, bool interpolation) {
-	if (!bitmaps.count(filename) && !LoadBmp(filename))
-		return false;
+static void inline renderRect(draw::drawCall& c) {
+	draw::rectOptions* opt = (draw::rectOptions*)(c.data);
+	pSolidBrush->SetColor(D2D1::ColorF(opt->color, (opt->color >> 24) / 255.f));
 
-	return DrawBmp(bitmaps[filename], dest, layer, alpha, interpolation);
-}
-
-bool jaw::D2DGraphics::DrawBmp(std::string filename, Point dest, uint8_t layer, float scale, float alpha, bool interpolation) {
-	if (!bitmaps.count(filename) && !LoadBmp(filename))
-		return false;
-
-	return DrawBmp(bitmaps[filename], dest, layer, scale, alpha, interpolation);
-}
-
-bool jaw::D2DGraphics::DrawBmp(const Bitmap* bmp, Point dest, uint8_t layer, float scale, float alpha, bool interpolation) {
-	if (!bmp) return false;
-	
-	jaw::Rect destRect(
-		dest.x,
-		dest.y,
-		dest.x + (int16_t)(bmp->getSize().x * scale),
-		dest.y + (int16_t)(bmp->getSize().y * scale)
-	);
-
-	return DrawBmp(bmp, destRect, layer, alpha, interpolation);
-}
-
-bool jaw::D2DGraphics::DrawBmp(const Bitmap* bmp, Rect dest, uint8_t layer, float alpha, bool interpolation) {
-	if (!bmp) return false;
-
-	D2DBitmap* pBitmap = (D2DBitmap*)bmp;
-
-	if (layer >= layerCount) layer = layerCount - 1;
-	auto pBitmapTarget = layers[layer];
-
-	pBitmapTarget->DrawBitmap(
-		pBitmap->pBitmap,
-		D2D1::Rect(
-			(float)dest.tl.x,
-			(float)dest.tl.y,
-			(float)dest.br.x,
-			(float)dest.br.y
+	pBitmapTarget->FillRectangle(
+		D2D1::RectF(
+			(float)opt->rect.tl.x,
+			(float)opt->rect.tl.y,
+			(float)opt->rect.br.x,
+			(float)opt->rect.br.y
 		),
-		alpha,
-		interpolation ? D2D1_BITMAP_INTERPOLATION_MODE_LINEAR : D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR
+		pSolidBrush
 	);
-
-	layersChanged[layer] = true;
-	return true;
 }
 
-bool jaw::D2DGraphics::DrawPartialBmp(std::string filename, Rect dest, Rect src, uint8_t layer, float alpha, bool interpolation) {
-	if (!bitmaps.count(filename) && !LoadBmp(filename))
-		return false;
-
-	return DrawPartialBmp(bitmaps[filename], dest, src, layer, alpha, interpolation);
-}
-
-bool jaw::D2DGraphics::DrawPartialBmp(std::string filename, Point dest, Rect src, uint8_t layer, float scale, float alpha, bool interpolation) {
-	if (!bitmaps.count(filename) && !LoadBmp(filename))
-		return false;
-
-	return DrawPartialBmp(bitmaps[filename], dest, src, layer, scale, alpha, interpolation);
-}
-
-bool jaw::D2DGraphics::DrawPartialBmp(const Bitmap* bmp, Point dest, Rect src, uint8_t layer, float scale, float alpha, bool interpolation) {
-	Rect destRect(
-		dest.x,
-		dest.y,
-		dest.x + (int16_t)(bmp->getSize().x * scale),
-		dest.y + (int16_t)(bmp->getSize().y * scale)
-	);
-
-	return DrawPartialBmp(bmp, destRect, src, layer, alpha, interpolation);
-}
-
-bool jaw::D2DGraphics::DrawPartialBmp(const Bitmap* bmp, Rect dest, Rect src, uint8_t layer, float alpha, bool interpolation) {
-	if (!bmp) return false;
-	
-	D2DBitmap* pBitmap = (D2DBitmap*)bmp;
-
-	if (layer >= layerCount) layer = layerCount - 1;
-	auto pBitmapTarget = layers[layer];
-
-	pBitmapTarget->DrawBitmap(
-		pBitmap->pBitmap,
-		D2D1::Rect(
-			(float)dest.tl.x,
-			(float)dest.tl.y,
-			(float)dest.br.x,
-			(float)dest.br.y
+static void inline renderStr(draw::drawCall& c) {
+	draw::strOptions* opt = (draw::strOptions*)(c.data);
+	if (opt->font >= numFonts) return;
+	pSolidBrush->SetColor(D2D1::ColorF(opt->color, (opt->color >> 24) / 255.f));
+	auto _ = towstr(opt->str);
+	pBitmapTarget->DrawText(
+		wstrBuffer,
+		(UINT32)std::strlen(opt->str),
+		fonts[opt->font],
+		D2D1::RectF(
+			(float)opt->rect.tl.x,
+			(float)opt->rect.tl.y,
+			(float)opt->rect.br.x,
+			(float)opt->rect.br.y
 		),
-		alpha,
-		interpolation ? D2D1_BITMAP_INTERPOLATION_MODE_LINEAR : D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
-		D2D1::Rect(
-			(float)src.tl.x,
-			(float)src.tl.y,
-			(float)src.br.x,
-			(float)src.br.y
-		)
+		pSolidBrush
 	);
-
-	layersChanged[layer] = true;
-	return true;
 }
 
-bool jaw::D2DGraphics::DrawSprite(const Sprite* sprite) {
-	return DrawSprite(*sprite);
-}
+void draw::render() {
+	pBitmapTarget->BeginDraw();
+	pBitmapTarget->Clear();
+	for (size_t i = 0; i < renderQueueFront; i++) {
+		draw::drawCall& call = renderQueue[i];
+		switch (call.t) {
+		case draw::type::LINE:
+			renderLine(call);
+			break;
+		
+		case draw::type::RECT:
+			renderRect(call);
+			break;
 
-bool jaw::D2DGraphics::DrawSprite(const Sprite& sprite) {
-	if (sprite.hidden || !sprite.bmp) 
-		return true;
-
-	if (!bitmaps.count(sprite.bmp->getName()) && !LoadBmp(sprite.bmp->getName()))
-		return false;
-
-	D2DBitmap* pBitmap = bitmaps[sprite.bmp->getName()];
-
-	auto layer = sprite.layer;
-	if (layer >= layerCount) layer = layerCount - 1;
-	auto pBitmapTarget = layers[layer];
-
-	jaw::Rect src = sprite.src;
-	uint16_t width = src.br.x - src.tl.x;
-	src.tl.x += width * sprite.frame;
-	src.br.x += width * sprite.frame;
+		case draw::type::STR:
+			renderStr(call);
+			break;
+		}
+	}
+	pBitmapTarget->EndDraw();
 
 	auto mode = D2D1_BITMAP_INTERPOLATION_MODE_LINEAR;
-	if (ceilf(sprite.scale) == sprite.scale)
-		mode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
+	if (ceilf(scale) == scale) mode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
 
-	jaw::Point pos = sprite.getPoint();
-
-	pBitmapTarget->DrawBitmap(
-		pBitmap->pBitmap,
-		D2D1::Rect(
-			(float)pos.x,
-			(float)pos.y,
-			pos.x + ((sprite.src.br.x - sprite.src.tl.x) * sprite.scale),
-			pos.y + ((sprite.src.br.y - sprite.src.tl.y) * sprite.scale)
+	pRenderTarget->BeginDraw();
+	pRenderTarget->Clear();
+	ID2D1Bitmap* bmp = nullptr;
+	pBitmapTarget->GetBitmap(&bmp);
+	pRenderTarget->DrawBitmap(
+		bmp,
+		D2D1::RectF(
+			0.f,
+			0.f,
+			(float)windowSize.x,
+			(float)windowSize.y
 		),
 		1.f,
 		mode,
-		D2D1::Rect(
-			(float)src.tl.x,
-			(float)src.tl.y,
-			(float)src.br.x,
-			(float)src.br.y
+		D2D1::RectF(
+			0.f,
+			0.f,
+			(float)renderSize.x,
+			(float)renderSize.y
 		)
 	);
-
-	layersChanged[layer] = true;
-	return true;
+	bmp->Release();
+	pRenderTarget->EndDraw();
 }
 
-/*
-	DIRECTWRITE
-*/
-
-bool jaw::D2DGraphics::LoadFont(const Font& font) {
-	if (fonts.count(font)) return true;
-
-	IDWriteTextFormat* pFormat = nullptr;
-	auto hr = pDWFactory->CreateTextFormat(
-		font.name.c_str(),
+draw::fontid draw::newFont(draw::fontOptions* opt) {
+	if (numFonts == draw::MAX_NUM_FONTS) return (fontid)draw::MAX_NUM_FONTS;
+	auto i = numFonts++;
+	auto _ = towstr(opt->name);
+	pDWFactory->CreateTextFormat(
+		wstrBuffer,
 		NULL,
-		font.bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_NORMAL,
-		font.italic ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL,
+		opt->bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_NORMAL,
+		opt->italic ? DWRITE_FONT_STYLE_ITALIC : DWRITE_FONT_STYLE_NORMAL,
 		DWRITE_FONT_STRETCH_NORMAL,
-		font.size,
-		locale.c_str(),
-		&pFormat
+		opt->size,
+		L"en-us",
+		fonts + i
 	);
-	if (!pFormat || !SUCCEEDED(hr)) return false;
 
-	switch (font.align) {
-	case jaw::Font::LEFT:
-		pFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+	switch (opt->align) {
+	case draw::fontOptions::LEFT:
+		fonts[i]->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 		break;
 
-	case jaw::Font::RIGHT:
-		pFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
+	case draw::fontOptions::RIGHT:
+		fonts[i]->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
 		break;
 
-	case jaw::Font::CENTER:
-		pFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	case draw::fontOptions::CENTER:
+		fonts[i]->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		break;
 	}
+	return (fontid)i;
+}
 
-	fonts[font] = pFormat;
+static size_t typeSizes[] = { 
+	sizeof(draw::lineOptions),
+	sizeof(draw::rectOptions),
+	sizeof(draw::strOptions)
+};
+draw::drawCall draw::makeDraw(draw::type t, uint8_t z, void* opt) {
+	draw::drawCall x = {};
+	x.t = t;
+	x.z = z;
+	std::memcpy(x.data, opt, typeSizes[t]);
+	return x;
+}
+
+bool draw::enqueue(draw::drawCall* c) {
+	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
+	std::memcpy(writeQueue + writeQueueFront, c, sizeof(draw::drawCall));
+	writeQueueFront++;
 	return true;
 }
 
-bool jaw::D2DGraphics::DrawString(std::wstring str, Rect dest, uint8_t layer, const Font& font, uint32_t color, float alpha) {
-	if (!fonts.count(font) && !LoadFont(font))
-		return false;
-
-	if (layer >= layerCount) layer = layerCount - 1;
-	auto pBitmapTarget = layers[layer];
-
-	pSolidBrush->SetColor(D2D1::ColorF(color));
-	pSolidBrush->SetOpacity(alpha);
-
-	pBitmapTarget->DrawText(
-		str.c_str(),
-		(UINT32)str.length(),
-		fonts[font],
-		D2D1::Rect(
-			(float)dest.tl.x,
-			(float)dest.tl.y,
-			(float)dest.br.x,
-			(float)dest.br.y
-		),
-		pSolidBrush
-	);
-
-	layersChanged[layer] = true;
+bool draw::enqueueMany(draw::drawCall* c, size_t l) {
+	if (writeQueueFront + l > MAX_QUEUE_SIZE) return false;
+	std::memcpy(writeQueue + writeQueueFront, c, sizeof(draw::drawCall) * l);
+	writeQueueFront += l;
 	return true;
 }
 
-/*
-	GRAPHICS ROUTINES
-*/
-
-void jaw::D2DGraphics::setBackgroundColor(uint32_t color) {
-	backgroundColor = color;
+bool draw::line(draw::lineOptions* opt, uint8_t z) {
+	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
+	writeQueue[writeQueueFront++] = makeDraw(draw::type::LINE, z, opt);
+	return true;
 }
 
-void jaw::D2DGraphics::ClearLayer(uint8_t layer, uint32_t color, float alpha) {
-	if (layer >= layerCount) layer = layerCount - 1;
-	auto pBitmapTarget = layers[layer];
-
-	pBitmapTarget->Clear(D2D1::ColorF(color, alpha));
-
-	layersChanged[layer] = true;
+bool draw::rect(draw::rectOptions* opt, uint8_t z) {
+	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
+	writeQueue[writeQueueFront++] = makeDraw(draw::type::RECT, z, opt);
+	return true;
 }
 
-void jaw::D2DGraphics::FillRect(Rect dest, uint32_t color, uint8_t layer, float alpha) {
-	pSolidBrush->SetColor(D2D1::ColorF(color));
-	pSolidBrush->SetOpacity(alpha);
-
-	if (layer >= layerCount) layer = layerCount - 1;
-	auto pBitmapTarget = layers[layer];
-
-	pBitmapTarget->FillRectangle(
-		D2D1::Rect(
-			(float)dest.tl.x,
-			(float)dest.tl.y,
-			(float)dest.br.x,
-			(float)dest.br.y
-		),
-		pSolidBrush
-	);
-
-	layersChanged[layer] = true;
-}
-
-void jaw::D2DGraphics::DrawLine(Point start, Point end, uint32_t width, uint32_t color, uint8_t layer, float alpha) {
-	pSolidBrush->SetColor(D2D1::ColorF(color));
-	pSolidBrush->SetOpacity(alpha);
-
-	if (layer >= layerCount) layer = layerCount - 1;
-	auto pBitmapTarget = layers[layer];
-
-	float offset = width % 2 ? 0.5f : 0.f;
-
-	pBitmapTarget->DrawLine(
-		D2D1::Point2((float)start.x + offset, (float)start.y + offset),
-		D2D1::Point2((float)end.x + offset, (float)end.y + offset),
-		pSolidBrush,
-		(float)width
-	);
-
-	layersChanged[layer] = true;
+bool draw::str(draw::strOptions* opt, uint8_t z) {
+	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
+	writeQueue[writeQueueFront++] = makeDraw(draw::type::STR, z, opt);
+	return true;
 }

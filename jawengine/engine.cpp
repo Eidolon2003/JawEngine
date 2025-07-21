@@ -1,47 +1,71 @@
-#include "engine.h"
+#include "JawEngine.h"
 
-void jaw::StartEngine(jaw::AppInterface* app, const jaw::AppProperties& appProps, const jaw::EngineProperties& engProps) {
-	jaw::Engine engine(engProps);
-	engine.OpenWindow(app, appProps);
+void limiter(jaw::properties* props) {
+	using namespace std::chrono;
 
-	while (!engine.windows.empty()) {
-		auto iter = engine.windows.begin();
-		while (iter != engine.windows.end()) {
-			if (iter->second->isClosed()) {
-				delete iter->second;
-				iter = engine.windows.erase(iter);
-			}
-			else {
-				iter++;
-			}
+	//framerate of 0 means unlimited
+	if (props->framerate == 0) {
+		auto now = high_resolution_clock::now();
+		props->frametime = now - props->lastframe;
+		props->uptime += props->frametime;
+		props->lastframe = now;
+		return;
+	}
+
+	auto now = high_resolution_clock::now();
+	auto frametime = now - props->lastframe;
+	auto target_frametime = duration<uint64_t, std::nano>((uint64_t)(1'000'000'000 / props->framerate));
+
+	//ignore abnormally large frametimes, caused by things like moving the window
+	if (frametime > target_frametime * 10) {
+		frametime = seconds(0);
+	}
+	else if (frametime > target_frametime) {
+		//We're slower than target
+		props->frametime = frametime;
+		props->uptime += frametime;
+		props->lastframe = now;
+		return;
+	}
+
+	//Coarse sleep followed by short spin-loop
+	std::this_thread::sleep_until(props->lastframe + target_frametime - milliseconds(1));
+	do {
+		now = high_resolution_clock::now();
+		frametime = now - props->lastframe;
+	} while (frametime < target_frametime);
+	props->frametime = frametime;
+	props->uptime += frametime;
+	props->lastframe = now;
+}
+
+#ifdef JAW_WINDOWS
+#include "windraw_internal.h"
+#include "win32_internal.h"
+
+void engine::start(jaw::properties* props) {
+	HWND hwnd = win::init(props);
+	draw::init(props, hwnd);
+	game::init();
+
+	bool running = true;
+	do {
+		MSG msg;
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+			if (msg.message == WM_QUIT) running = false;
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
 		}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(200));
-	}
-}
+		game::loop();
+		draw::prepareRender();
+		draw::render();
 
-jaw::Engine::Engine(const EngineProperties& props) {
-	ShowCMD(props.showCMD);
-	this->locale = props.locale;
-}
+		props->framecount++;
+		limiter(props);
+	} while (running);
 
-void jaw::Engine::OpenWindow(AppInterface* app, const AppProperties& props) {
-	windows[app] = new Window(app, props, this);
+	draw::deinit();
+	win::deinit();
 }
-
-void jaw::Engine::CloseWindow(AppInterface* app) {
-#if defined WINDOWS
-	PostMessage(windows[app]->getHWND(), WM_CLOSE, NULL, NULL);
 #endif
-}
-
-void jaw::Engine::ShowCMD(bool show) {
-#if defined WINDOWS
-	HWND console = GetConsoleWindow();
-	ShowWindow(console, show ? SW_SHOW : SW_HIDE);
-#endif
-}
-
-std::wstring jaw::Engine::getLocale() const {
-	return locale;
-}
