@@ -1,4 +1,4 @@
-# JawEngine
+# JawEngine 0.1.0
 JawEngine is a simple 2D game engine written in C++. Features include:
 - Animated sprites
 - Multiple drawing layers with transparency
