@@ -5,9 +5,7 @@
 #include "draw.h"
 #include "windraw_internal.h"
 
-static jaw::vec2i renderSize = { 0 };
-static jaw::vec2i windowSize = { 0 };
-float scale = 0.f;
+static const jaw::properties* props;
 D2D1_COLOR_F backgroundColor = D2D1::ColorF(0);
 
 static ID2D1Factory* pD2DFactory = nullptr;
@@ -17,6 +15,7 @@ static IDWriteFactory* pDWFactory = nullptr;
 static IDWriteRenderingParams* pParams = nullptr;
 static ID2D1SolidColorBrush* pSolidBrush = nullptr;
 static IWICImagingFactory* pIWICFactory = nullptr;
+static D2D1_BITMAP_INTERPOLATION_MODE interpMode;
 
 static draw::drawCall writeQueue[draw::MAX_QUEUE_SIZE];
 static draw::drawCall renderQueue[draw::MAX_QUEUE_SIZE];
@@ -35,12 +34,11 @@ size_t towstrbuf(const char* str) {
 	return mbstowcs(wstrBuffer, str, 1024);
 }
 
-void draw::init(const jaw::properties* props, HWND hwnd) {
+void draw::init(const jaw::properties* p, HWND hwnd) {
 	setlocale(LC_ALL, "en_US.UTF-8");	//Needed for wchar_t conversion
-	renderSize = props->size;
-	windowSize = props->winsize;
-	scale = props->scale;
+	props = p;
 
+	// Direct2D Setup
 	D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &pD2DFactory);
 
 	pD2DFactory->CreateHwndRenderTarget(
@@ -50,17 +48,31 @@ void draw::init(const jaw::properties* props, HWND hwnd) {
 		),
 		D2D1::HwndRenderTargetProperties(
 			hwnd,
-			D2D1::SizeU(windowSize.x, windowSize.y),
+			D2D1::SizeU(props->winsize.x, props->winsize.y),
 			D2D1_PRESENT_OPTIONS_IMMEDIATELY
 		),
 		&pRenderTarget
 	);
 
 	pRenderTarget->CreateCompatibleRenderTarget(
-		D2D1::SizeF((float)renderSize.x, (float)renderSize.y),
+		D2D1::SizeF((float)props->size.x, (float)props->size.y),
 		&pBitmapTarget
 	);
 
+	pRenderTarget->CreateSolidColorBrush(
+		D2D1::ColorF(D2D1::ColorF::Black),
+		&pSolidBrush
+	);
+
+	CoCreateInstance(
+		CLSID_WICImagingFactory,
+		NULL,
+		CLSCTX_INPROC_SERVER,
+		IID_IWICImagingFactory,
+		(LPVOID*)&pIWICFactory
+	);
+
+	// DirectWrite Setup
 	DWriteCreateFactory(
 		DWRITE_FACTORY_TYPE_SHARED,
 		__uuidof(pDWFactory),
@@ -80,19 +92,28 @@ void draw::init(const jaw::properties* props, HWND hwnd) {
 	);
 	pBitmapTarget->SetTextRenderingParams(pParams);
 
-	pRenderTarget->CreateSolidColorBrush(
-		D2D1::ColorF(D2D1::ColorF::Black),
-		&pSolidBrush
-	);
+	// Get interpolation mode based on selected window mode and scale
+	switch (props->mode) {
+	case jaw::properties::WINDOWED:
+	case jaw::properties::FULLSCREEN_CENTERED:
+	case jaw::properties::FULLSCREEN_CENTERED_INTEGER: {
+		if (props->scale == ceilf(props->scale))
+			interpMode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
+		else
+			interpMode = D2D1_BITMAP_INTERPOLATION_MODE_LINEAR;
+	}	break;
 
-	CoCreateInstance(
-		CLSID_WICImagingFactory,
-		NULL,
-		CLSCTX_INPROC_SERVER,
-		IID_IWICImagingFactory,
-		(LPVOID*)&pIWICFactory
-	);
+	case jaw::properties::FULLSCREEN_STRETCHED: {
+		float scaleX = (float)props->winsize.x / props->size.x;
+		float scaleY = (float)props->winsize.y / props->size.y;
+		if (scaleX == ceilf(scaleX) && scaleY == ceilf(scaleY))
+			interpMode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
+		else
+			interpMode = D2D1_BITMAP_INTERPOLATION_MODE_LINEAR;
+	}	break;
+	}
 
+	// Create the deafault font as font zero
 	auto f = fontOptions();
 	auto _ = draw::newFont(&f);
 }
@@ -214,7 +235,7 @@ static void inline renderBmp(draw::drawCall& c) {
 
 void draw::render() {
 	pBitmapTarget->BeginDraw();
-	pBitmapTarget->Clear();
+	pBitmapTarget->Clear(backgroundColor);
 	for (size_t i = 0; i < renderQueueFront; i++) {
 		draw::drawCall& call = renderQueue[i];
 		switch (call.t) {
@@ -237,30 +258,57 @@ void draw::render() {
 	}
 	pBitmapTarget->EndDraw();
 
-	auto mode = D2D1_BITMAP_INTERPOLATION_MODE_LINEAR;
-	if (ceilf(scale) == scale) mode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
-
 	pRenderTarget->BeginDraw();
-	pRenderTarget->Clear(backgroundColor);
+	pRenderTarget->Clear();
 	ID2D1Bitmap* bmp = nullptr;
 	pBitmapTarget->GetBitmap(&bmp);
-	pRenderTarget->DrawBitmap(
-		bmp,
-		D2D1::RectF(
-			0.f,
-			0.f,
-			(float)windowSize.x,
-			(float)windowSize.y
-		),
-		1.f,
-		mode,
-		D2D1::RectF(
-			0.f,
-			0.f,
-			(float)renderSize.x,
-			(float)renderSize.y
-		)
-	);
+
+	switch (props->mode) {
+	case jaw::properties::WINDOWED:
+	case jaw::properties::FULLSCREEN_STRETCHED: {
+		pRenderTarget->DrawBitmap(
+			bmp,
+			D2D1::RectF(
+				0.f,
+				0.f,
+				(float)props->winsize.x,
+				(float)props->winsize.y
+			),
+			1.f,
+			interpMode,
+			D2D1::RectF(
+				0.f,
+				0.f,
+				(float)props->size.x,
+				(float)props->size.y
+			)
+		);
+	}	break;
+
+	case jaw::properties::FULLSCREEN_CENTERED:
+	case jaw::properties::FULLSCREEN_CENTERED_INTEGER: {
+		int16_t offsetX = (props->winsize.x - props->scaledSize().x) / 2;
+		int16_t offsetY = (props->winsize.y - props->scaledSize().y) / 2;
+		pRenderTarget->DrawBitmap(
+			bmp,
+			D2D1::RectF(
+				(float)offsetX,
+				(float)offsetY,
+				(float)props->scaledSize().x + offsetX,
+				(float)props->scaledSize().y + offsetY
+			),
+			1.f,
+			interpMode,
+			D2D1::RectF(
+				0.f,
+				0.f,
+				(float)props->size.x,
+				(float)props->size.y
+			)
+		);
+	}	break;
+	}
+
 	bmp->Release();
 	pRenderTarget->EndDraw();
 }

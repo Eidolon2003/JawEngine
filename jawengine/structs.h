@@ -29,15 +29,33 @@ namespace jaw {
 		recti(vec2i tl, vec2i br) { this->tl = tl; this->br = br; }
 	};
 
+	
 	struct properties {
 		const char* title = " ";
-		vec2i size = vec2i(640, 480);
-		float scale = 1.f;
+		vec2i size = vec2i(640, 480);		// The logical size of the window
+		float scale = 1.f;					// Integer scaling values use nearest neighbor
 		float framerate = 60.f;
 		bool enableKeyRepeat = false;
 		bool enableSubpixelTextRendering = false;
 		bool showCMD = false;
-		enum { WINDOWED, WINDOWED_FULLSCREEN } mode = WINDOWED;
+		enum { 
+			// Drawable window size is size * scale
+			WINDOWED,
+
+			// A window of size (size * scale) is centered in the borderless fullscreen window
+			// Zero values for either size dimension will be filled in with (screensize / scale)
+			// A zero scale value will be filled in with the value required to fill the screen
+			FULLSCREEN_CENTERED,
+
+			// Same as FULLSCREEN_CENTERED, but only integer scale factors are used
+			FULLSCREEN_CENTERED_INTEGER,
+
+			// A window of size "size" is stretched to fill the borderless fullscreen window
+			// Zero values for either size dimension will be filled in with the screen size
+			// The user-defined scale value is unused
+			// if size evently divides the screen size, nearest neighbor is used
+			FULLSCREEN_STRETCHED
+		} mode = WINDOWED;
 
 		//These are automatically populated by the system
 		vec2i winsize = vec2i();
@@ -47,14 +65,14 @@ namespace jaw {
 		uint64_t framecount = 0;
 
 		//Convenience functions
-		vec2i scaledSize() {
+		vec2i scaledSize() const {
 			return {
 				(int16_t)(size.x * scale),
 				(int16_t)(size.y * scale) 
 			};
 		}
 
-		float getFramerate() {
+		float getFramerate() const {
 			return 1'000'000'000.f / frametime.count();
 		}
 	};
