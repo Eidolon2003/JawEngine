@@ -1,5 +1,11 @@
 #include "JawEngine.h"
 
+static bool running = true;
+
+void engine::stop() {
+	running = false;
+}
+
 void limiter(jaw::properties* props) {
 	using namespace std::chrono;
 
@@ -48,7 +54,6 @@ void engine::start(jaw::properties* props) {
 	draw::init(props, hwnd);
 	game::init();
 
-	bool running = true;
 	do {
 		MSG msg;
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -56,11 +61,10 @@ void engine::start(jaw::properties* props) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-
 		game::loop();
 		draw::prepareRender();
 		draw::render();
-
+		ValidateRect(hwnd, NULL);
 		props->framecount++;
 		limiter(props);
 	} while (running);

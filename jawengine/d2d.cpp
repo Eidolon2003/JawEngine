@@ -1,12 +1,14 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <d2d1.h>
 #include <dwrite.h>
+#include <wincodec.h>
 #include "draw.h"
 #include "windraw_internal.h"
 
 static jaw::vec2i renderSize = { 0 };
 static jaw::vec2i windowSize = { 0 };
 float scale = 0.f;
+D2D1_COLOR_F backgroundColor = D2D1::ColorF(0);
 
 static ID2D1Factory* pD2DFactory = nullptr;
 static ID2D1HwndRenderTarget* pRenderTarget = nullptr;
@@ -14,6 +16,7 @@ static ID2D1BitmapRenderTarget* pBitmapTarget = nullptr;
 static IDWriteFactory* pDWFactory = nullptr;
 static IDWriteRenderingParams* pParams = nullptr;
 static ID2D1SolidColorBrush* pSolidBrush = nullptr;
+static IWICImagingFactory* pIWICFactory = nullptr;
 
 static draw::drawCall writeQueue[draw::MAX_QUEUE_SIZE];
 static draw::drawCall renderQueue[draw::MAX_QUEUE_SIZE];
@@ -23,13 +26,16 @@ static size_t renderQueueFront = 0;
 static IDWriteTextFormat* fonts[draw::MAX_NUM_FONTS];
 static size_t numFonts = 0;
 
+static ID2D1Bitmap* bmps[draw::MAX_NUM_BMPS];
+static size_t numBmps = 0;
+
 static wchar_t wstrBuffer[1024];
-size_t towstr(const char* str) {
+size_t towstrbuf(const char* str) {
 	if (str == nullptr) return static_cast<std::size_t>(-1);
 	return mbstowcs(wstrBuffer, str, 1024);
 }
 
-void draw::init(jaw::properties* props, HWND hwnd) {
+void draw::init(const jaw::properties* props, HWND hwnd) {
 	setlocale(LC_ALL, "en_US.UTF-8");	//Needed for wchar_t conversion
 	renderSize = props->size;
 	windowSize = props->winsize;
@@ -79,11 +85,20 @@ void draw::init(jaw::properties* props, HWND hwnd) {
 		&pSolidBrush
 	);
 
+	CoCreateInstance(
+		CLSID_WICImagingFactory,
+		NULL,
+		CLSCTX_INPROC_SERVER,
+		IID_IWICImagingFactory,
+		(LPVOID*)&pIWICFactory
+	);
+
 	auto f = fontOptions();
 	auto _ = draw::newFont(&f);
 }
 
 void draw::deinit() {
+	pIWICFactory->Release();
 	pSolidBrush->Release();
 	pParams->Release();
 	pDWFactory->Release();
@@ -92,6 +107,10 @@ void draw::deinit() {
 
 	for (int i = 0; i < numFonts; i++) {
 		fonts[i]->Release();
+	}
+
+	for (int i = 0; i < numBmps; i++) {
+		bmps[i]->Release();
 	}
 }
 
@@ -155,9 +174,8 @@ static void inline renderRect(draw::drawCall& c) {
 
 static void inline renderStr(draw::drawCall& c) {
 	draw::strOptions* opt = (draw::strOptions*)(c.data);
-	if (opt->font >= numFonts) return;
 	pSolidBrush->SetColor(D2D1::ColorF(opt->color, (opt->color >> 24) / 255.f));
-	auto _ = towstr(opt->str);
+	auto _ = towstrbuf(opt->str);
 	pBitmapTarget->DrawText(
 		wstrBuffer,
 		(UINT32)std::strlen(opt->str),
@@ -169,6 +187,28 @@ static void inline renderStr(draw::drawCall& c) {
 			(float)opt->rect.br.y
 		),
 		pSolidBrush
+	);
+}
+
+//Needs options for alpha and interp mode
+static void inline renderBmp(draw::drawCall& c) {
+	draw::bmpOptions* opt = (draw::bmpOptions*)(c.data);
+	pBitmapTarget->DrawBitmap(
+		bmps[opt->bmp],
+		D2D1::RectF(
+			(float)opt->dest.tl.x,
+			(float)opt->dest.tl.y,
+			(float)opt->dest.br.x,
+			(float)opt->dest.br.y
+		),
+		1.f,
+		D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
+		D2D1::RectF(
+			(float)opt->src.tl.x,
+			(float)opt->src.tl.y,
+			(float)opt->src.br.x,
+			(float)opt->src.br.y
+		)
 	);
 }
 
@@ -189,6 +229,10 @@ void draw::render() {
 		case draw::type::STR:
 			renderStr(call);
 			break;
+
+		case draw::type::BMP:
+			renderBmp(call);
+			break;
 		}
 	}
 	pBitmapTarget->EndDraw();
@@ -197,7 +241,7 @@ void draw::render() {
 	if (ceilf(scale) == scale) mode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
 
 	pRenderTarget->BeginDraw();
-	pRenderTarget->Clear();
+	pRenderTarget->Clear(backgroundColor);
 	ID2D1Bitmap* bmp = nullptr;
 	pBitmapTarget->GetBitmap(&bmp);
 	pRenderTarget->DrawBitmap(
@@ -221,10 +265,14 @@ void draw::render() {
 	pRenderTarget->EndDraw();
 }
 
-draw::fontid draw::newFont(draw::fontOptions* opt) {
+void draw::setBackgroundColor(draw::argb color) {
+	backgroundColor = D2D1::ColorF(color);
+}
+
+draw::fontid draw::newFont(const draw::fontOptions* opt) {
 	if (numFonts == draw::MAX_NUM_FONTS) return (fontid)draw::MAX_NUM_FONTS;
 	auto i = numFonts++;
-	auto _ = towstr(opt->name);
+	auto _ = towstrbuf(opt->name);
 	pDWFactory->CreateTextFormat(
 		wstrBuffer,
 		NULL,
@@ -252,47 +300,150 @@ draw::fontid draw::newFont(draw::fontOptions* opt) {
 	return (fontid)i;
 }
 
-static size_t typeSizes[] = { 
-	sizeof(draw::lineOptions),
-	sizeof(draw::rectOptions),
-	sizeof(draw::strOptions)
-};
-draw::drawCall draw::makeDraw(draw::type t, uint8_t z, void* opt) {
+draw::bmpid draw::loadBmp(const char* filename) {
+	if (numBmps == draw::MAX_NUM_BMPS) return (bmpid)draw::MAX_NUM_BMPS;
+
+	auto _ = towstrbuf(filename);
+	IWICBitmapDecoder* decoder;
+	HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
+		wstrBuffer,
+		NULL,
+		GENERIC_READ,
+		WICDecodeMetadataCacheOnLoad,
+		&decoder
+	);
+	if (!SUCCEEDED(hr)) {
+		return (bmpid)draw::MAX_NUM_BMPS;
+	}
+
+	IWICFormatConverter* converter;
+	hr = pIWICFactory->CreateFormatConverter(&converter);
+	if (!SUCCEEDED(hr)) {
+		decoder->Release();
+		return (bmpid)draw::MAX_NUM_BMPS;
+	}
+
+	IWICBitmapFrameDecode* frame;
+	hr = decoder->GetFrame(0, &frame);
+	if (!SUCCEEDED(hr)) {
+		decoder->Release();
+		converter->Release();
+		return (bmpid)draw::MAX_NUM_BMPS;
+	}
+
+	hr = converter->Initialize(
+		frame,
+		GUID_WICPixelFormat32bppPBGRA,
+		WICBitmapDitherTypeNone,
+		NULL,
+		0.f,
+		WICBitmapPaletteTypeCustom
+	);
+	if (!SUCCEEDED(hr)) {
+		decoder->Release();
+		converter->Release();
+		frame->Release();
+		return (bmpid)draw::MAX_NUM_BMPS;
+	}
+
+	pRenderTarget->CreateBitmapFromWicBitmap(
+		converter,
+		NULL,
+		bmps + numBmps
+	);
+
+	converter->Release();
+	frame->Release();
+	decoder->Release();
+	return (bmpid)numBmps++;
+}
+
+draw::bmpid draw::createBmp(jaw::vec2i size) {
+	if (numBmps == draw::MAX_NUM_BMPS) return (bmpid)draw::MAX_NUM_BMPS;
+
+	float dpix, dpiy;
+	pRenderTarget->GetDpi(&dpix, &dpiy);
+
+	HRESULT hr = pRenderTarget->CreateBitmap(
+		D2D1_SIZE_U(size.x, size.y),
+		D2D1::BitmapProperties(
+			D2D1::PixelFormat(
+				DXGI_FORMAT_B8G8R8A8_UNORM,
+				D2D1_ALPHA_MODE_PREMULTIPLIED
+			),
+			dpix,
+			dpiy
+		),
+		bmps + numBmps
+	);
+	if (!SUCCEEDED(hr)) {
+		return (bmpid)draw::MAX_NUM_BMPS;
+	}
+
+	return (bmpid)numBmps++;
+}
+
+bool draw::writeBmp(draw::bmpid bmp, const draw::argb* pixels) {
+	if (bmp >= numBmps) return false;
+
+	auto size = bmps[bmp]->GetPixelSize();
+	D2D1_RECT_U destRect;
+	destRect.left = destRect.top = 0;
+	destRect.right = size.width;
+	destRect.bottom = size.height;
+
+	HRESULT hr = bmps[bmp]->CopyFromMemory(
+		&destRect,
+		pixels,
+		size.width * sizeof(draw::argb)
+	);
+	return SUCCEEDED(hr);
+}
+
+draw::drawCall draw::makeDraw(draw::type t, uint8_t z, const void* opt) {
 	draw::drawCall x = {};
 	x.t = t;
 	x.z = z;
-	std::memcpy(x.data, opt, typeSizes[t]);
+	std::memcpy(x.data, opt, draw::typeSizes[t]);
 	return x;
 }
 
-bool draw::enqueue(draw::drawCall* c) {
+bool draw::enqueue(const draw::drawCall* c) {
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
 	std::memcpy(writeQueue + writeQueueFront, c, sizeof(draw::drawCall));
 	writeQueueFront++;
 	return true;
 }
 
-bool draw::enqueueMany(draw::drawCall* c, size_t l) {
+bool draw::enqueueMany(const draw::drawCall* c, size_t l) {
 	if (writeQueueFront + l > MAX_QUEUE_SIZE) return false;
 	std::memcpy(writeQueue + writeQueueFront, c, sizeof(draw::drawCall) * l);
 	writeQueueFront += l;
 	return true;
 }
 
-bool draw::line(draw::lineOptions* opt, uint8_t z) {
+bool draw::line(const draw::lineOptions* opt, uint8_t z) {
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
 	writeQueue[writeQueueFront++] = makeDraw(draw::type::LINE, z, opt);
 	return true;
 }
 
-bool draw::rect(draw::rectOptions* opt, uint8_t z) {
+bool draw::rect(const draw::rectOptions* opt, uint8_t z) {
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
 	writeQueue[writeQueueFront++] = makeDraw(draw::type::RECT, z, opt);
 	return true;
 }
 
-bool draw::str(draw::strOptions* opt, uint8_t z) {
+bool draw::str(const draw::strOptions* opt, uint8_t z) {
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
+	if (opt->font >= numFonts) return false;
 	writeQueue[writeQueueFront++] = makeDraw(draw::type::STR, z, opt);
+	return true;
+}
+
+bool draw::bmp(const draw::bmpOptions* opt, uint8_t z) {
+	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
+	if (opt->bmp >= numBmps) return false;
+	writeQueue[writeQueueFront++] = makeDraw(draw::type::BMP, z, opt);
 	return true;
 }

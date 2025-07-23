@@ -12,6 +12,7 @@ namespace game {
 
 namespace engine {
 	void start(jaw::properties*);
+	void stop();
 }
 
 #if (defined _WIN32 || defined _WIN64)
