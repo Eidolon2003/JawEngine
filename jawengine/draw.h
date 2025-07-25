@@ -1,5 +1,5 @@
 #pragma once
-#include "structs.h"
+#include "types.h"
 
 namespace draw {
 	typedef uint32_t bmpid;
@@ -63,6 +63,8 @@ namespace draw {
 	static_assert(sizeof(bmpOptions) <= MAX_DRAW_SIZE);
 	bool bmp(const bmpOptions*, uint8_t z);
 	inline bool bmp(const bmpOptions& o, uint8_t z) { return bmp(&o, z); }
+
+	//TODO: more primitives, eg elipse
 
 /*	-----------------------------------
 	Assets

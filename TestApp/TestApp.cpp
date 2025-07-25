@@ -1,5 +1,4 @@
 ﻿#include "../jawengine/JawEngine.h"
-#include <iostream>
 
 static jaw::properties props;
 
@@ -8,12 +7,15 @@ void game::init() {
 }
 
 void game::loop() {
+	static std::string str;
+	str = std::to_string(props.framecount);
+
 	draw::str(
 		draw::strOptions{
 			jaw::recti(0,0,props.size.x, props.size.y),
 			draw::color::WHITE,
 			0,
-			"TEST STRING FOR PIXEL CHECKING"
+			str.c_str()
 		},
 		0
 	);

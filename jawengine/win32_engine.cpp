@@ -1,4 +1,9 @@
 #include "JawEngine.h"
+#include "win32_internal_draw.h"
+#include "win32_internal_win.h"
+
+//TODO: remove reliance on std::chrono and use QueryPerformanceFrequency and QueryPerformanceCounter from Windows
+//	See HH10
 
 static bool running = true;
 
@@ -45,10 +50,7 @@ void limiter(jaw::properties* props) {
 	props->lastframe = now;
 }
 
-#ifdef JAW_WINDOWS
-#include "windraw_internal.h"
-#include "win32_internal.h"
-
+//TODO: run the renderer and game loop on two separate threads
 void engine::start(jaw::properties* props) {
 	HWND hwnd = win::init(props);
 	draw::init(props, hwnd);
@@ -72,4 +74,3 @@ void engine::start(jaw::properties* props) {
 	draw::deinit();
 	win::deinit();
 }
-#endif

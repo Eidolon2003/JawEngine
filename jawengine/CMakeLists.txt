@@ -1,11 +1,11 @@
 ﻿add_library(mylib STATIC 
 	"JawEngine.h"
 	"winvkc.h"
-	"win32_internal.h"
-	"win32.cpp"
-	"structs.h"
-	"engine.cpp"
- "draw.h" "d2d.cpp" "windraw_internal.h")
+	"win32_internal_win.h"
+	"win32_win.cpp"
+	"types.h"
+	"win32_engine.cpp"
+ "draw.h" "win32_d2d.cpp" "win32_internal_draw.h")
 set_property(TARGET mylib PROPERTY CXX_STANDARD 20)
 
 if(WIN32)

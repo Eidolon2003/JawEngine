@@ -3,6 +3,7 @@
 using namespace std::chrono;
 
 namespace jaw {
+	//TODO: more convenient op overloads for these structs
 	struct vec2f {
 		float x, y;
 		vec2f(float x = 0, float y = 0) { this->x = x; this->y = y; }
@@ -28,7 +29,6 @@ namespace jaw {
 		}
 		recti(vec2i tl, vec2i br) { this->tl = tl; this->br = br; }
 	};
-
 	
 	struct properties {
 		const char* title = " ";

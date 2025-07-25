@@ -3,14 +3,15 @@
 #include <dwrite.h>
 #include <wincodec.h>
 #include "draw.h"
-#include "windraw_internal.h"
+#include "win32_internal_draw.h"
 
 static const jaw::properties* props;
-D2D1_COLOR_F backgroundColor = D2D1::ColorF(0);
+static D2D1_COLOR_F backgroundColor = D2D1::ColorF(0);
 
 static ID2D1Factory* pD2DFactory = nullptr;
 static ID2D1HwndRenderTarget* pRenderTarget = nullptr;
 static ID2D1BitmapRenderTarget* pBitmapTarget = nullptr;
+static ID2D1Bitmap* pBitmapTargetBMP = nullptr;
 static IDWriteFactory* pDWFactory = nullptr;
 static IDWriteRenderingParams* pParams = nullptr;
 static ID2D1SolidColorBrush* pSolidBrush = nullptr;
@@ -58,6 +59,8 @@ void draw::init(const jaw::properties* p, HWND hwnd) {
 		D2D1::SizeF((float)props->size.x, (float)props->size.y),
 		&pBitmapTarget
 	);
+	
+	pBitmapTarget->GetBitmap(&pBitmapTargetBMP);
 
 	pRenderTarget->CreateSolidColorBrush(
 		D2D1::ColorF(D2D1::ColorF::Black),
@@ -119,6 +122,8 @@ void draw::init(const jaw::properties* p, HWND hwnd) {
 }
 
 void draw::deinit() {
+	pBitmapTargetBMP->Release();
+	pBitmapTarget->Release();
 	pIWICFactory->Release();
 	pSolidBrush->Release();
 	pParams->Release();
@@ -211,7 +216,7 @@ static void inline renderStr(draw::drawCall& c) {
 	);
 }
 
-//Needs options for alpha and interp mode
+//TODO: Needs options for alpha and interp mode
 static void inline renderBmp(draw::drawCall& c) {
 	draw::bmpOptions* opt = (draw::bmpOptions*)(c.data);
 	pBitmapTarget->DrawBitmap(
@@ -260,14 +265,12 @@ void draw::render() {
 
 	pRenderTarget->BeginDraw();
 	pRenderTarget->Clear();
-	ID2D1Bitmap* bmp = nullptr;
-	pBitmapTarget->GetBitmap(&bmp);
 
 	switch (props->mode) {
 	case jaw::properties::WINDOWED:
 	case jaw::properties::FULLSCREEN_STRETCHED: {
 		pRenderTarget->DrawBitmap(
-			bmp,
+			pBitmapTargetBMP,
 			D2D1::RectF(
 				0.f,
 				0.f,
@@ -290,7 +293,7 @@ void draw::render() {
 		int16_t offsetX = (props->winsize.x - props->scaledSize().x) / 2;
 		int16_t offsetY = (props->winsize.y - props->scaledSize().y) / 2;
 		pRenderTarget->DrawBitmap(
-			bmp,
+			pBitmapTargetBMP,
 			D2D1::RectF(
 				(float)offsetX,
 				(float)offsetY,
@@ -309,7 +312,6 @@ void draw::render() {
 	}	break;
 	}
 
-	bmp->Release();
 	pRenderTarget->EndDraw();
 }
 
@@ -431,6 +433,7 @@ draw::bmpid draw::createBmp(jaw::vec2i size) {
 	return (bmpid)numBmps++;
 }
 
+//TODO: Support alpha transparency
 bool draw::writeBmp(draw::bmpid bmp, const draw::argb* pixels) {
 	if (bmp >= numBmps) return false;
 
@@ -447,6 +450,8 @@ bool draw::writeBmp(draw::bmpid bmp, const draw::argb* pixels) {
 	);
 	return SUCCEEDED(hr);
 }
+
+//TODO: see if I can do better than std::memcpy with wide registers or optimizing for 32 bytes, maybe?
 
 draw::drawCall draw::makeDraw(draw::type t, uint8_t z, const void* opt) {
 	draw::drawCall x = {};

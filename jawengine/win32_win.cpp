@@ -1,13 +1,12 @@
-#include "win32_internal.h"
+#include "win32_internal_win.h"
 
 LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 	switch (umsg) {
 	case WM_CLOSE:
 		PostQuitMessage(NULL);
-		goto def;
+		return 0;
 
 	default:
-	def:
 		return DefWindowProc(hwnd, umsg, wparam, lparam);
 	}
 }
@@ -123,7 +122,7 @@ HWND win::init(jaw::properties *props) {
 	wc.hbrBackground = NULL;
 	wc.lpszMenuName = NULL;
 	wc.lpszClassName = props->title;
-	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);	//TODO: Custom icon support
 	RegisterClassEx(&wc);
 
 	HWND hwnd = CreateWindowEx(

@@ -1,7 +1,7 @@
 #pragma once
 #define NOMINMAX
 #include <windows.h>
-#include "structs.h"
+#include "types.h"
 
 namespace win {
 	HWND init(jaw::properties*);

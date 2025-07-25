@@ -1,8 +1,16 @@
 #pragma once
-
 #include <cstdint>
-#include <chrono>
-#include "structs.h"
+
+#if (defined _WIN32 || defined _WIN64)
+#include "winvkc.h"
+#elif (defined LINUX || defined __linux__)
+#error "Linux support forthcoming"
+#else
+#error "unsupported platform"
+#endif
+
+#include <chrono>		//TODO: Get rid of this
+#include "types.h"
 #include "draw.h"
 
 namespace game {
@@ -14,14 +22,3 @@ namespace engine {
 	void start(jaw::properties*);
 	void stop();
 }
-
-#if (defined _WIN32 || defined _WIN64)
-	#define JAW_WINDOWS
-	#define NOMINMAX
-	#include "winvkc.h"
-#elif (defined LINUX || defined __linux__)
-	#define JAW_LINUX
-	#error "Linux support forthcoming"
-#else
-	#error "unsupported platform"
-#endif
