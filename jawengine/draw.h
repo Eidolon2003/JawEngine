@@ -7,9 +7,9 @@ namespace draw {
 	typedef uint32_t argb;
 
 	constexpr size_t MAX_DRAW_SIZE = 30;
-	constexpr size_t MAX_QUEUE_SIZE = 1024*1024*8;
-	constexpr size_t MAX_NUM_FONTS = 1024*8;
-	constexpr size_t MAX_NUM_BMPS = 1024*8;
+	constexpr size_t MAX_QUEUE_SIZE = 1024*1024;
+	constexpr size_t MAX_NUM_FONTS = 1024;
+	constexpr size_t MAX_NUM_BMPS = 1024;
 	
 	namespace color {
 		constexpr argb RED = 0xFFFF0000;

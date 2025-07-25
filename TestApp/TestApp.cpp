@@ -26,9 +26,9 @@ void game::loop() {
 }
 
 int main() { 
-	props.targetFramerate = 60.f;
-	props.size = jaw::vec2i(320,240);
-	props.scale = 5;
+	props.targetFramerate = 100.f;
+	props.size = jaw::vec2i(200,150);
+	props.scale = 8;
 	props.mode = jaw::properties::WINDOWED;
 	engine::start(&props);
 }

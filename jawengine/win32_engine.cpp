@@ -10,12 +10,12 @@ jaw::nanoseconds startPoint, lastFrame, thisFrame;
 jaw::nanoseconds getTimePoint() {
 	LARGE_INTEGER timePoint;
 	auto _ = QueryPerformanceCounter(&timePoint);
-	return (1'000'000'000ULL * timePoint.QuadPart) / countsPerSecond.QuadPart;
+	return timePoint.QuadPart * (1'000'000'000ULL / countsPerSecond.QuadPart);
 }
 
 jaw::nanoseconds accurateSleep(jaw::nanoseconds time, jaw::nanoseconds startPoint) {
-	jaw::nanoseconds timerAccuracy = (int64_t)timerInfo.wPeriodMin * 1'000'000LL;
-	jaw::nanoseconds msSleepTime = (((time / timerAccuracy) - 1) * timerAccuracy) / 1'000'000;
+	int msTimerAccuracy = timerInfo.wPeriodMin;
+	int msSleepTime = (((time / 1'000'000LL) / msTimerAccuracy) - 1) * msTimerAccuracy;
 	if (msSleepTime > 0) Sleep((DWORD)msSleepTime);
 	jaw::nanoseconds retTime;
 	while ((retTime = getTimePoint()) - startPoint < time);
