@@ -1,4 +1,5 @@
 ﻿#include "../jawengine/JawEngine.h"
+#include <string>
 
 static jaw::properties props;
 
@@ -8,7 +9,10 @@ void game::init() {
 
 void game::loop() {
 	static std::string str;
-	str = std::to_string(props.framecount);
+	str = std::to_string(props.logicFrametime) + '\n' 
+		+ std::to_string(props.totalFrametime) + '\n'
+		+ std::to_string(props.framerate()) + '\n'
+		+ std::to_string(engine::getUptime() / 1'000'000'000.f);
 
 	draw::str(
 		draw::strOptions{
@@ -22,8 +26,9 @@ void game::loop() {
 }
 
 int main() { 
-	props.size = jaw::vec2i(640,480);
-	props.scale = 0;
-	props.mode = jaw::properties::FULLSCREEN_CENTERED_INTEGER;
+	props.targetFramerate = 60.f;
+	props.size = jaw::vec2i(320,240);
+	props.scale = 5;
+	props.mode = jaw::properties::WINDOWED;
 	engine::start(&props);
 }

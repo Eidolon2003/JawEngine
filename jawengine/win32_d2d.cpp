@@ -2,6 +2,9 @@
 #include <d2d1.h>
 #include <dwrite.h>
 #include <wincodec.h>
+#include <cstdint>
+#include <clocale>	//locale for wchar conversion
+#include <cmath>	//ceilf
 #include "draw.h"
 #include "win32_internal_draw.h"
 
@@ -31,7 +34,7 @@ static size_t numBmps = 0;
 
 static wchar_t wstrBuffer[1024];
 size_t towstrbuf(const char* str) {
-	if (str == nullptr) return static_cast<std::size_t>(-1);
+	if (str == nullptr) return static_cast<size_t>(-1);
 	return mbstowcs(wstrBuffer, str, 1024);
 }
 
@@ -204,7 +207,7 @@ static void inline renderStr(draw::drawCall& c) {
 	auto _ = towstrbuf(opt->str);
 	pBitmapTarget->DrawText(
 		wstrBuffer,
-		(UINT32)std::strlen(opt->str),
+		(UINT32)strlen(opt->str),
 		fonts[opt->font],
 		D2D1::RectF(
 			(float)opt->rect.tl.x,
@@ -451,26 +454,26 @@ bool draw::writeBmp(draw::bmpid bmp, const draw::argb* pixels) {
 	return SUCCEEDED(hr);
 }
 
-//TODO: see if I can do better than std::memcpy with wide registers or optimizing for 32 bytes, maybe?
+//TODO: see if I can do better than memcpy with wide registers or optimizing for 32 bytes, maybe?
 
 draw::drawCall draw::makeDraw(draw::type t, uint8_t z, const void* opt) {
 	draw::drawCall x = {};
 	x.t = t;
 	x.z = z;
-	std::memcpy(x.data, opt, draw::typeSizes[t]);
+	memcpy(x.data, opt, draw::typeSizes[t]);
 	return x;
 }
 
 bool draw::enqueue(const draw::drawCall* c) {
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
-	std::memcpy(writeQueue + writeQueueFront, c, sizeof(draw::drawCall));
+	memcpy(writeQueue + writeQueueFront, c, sizeof(draw::drawCall));
 	writeQueueFront++;
 	return true;
 }
 
 bool draw::enqueueMany(const draw::drawCall* c, size_t l) {
 	if (writeQueueFront + l > MAX_QUEUE_SIZE) return false;
-	std::memcpy(writeQueue + writeQueueFront, c, sizeof(draw::drawCall) * l);
+	memcpy(writeQueue + writeQueueFront, c, sizeof(draw::drawCall) * l);
 	writeQueueFront += l;
 	return true;
 }

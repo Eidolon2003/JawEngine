@@ -9,7 +9,6 @@
 #error "unsupported platform"
 #endif
 
-#include <chrono>		//TODO: Get rid of this
 #include "types.h"
 #include "draw.h"
 
@@ -21,4 +20,5 @@ namespace game {
 namespace engine {
 	void start(jaw::properties*);
 	void stop();
+	jaw::nanoseconds getUptime();
 }

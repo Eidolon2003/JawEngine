@@ -1,8 +1,9 @@
 #pragma once
-#include <chrono>
-using namespace std::chrono;
+#include <cstdint>
 
 namespace jaw {
+	typedef int64_t nanoseconds;
+
 	//TODO: more convenient op overloads for these structs
 	struct vec2f {
 		float x, y;
@@ -34,7 +35,7 @@ namespace jaw {
 		const char* title = " ";
 		vec2i size = vec2i(640, 480);		// The logical size of the window
 		float scale = 1.f;					// Integer scaling values use nearest neighbor
-		float framerate = 60.f;
+		float targetFramerate = 60.f;		// 0 means unlimited
 		bool enableKeyRepeat = false;
 		bool enableSubpixelTextRendering = false;
 		bool showCMD = false;
@@ -59,10 +60,9 @@ namespace jaw {
 
 		//These are automatically populated by the system
 		vec2i winsize = vec2i();
-		duration<uint64_t, std::nano> uptime {0};
-		time_point<high_resolution_clock, nanoseconds> lastframe = high_resolution_clock::now();
-		duration<uint64_t, std::nano> frametime {0};
 		uint64_t framecount = 0;
+		jaw::nanoseconds totalFrametime = 0;
+		jaw::nanoseconds logicFrametime = 0;
 
 		//Convenience functions
 		vec2i scaledSize() const {
@@ -71,9 +71,9 @@ namespace jaw {
 				(int16_t)(size.y * scale) 
 			};
 		}
-
-		float getFramerate() const {
-			return 1'000'000'000.f / frametime.count();
+		
+		float framerate() const {
+			return 1'000'000'000.f / totalFrametime;
 		}
 	};
 }

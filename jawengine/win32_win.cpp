@@ -1,4 +1,5 @@
 #include "win32_internal_win.h"
+#include <cmath>	//floorf, min
 
 LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 	switch (umsg) {
@@ -12,8 +13,6 @@ LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 }
 
 HWND win::init(jaw::properties *props) {
-	timeBeginPeriod(1);
-
 	HWND console = GetConsoleWindow();
 	ShowWindow(console, props->showCMD ? SW_SHOW : SW_HIDE);
 
@@ -144,5 +143,5 @@ HWND win::init(jaw::properties *props) {
 }
 
 void win::deinit() {
-	timeEndPeriod(1);
+
 }
