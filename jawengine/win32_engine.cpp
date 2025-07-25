@@ -5,7 +5,7 @@
 static bool running = true;
 static LARGE_INTEGER countsPerSecond;
 static TIMECAPS timerInfo;
-jaw::nanoseconds startPoint, lastFrame, thisFrame;
+static jaw::nanoseconds startPoint, lastFrame, thisFrame;
 
 jaw::nanoseconds getTimePoint() {
 	LARGE_INTEGER timePoint;
@@ -15,7 +15,7 @@ jaw::nanoseconds getTimePoint() {
 
 jaw::nanoseconds accurateSleep(jaw::nanoseconds time, jaw::nanoseconds startPoint) {
 	int msTimerAccuracy = timerInfo.wPeriodMin;
-	int msSleepTime = (((time / 1'000'000LL) / msTimerAccuracy) - 1) * msTimerAccuracy;
+	int msSleepTime = (int)(((time / 1'000'000LL) / msTimerAccuracy) - 1) * msTimerAccuracy;
 	if (msSleepTime > 0) Sleep((DWORD)msSleepTime);
 	jaw::nanoseconds retTime;
 	while ((retTime = getTimePoint()) - startPoint < time);

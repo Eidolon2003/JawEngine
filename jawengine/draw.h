@@ -64,7 +64,15 @@ namespace draw {
 	bool bmp(const bmpOptions*, uint8_t z);
 	inline bool bmp(const bmpOptions& o, uint8_t z) { return bmp(&o, z); }
 
-	//TODO: more primitives, eg elipse
+	struct ellipseOptions {
+		jaw::ellipse ellipse;
+		argb color;
+	};
+	static_assert(sizeof(ellipseOptions) <= MAX_DRAW_SIZE);
+	bool ellipse(const ellipseOptions*, uint8_t z);
+	inline bool ellipse(const ellipseOptions& o, uint8_t z) { return ellipse(&o, z); }
+
+	//TODO: more primitives?
 
 /*	-----------------------------------
 	Assets
@@ -94,14 +102,16 @@ namespace draw {
 		LINE,
 		RECT,
 		STR,
-		BMP
+		BMP,
+		ELLIPSE,
 	};
 
 	constexpr size_t typeSizes[] = {
 		sizeof(lineOptions),
 		sizeof(rectOptions),
 		sizeof(strOptions),
-		sizeof(bmpOptions)
+		sizeof(bmpOptions),
+		sizeof(ellipseOptions),
 	};
 
 	struct alignas(32) drawCall {

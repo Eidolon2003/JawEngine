@@ -23,6 +23,37 @@ void game::loop() {
 		},
 		0
 	);
+
+	draw::ellipse(
+		draw::ellipseOptions{
+			jaw::ellipse(
+				jaw::vec2i(120,100),
+				jaw::vec2i(30, 40)
+			),
+			draw::color::CYAN
+		},
+		2
+	);
+
+	draw::line(
+		draw::lineOptions{
+			jaw::vec2i(20, 100),
+			jaw::vec2i(80, 100),
+			draw::color::BLUE,
+			2
+		},
+		1
+	);
+
+	draw::line(
+		draw::lineOptions{
+			jaw::vec2i(120, 20),
+			jaw::vec2i(180, 100),
+			draw::color::BLUE,
+			2
+		},
+		1
+	);
 }
 
 int main() { 

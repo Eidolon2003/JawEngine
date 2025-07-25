@@ -30,6 +30,14 @@ namespace jaw {
 		}
 		recti(vec2i tl, vec2i br) { this->tl = tl; this->br = br; }
 	};
+
+	struct ellipse {
+		vec2i center;
+		vec2i radii;
+		ellipse(vec2i c = vec2i(), vec2i r = vec2i()) {
+			center = c; radii = r;
+		}
+	};
 	
 	struct properties {
 		const char* title = " ";
@@ -38,6 +46,7 @@ namespace jaw {
 		float targetFramerate = 60.f;		// 0 means unlimited
 		bool enableKeyRepeat = false;
 		bool enableSubpixelTextRendering = false;
+		bool enablePerPrimitiveAA = false;
 		bool showCMD = false;
 		enum { 
 			// Drawable window size is size * scale

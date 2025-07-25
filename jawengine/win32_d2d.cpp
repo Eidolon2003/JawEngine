@@ -62,7 +62,10 @@ void draw::init(const jaw::properties* p, HWND hwnd) {
 		D2D1::SizeF((float)props->size.x, (float)props->size.y),
 		&pBitmapTarget
 	);
-	
+	pBitmapTarget->SetAntialiasMode(
+		props->enablePerPrimitiveAA ? 
+			D2D1_ANTIALIAS_MODE_PER_PRIMITIVE : D2D1_ANTIALIAS_MODE_ALIASED
+	);
 	pBitmapTarget->GetBitmap(&pBitmapTargetBMP);
 
 	pRenderTarget->CreateSolidColorBrush(
@@ -241,6 +244,22 @@ static void inline renderBmp(draw::drawCall& c) {
 	);
 }
 
+static void inline renderEllipse(draw::drawCall& c) {
+	draw::ellipseOptions* opt = (draw::ellipseOptions*)(c.data);
+	pSolidBrush->SetColor(D2D1::ColorF(opt->color, (opt->color >> 24) / 255.f));
+	pBitmapTarget->FillEllipse(
+		D2D1::Ellipse(
+			D2D1::Point2F(
+				(float)opt->ellipse.center.x,
+				(float)opt->ellipse.center.y
+			),
+			(float)opt->ellipse.radii.x,
+			(float)opt->ellipse.radii.y
+		),
+		pSolidBrush
+	);
+}
+
 void draw::render() {
 	pBitmapTarget->BeginDraw();
 	pBitmapTarget->Clear(backgroundColor);
@@ -261,6 +280,10 @@ void draw::render() {
 
 		case draw::type::BMP:
 			renderBmp(call);
+			break;
+
+		case draw::type::ELLIPSE:
+			renderEllipse(call);
 			break;
 		}
 	}
@@ -501,5 +524,11 @@ bool draw::bmp(const draw::bmpOptions* opt, uint8_t z) {
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
 	if (opt->bmp >= numBmps) return false;
 	writeQueue[writeQueueFront++] = makeDraw(draw::type::BMP, z, opt);
+	return true;
+}
+
+bool draw::ellipse(const draw::ellipseOptions* opt, uint8_t z) {
+	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
+	writeQueue[writeQueueFront++] = makeDraw(draw::type::ELLIPSE, z, opt);
 	return true;
 }
