@@ -38,6 +38,18 @@ size_t towstrbuf(const char* str) {
 	return mbstowcs(wstrBuffer, str, 1024);
 }
 
+inline D2D1_POINT_2F topoint2f(const jaw::vec2i& v) {
+	return D2D1::Point2F((float)v.x, (float)v.y);
+}
+
+inline D2D1_RECT_F torectf(const jaw::recti& r) {
+	return D2D1::RectF((float)r.tl.x, (float)r.tl.y, (float)r.br.x, (float)r.br.y);
+}
+
+inline D2D1_COLOR_F tocolorf(const draw::argb c) {
+	return D2D1::ColorF(c, (c >> 24) / 255.f);
+}
+
 void draw::init(const jaw::properties* p, HWND hwnd) {
 	setlocale(LC_ALL, "en_US.UTF-8");	//Needed for wchar_t conversion
 	props = p;
@@ -96,7 +108,7 @@ void draw::init(const jaw::properties* p, HWND hwnd) {
 		pParams->GetClearTypeLevel(),
 		pParams->GetPixelGeometry(),
 		props->enableSubpixelTextRendering ?
-		DWRITE_RENDERING_MODE_NATURAL : DWRITE_RENDERING_MODE_ALIASED,
+		DWRITE_RENDERING_MODE_NATURAL_SYMMETRIC : DWRITE_RENDERING_MODE_ALIASED,
 		&pParams
 	);
 	pBitmapTarget->SetTextRenderingParams(pParams);
@@ -177,13 +189,15 @@ void draw::prepareRender() {
 
 static void inline renderLine(draw::drawCall& c) {
 	draw::lineOptions* opt = (draw::lineOptions*)(c.data);
-	pSolidBrush->SetColor(D2D1::ColorF(opt->color, (opt->color >> 24) / 255.f));
+	pSolidBrush->SetColor(tocolorf(opt->color));
 
 	float offset = opt->width % 2 ? 0.5f : 0.f;
+	opt->p1 = opt->p1 + (int16_t)offset;
+	opt->p2 = opt->p2 + (int16_t)offset;
 
 	pBitmapTarget->DrawLine(
-		D2D1::Point2((float)(opt->p1.x) + offset, (float)(opt->p1.y) + offset),
-		D2D1::Point2((float)(opt->p2.x) + offset, (float)(opt->p2.y) + offset),
+		topoint2f(opt->p1),
+		topoint2f(opt->p2),
 		pSolidBrush,
 		(float)opt->width
 	);
@@ -191,33 +205,22 @@ static void inline renderLine(draw::drawCall& c) {
 
 static void inline renderRect(draw::drawCall& c) {
 	draw::rectOptions* opt = (draw::rectOptions*)(c.data);
-	pSolidBrush->SetColor(D2D1::ColorF(opt->color, (opt->color >> 24) / 255.f));
-
+	pSolidBrush->SetColor(tocolorf(opt->color));
 	pBitmapTarget->FillRectangle(
-		D2D1::RectF(
-			(float)opt->rect.tl.x,
-			(float)opt->rect.tl.y,
-			(float)opt->rect.br.x,
-			(float)opt->rect.br.y
-		),
+		torectf(opt->rect),
 		pSolidBrush
 	);
 }
 
 static void inline renderStr(draw::drawCall& c) {
 	draw::strOptions* opt = (draw::strOptions*)(c.data);
-	pSolidBrush->SetColor(D2D1::ColorF(opt->color, (opt->color >> 24) / 255.f));
-	auto _ = towstrbuf(opt->str);
+	pSolidBrush->SetColor(tocolorf(opt->color));
+	auto len = towstrbuf(opt->str);
 	pBitmapTarget->DrawText(
 		wstrBuffer,
-		(UINT32)strlen(opt->str),
+		(UINT32)len,
 		fonts[opt->font],
-		D2D1::RectF(
-			(float)opt->rect.tl.x,
-			(float)opt->rect.tl.y,
-			(float)opt->rect.br.x,
-			(float)opt->rect.br.y
-		),
+		torectf(opt->rect),
 		pSolidBrush
 	);
 }
@@ -227,32 +230,19 @@ static void inline renderBmp(draw::drawCall& c) {
 	draw::bmpOptions* opt = (draw::bmpOptions*)(c.data);
 	pBitmapTarget->DrawBitmap(
 		bmps[opt->bmp],
-		D2D1::RectF(
-			(float)opt->dest.tl.x,
-			(float)opt->dest.tl.y,
-			(float)opt->dest.br.x,
-			(float)opt->dest.br.y
-		),
+		torectf(opt->dest),
 		1.f,
 		D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
-		D2D1::RectF(
-			(float)opt->src.tl.x,
-			(float)opt->src.tl.y,
-			(float)opt->src.br.x,
-			(float)opt->src.br.y
-		)
+		torectf(opt->src)
 	);
 }
 
 static void inline renderEllipse(draw::drawCall& c) {
 	draw::ellipseOptions* opt = (draw::ellipseOptions*)(c.data);
-	pSolidBrush->SetColor(D2D1::ColorF(opt->color, (opt->color >> 24) / 255.f));
+	pSolidBrush->SetColor(tocolorf(opt->color));
 	pBitmapTarget->FillEllipse(
 		D2D1::Ellipse(
-			D2D1::Point2F(
-				(float)opt->ellipse.center.x,
-				(float)opt->ellipse.center.y
-			),
+			topoint2f(opt->ellipse.center),
 			(float)opt->ellipse.radii.x,
 			(float)opt->ellipse.radii.y
 		),
@@ -342,7 +332,7 @@ void draw::render() {
 }
 
 void draw::setBackgroundColor(draw::argb color) {
-	backgroundColor = D2D1::ColorF(color);
+	backgroundColor = tocolorf(color);
 }
 
 draw::fontid draw::newFont(const draw::fontOptions* opt) {

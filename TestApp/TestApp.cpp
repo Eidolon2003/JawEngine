@@ -48,18 +48,46 @@ void game::loop() {
 	draw::line(
 		draw::lineOptions{
 			jaw::vec2i(120, 20),
-			jaw::vec2i(180, 100),
+			jaw::vec2i(240, 180),
 			draw::color::BLUE,
 			2
 		},
 		1
 	);
+
+	draw::str(
+		draw::strOptions{
+			jaw::recti(50, 150, 300, 200),
+			draw::color::WHITE,
+			0,
+			"SPHINX OF BLACK QUARTZ, JUDGE MY VOW"
+		},
+		3
+	);
+
+	draw::str(
+		draw::strOptions{
+			jaw::recti(25, 175, 300, 200),
+			draw::color::WHITE,
+			0,
+			"the quick brown fox jumps over the lazy dog"
+		},
+		3
+	);
+
+	draw::rect(
+		draw::rectOptions{
+			jaw::recti(200, 10, 275, 100),
+			draw::color::MAGENTA
+		},
+		0
+	);
 }
 
 int main() { 
 	props.targetFramerate = 100.f;
-	props.size = jaw::vec2i(200,150);
-	props.scale = 8;
+	props.size = jaw::vec2i(300,200);
+	props.scale = 4;
 	props.mode = jaw::properties::WINDOWED;
 	engine::start(&props);
 }

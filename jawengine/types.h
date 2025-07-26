@@ -7,34 +7,43 @@ namespace jaw {
 	//TODO: more convenient op overloads for these structs
 	struct vec2f {
 		float x, y;
-		vec2f(float x = 0, float y = 0) { this->x = x; this->y = y; }
+		constexpr vec2f(float x = 0, float y = 0) { this->x = x; this->y = y; }
+
+		constexpr vec2f operator+(const vec2f rhs) const { return { x + rhs.x, y + rhs.y }; }
+		constexpr vec2f operator+(const float rhs) const { return { x + rhs, y + rhs }; }
+		constexpr vec2f operator*(const float rhs) const { return { x * rhs, y * rhs }; }
 	};
 
 	struct vec2i {
 		int16_t x, y;
-		vec2i(int16_t x = 0, int16_t y = 0) { this->x = x; this->y = y; }
+		constexpr vec2i(int16_t x = 0, int16_t y = 0) { this->x = x; this->y = y; }
+
+		constexpr vec2i operator+(const vec2i rhs) const { return { x + rhs.x, y + rhs.y }; }
+		constexpr vec2i operator+(const int16_t rhs) const { return { x + rhs, y + rhs }; }
+		constexpr vec2i operator*(const int16_t rhs) const { return { x * rhs, y * rhs }; }
+		constexpr vec2i operator*(const float rhs) const { return { (int16_t)(x * rhs), (int16_t)(y * rhs) }; }
 	};
 
 	struct rectf {
 		vec2f tl, br;
-		rectf(float tlx = 0, float tly = 0, float brx = 0, float bry = 0) {
+		constexpr rectf(float tlx = 0, float tly = 0, float brx = 0, float bry = 0) {
 			tl.x = tlx; tl.y = tly; br.x = brx; br.y = bry;
 		}
-		rectf(vec2f tl, vec2f br) { this->tl = tl; this->br = br; }
+		constexpr rectf(vec2f tl, vec2f br) { this->tl = tl; this->br = br; }
 	};
 
 	struct recti {
 		vec2i tl, br;
-		recti(int16_t tlx = 0, int16_t tly = 0, int16_t brx = 0, int16_t bry = 0) {
+		constexpr recti(int16_t tlx = 0, int16_t tly = 0, int16_t brx = 0, int16_t bry = 0) {
 			tl.x = tlx; tl.y = tly; br.x = brx; br.y = bry;
 		}
-		recti(vec2i tl, vec2i br) { this->tl = tl; this->br = br; }
+		constexpr recti(vec2i tl, vec2i br) { this->tl = tl; this->br = br; }
 	};
 
 	struct ellipse {
 		vec2i center;
 		vec2i radii;
-		ellipse(vec2i c = vec2i(), vec2i r = vec2i()) {
+		constexpr ellipse(vec2i c = vec2i(), vec2i r = vec2i()) {
 			center = c; radii = r;
 		}
 	};
@@ -75,10 +84,7 @@ namespace jaw {
 
 		//Convenience functions
 		vec2i scaledSize() const {
-			return {
-				(int16_t)(size.x * scale),
-				(int16_t)(size.y * scale) 
-			};
+			return size * scale;
 		}
 		
 		float framerate() const {

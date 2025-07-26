@@ -78,8 +78,8 @@ namespace draw {
 	Assets
 */
 	struct fontOptions {
-		const char* name = "Consolas";
-		float size = 16.f;
+		const char* name = "Courier New";
+		float size = 10.f;
 		bool italic = false;
 		bool bold = false;
 		enum { CENTER, LEFT, RIGHT } align = LEFT;

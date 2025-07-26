@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "win32_internal_win.h"
 #include <cmath>	//floorf, min
 
@@ -11,6 +12,9 @@ LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 		return DefWindowProc(hwnd, umsg, wparam, lparam);
 	}
 }
+
+static WNDCLASSEX wc;
+static char className[256] = "JAWENGINE_WINDOW_CLASS_";
 
 HWND win::init(jaw::properties *props) {
 	HWND console = GetConsoleWindow();
@@ -110,7 +114,9 @@ HWND win::init(jaw::properties *props) {
 	}	break;
 	}
 
-	WNDCLASSEX wc {};
+	strncat(className, props->title, 256);
+
+	wc = {};
 	wc.cbSize = sizeof(wc);
 	wc.lpfnWndProc = winproc;
 	wc.cbClsExtra = 0;
@@ -120,14 +126,14 @@ HWND win::init(jaw::properties *props) {
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground = NULL;
 	wc.lpszMenuName = NULL;
-	wc.lpszClassName = props->title;
+	wc.lpszClassName = className;
 	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);	//TODO: Custom icon support
 	RegisterClassEx(&wc);
 
 	HWND hwnd = CreateWindowEx(
 		0,											//Optional styling
 		wc.lpszClassName,							//Window Class
-		wc.lpszClassName,							//Window Text
+		props->title,								//Window Text
 		style,										//Window Style (not resizable)
 		location.x, location.y,						//Location
 		rect.right - rect.left,						//width of the window
@@ -143,5 +149,5 @@ HWND win::init(jaw::properties *props) {
 }
 
 void win::deinit() {
-
+	UnregisterClassA(wc.lpszClassName, wc.hInstance);
 }
