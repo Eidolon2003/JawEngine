@@ -52,7 +52,7 @@ namespace jaw {
 		const char* title = " ";
 		vec2i size = vec2i(640, 480);		// The logical size of the window
 		float scale = 1.f;					// Integer scaling values use nearest neighbor
-		float targetFramerate = 60.f;		// 0 means unlimited
+		float targetFramerate = 0;			// <=0 means VSync
 		bool enableKeyRepeat = false;
 		bool enableSubpixelTextRendering = false;
 		bool enablePerPrimitiveAA = false;
@@ -85,10 +85,6 @@ namespace jaw {
 		//Convenience functions
 		vec2i scaledSize() const {
 			return size * scale;
-		}
-		
-		float framerate() const {
-			return 1'000'000'000.f / totalFrametime;
 		}
 	};
 }

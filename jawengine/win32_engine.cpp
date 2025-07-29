@@ -22,36 +22,51 @@ jaw::nanoseconds accurateSleep(jaw::nanoseconds time, jaw::nanoseconds startPoin
 	return retTime;
 }
 
+void prelimit(jaw::properties* props) {
+	// Record how long the frame took to process before any kind of limiting
+	props->logicFrametime = getTimePoint() - lastFrame;
+}
+
 void limiter(jaw::properties* props) {
 	props->framecount++;
 	thisFrame = getTimePoint();
-	jaw::nanoseconds frametime = thisFrame - lastFrame;
 
-	if (props->targetFramerate <= 0) {
-		props->logicFrametime = props->totalFrametime = frametime;
-		lastFrame = thisFrame;
-		return;
-	}
-
+	jaw::nanoseconds thisFrametime = thisFrame - lastFrame;
+	jaw::nanoseconds prevFrametime = props->totalFrametime;
 	jaw::nanoseconds targetFrametime = (jaw::nanoseconds)(1'000'000'000.0 / props->targetFramerate);
 
-	if (frametime >= targetFrametime * 10) {
-		startPoint += frametime - targetFrametime;
-		props->logicFrametime = props->totalFrametime = targetFrametime;
+	if (thisFrametime >= prevFrametime * 5 && prevFrametime != 0) {
+		// Detect abnormally large frametime spikes
+		// Probably caused by something like the user moving the window
+		// We don't want the game to include this time because it would cause a huge time jump
+		// Fudge it by assuming this frame took the same as the previous (how to do better?)
+		startPoint += thisFrametime - prevFrametime;
+		//Don't need this assignment because it's already true
+		//props->totalFrametime = prevFrametime;
 		lastFrame = thisFrame;
 		return;
 	}
 
-	if (frametime >= targetFrametime) {
-		props->logicFrametime = props->totalFrametime = frametime;
+	if (props->targetFramerate <= 0) {
+		// VSync is enabled, and we already waited for it
+		props->totalFrametime = thisFrame - lastFrame;
 		lastFrame = thisFrame;
 		return;
 	}
 
-	thisFrame = accurateSleep(targetFrametime - frametime, thisFrame);
-	props->logicFrametime = frametime;
+	if (thisFrametime >= targetFrametime) {
+		// We've already taken too long, so no waiting required
+		// This is bad!
+		props->totalFrametime = thisFrametime;
+		lastFrame = thisFrame;
+		return;
+	}
+
+	// Here we know we need to sleep for some time to hit the target framerate
+	thisFrame = accurateSleep(targetFrametime - thisFrametime, thisFrame);
 	props->totalFrametime = thisFrame - lastFrame;
 	lastFrame = thisFrame;
+	return;
 }
 
 //TODO: run the renderer and game loop on two separate threads
@@ -75,7 +90,9 @@ void engine::start(jaw::properties* props) {
 		game::loop();
 		draw::prepareRender();
 		draw::render();
+		prelimit(props);
 		ValidateRect(hwnd, NULL);
+		draw::present();	// This will block until VBLANK if Vsync is on
 		limiter(props);
 	} while (running);
 

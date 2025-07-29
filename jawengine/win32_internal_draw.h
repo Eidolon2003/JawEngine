@@ -8,4 +8,5 @@ namespace draw {
 	void deinit();
 	void prepareRender();
 	void render();
+	void present();
 }

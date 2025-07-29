@@ -1,3 +1,6 @@
+// This code is currently Direct2D 1.0
+//TODO: Write it for 1.1+ but fall back to 1.0 for Windows 7
+
 #define _CRT_SECURE_NO_WARNINGS
 #include <d2d1.h>
 #include <dwrite.h>
@@ -65,7 +68,8 @@ void draw::init(const jaw::properties* p, HWND hwnd) {
 		D2D1::HwndRenderTargetProperties(
 			hwnd,
 			D2D1::SizeU(props->winsize.x, props->winsize.y),
-			D2D1_PRESENT_OPTIONS_IMMEDIATELY
+			props->targetFramerate <= 0 ?
+			D2D1_PRESENT_OPTIONS_NONE : D2D1_PRESENT_OPTIONS_IMMEDIATELY
 		),
 		&pRenderTarget
 	);
@@ -327,7 +331,10 @@ void draw::render() {
 		);
 	}	break;
 	}
+}
 
+void draw::present() {
+	// Blocks until VBLANK if Vsync is enabled
 	pRenderTarget->EndDraw();
 }
 

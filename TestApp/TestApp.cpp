@@ -3,15 +3,27 @@
 
 static jaw::properties props;
 
+static uint64_t lastFramecount = 0;
+static jaw::nanoseconds sumFrametimes = 0;
+static float framerate = 0;
+
 void game::init() {
 	draw::setBackgroundColor(draw::color::RED);
 }
 
 void game::loop() {
+	// Compute the average framerate over the last 100 frames
+	sumFrametimes += props.totalFrametime;
+	if (props.framecount - lastFramecount == 100) {
+		framerate = 100.f * 1'000'000'000.f / sumFrametimes;
+		lastFramecount = props.framecount;
+		sumFrametimes = 0;
+	}
+
 	static std::string str;
 	str = std::to_string(props.logicFrametime) + '\n' 
 		+ std::to_string(props.totalFrametime) + '\n'
-		+ std::to_string(props.framerate()) + '\n'
+		+ std::to_string(framerate) + '\n'
 		+ std::to_string(engine::getUptime() / 1'000'000'000.f);
 
 	draw::str(
@@ -85,7 +97,7 @@ void game::loop() {
 }
 
 int main() { 
-	props.targetFramerate = 100.f;
+	props.targetFramerate = 0;	//VSync ON
 	props.size = jaw::vec2i(300,200);
 	props.scale = 4;
 	props.mode = jaw::properties::WINDOWED;
