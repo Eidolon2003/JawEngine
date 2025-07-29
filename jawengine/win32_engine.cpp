@@ -17,6 +17,9 @@ jaw::nanoseconds accurateSleep(jaw::nanoseconds time, jaw::nanoseconds startPoin
 	int msTimerAccuracy = timerInfo.wPeriodMin;
 	int msSleepTime = (int)(((time / 1'000'000LL) / msTimerAccuracy) - 1) * msTimerAccuracy;
 	if (msSleepTime > 0) Sleep((DWORD)msSleepTime);
+	// time remaining to wait is less then 2x the timer accuracy
+	// tried going for 1x timer accuracy, but it made frame pacing less consistent
+	assert((time - (getTimePoint() - startPoint)) < (timerInfo.wPeriodMin * 2'000'000));
 	jaw::nanoseconds retTime;
 	while ((retTime = getTimePoint()) - startPoint < time);
 	return retTime;
@@ -30,6 +33,7 @@ void prelimit(jaw::properties* props) {
 void limiter(jaw::properties* props) {
 	props->framecount++;
 	thisFrame = getTimePoint();
+	assert(thisFrame > lastFrame);
 
 	jaw::nanoseconds thisFrametime = thisFrame - lastFrame;
 	jaw::nanoseconds prevFrametime = props->totalFrametime;
@@ -65,17 +69,21 @@ void limiter(jaw::properties* props) {
 	// Here we know we need to sleep for some time to hit the target framerate
 	thisFrame = accurateSleep(targetFrametime - thisFrametime, thisFrame);
 	props->totalFrametime = thisFrame - lastFrame;
+	assert(props->totalFrametime >= targetFrametime);
 	lastFrame = thisFrame;
 	return;
 }
 
 //TODO: run the renderer and game loop on two separate threads
 void engine::start(jaw::properties* props) {
+	assert(props != nullptr);
+
 	timeGetDevCaps(&timerInfo, sizeof(timerInfo));
 	timeBeginPeriod(timerInfo.wPeriodMin);
 	auto _ = QueryPerformanceFrequency(&countsPerSecond);
 
 	HWND hwnd = win::init(props);
+	ValidateRect(hwnd, NULL);
 	draw::init(props, hwnd);
 	game::init();
 	startPoint = lastFrame = getTimePoint();

@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <clocale>	//locale for wchar conversion
 #include <cmath>	//ceilf
+#include <cassert>	//assert
 #include "draw.h"
 #include "win32_internal_draw.h"
 
@@ -140,7 +141,8 @@ void draw::init(const jaw::properties* p, HWND hwnd) {
 
 	// Create the deafault font as font zero
 	auto f = fontOptions();
-	auto _ = draw::newFont(&f);
+	auto id = draw::newFont(&f);
+	assert(id == 0);
 }
 
 void draw::deinit() {
@@ -194,10 +196,6 @@ void draw::prepareRender() {
 static void inline renderLine(draw::drawCall& c) {
 	draw::lineOptions* opt = (draw::lineOptions*)(c.data);
 	pSolidBrush->SetColor(tocolorf(opt->color));
-
-	float offset = opt->width % 2 ? 0.5f : 0.f;
-	opt->p1 = opt->p1 + (int16_t)offset;
-	opt->p2 = opt->p2 + (int16_t)offset;
 
 	pBitmapTarget->DrawLine(
 		topoint2f(opt->p1),
@@ -284,7 +282,6 @@ void draw::render() {
 	pBitmapTarget->EndDraw();
 
 	pRenderTarget->BeginDraw();
-	pRenderTarget->Clear();
 
 	switch (props->mode) {
 	case jaw::properties::WINDOWED:
@@ -344,6 +341,8 @@ void draw::setBackgroundColor(draw::argb color) {
 
 draw::fontid draw::newFont(const draw::fontOptions* opt) {
 	if (numFonts == draw::MAX_NUM_FONTS) return (fontid)draw::MAX_NUM_FONTS;
+	assert(opt != nullptr);
+
 	auto i = numFonts++;
 	auto _ = towstrbuf(opt->name);
 	pDWFactory->CreateTextFormat(
@@ -375,6 +374,7 @@ draw::fontid draw::newFont(const draw::fontOptions* opt) {
 
 draw::bmpid draw::loadBmp(const char* filename) {
 	if (numBmps == draw::MAX_NUM_BMPS) return (bmpid)draw::MAX_NUM_BMPS;
+	assert(filename != nullptr);
 
 	auto _ = towstrbuf(filename);
 	IWICBitmapDecoder* decoder;
@@ -457,14 +457,17 @@ draw::bmpid draw::createBmp(jaw::vec2i size) {
 }
 
 //TODO: Support alpha transparency
-bool draw::writeBmp(draw::bmpid bmp, const draw::argb* pixels) {
+bool draw::writeBmp(draw::bmpid bmp, const draw::argb* pixels, size_t numPixels) {
 	if (bmp >= numBmps) return false;
+	assert(pixels != nullptr);
 
 	auto size = bmps[bmp]->GetPixelSize();
 	D2D1_RECT_U destRect;
 	destRect.left = destRect.top = 0;
 	destRect.right = size.width;
 	destRect.bottom = size.height;
+
+	assert((destRect.right - destRect.left) * (destRect.bottom - destRect.top) == numPixels);
 
 	HRESULT hr = bmps[bmp]->CopyFromMemory(
 		&destRect,
@@ -477,6 +480,8 @@ bool draw::writeBmp(draw::bmpid bmp, const draw::argb* pixels) {
 //TODO: see if I can do better than memcpy with wide registers or optimizing for 32 bytes, maybe?
 
 draw::drawCall draw::makeDraw(draw::type t, uint8_t z, const void* opt) {
+	assert(opt != nullptr);
+	assert(t < draw::type::NUM_TYPES);
 	draw::drawCall x = {};
 	x.t = t;
 	x.z = z;
@@ -485,6 +490,7 @@ draw::drawCall draw::makeDraw(draw::type t, uint8_t z, const void* opt) {
 }
 
 bool draw::enqueue(const draw::drawCall* c) {
+	assert(c != nullptr);
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
 	memcpy(writeQueue + writeQueueFront, c, sizeof(draw::drawCall));
 	writeQueueFront++;
@@ -492,6 +498,7 @@ bool draw::enqueue(const draw::drawCall* c) {
 }
 
 bool draw::enqueueMany(const draw::drawCall* c, size_t l) {
+	assert(c != nullptr);
 	if (writeQueueFront + l > MAX_QUEUE_SIZE) return false;
 	memcpy(writeQueue + writeQueueFront, c, sizeof(draw::drawCall) * l);
 	writeQueueFront += l;

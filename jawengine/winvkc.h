@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>	// uint8_t
 
 namespace key {
 	//https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes

@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "win32_internal_win.h"
 #include <cmath>	//floorf, min
+#include <cassert>
 
 LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 	switch (umsg) {
@@ -8,6 +9,13 @@ LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 		PostQuitMessage(NULL);
 		return 0;
 
+	case WM_PAINT:
+		//The engine is calling ValidateRect and redrawing the whole window every frame
+		//Don't expect to receive any paint messages
+		assert(0);
+		ValidateRect(hwnd, NULL);
+		return 0;
+					
 	default:
 		return DefWindowProc(hwnd, umsg, wparam, lparam);
 	}

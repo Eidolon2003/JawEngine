@@ -3,12 +3,16 @@
 
 static jaw::properties props;
 
-static uint64_t lastFramecount = 0;
-static jaw::nanoseconds sumFrametimes = 0;
-static float framerate = 0;
+static uint64_t lastFramecount;
+static jaw::nanoseconds sumFrametimes;
+static float framerate;
+static draw::bmpid bitmap;
+
+static draw::argb pixels[64 * 64];
 
 void game::init() {
 	draw::setBackgroundColor(draw::color::RED);
+	bitmap = draw::createBmp(jaw::vec2i(64, 64));
 }
 
 void game::loop() {
@@ -52,7 +56,27 @@ void game::loop() {
 			jaw::vec2i(20, 100),
 			jaw::vec2i(80, 100),
 			draw::color::BLUE,
+			1
+		},
+		1
+	);
+
+	draw::line(
+		draw::lineOptions{
+			jaw::vec2i(20, 105),
+			jaw::vec2i(80, 105),
+			draw::color::BLUE,
 			2
+		},
+		1
+	);
+
+	draw::line(
+		draw::lineOptions{
+			jaw::vec2i(20, 110),
+			jaw::vec2i(80, 110),
+			draw::color::BLUE,
+			3
 		},
 		1
 	);
@@ -93,6 +117,17 @@ void game::loop() {
 			draw::color::MAGENTA
 		},
 		0
+	);
+
+	pixels[5] = 0xFFFFFFFF;
+	draw::writeBmp(bitmap, pixels, 64*64);
+	draw::bmp(
+		draw::bmpOptions{
+			bitmap,
+			jaw::recti(0,0,64,64),
+			jaw::recti(20,80,84,144)
+		},
+		5
 	);
 }
 

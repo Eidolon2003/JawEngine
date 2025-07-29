@@ -91,9 +91,10 @@ namespace draw {
 	bmpid loadBmp(const char* filename);
 	bmpid createBmp(jaw::vec2i size);
 
-	//Copies a number of pixels equal to the bmp's size into it
+	//Copies pixels into a bitmap. numPixels MUST equal the width x height of the bitmap
 	//These don't currently support alpha transparency, alpha channel ignored
-	bool writeBmp(bmpid, const argb* pixels);
+	//TODO: support partial copies
+	bool writeBmp(bmpid, const argb* pixels, size_t numPixels);
 
 /*	-----------------------------------
 	Lower level API below. The functions above are recommended for general use
@@ -104,6 +105,7 @@ namespace draw {
 		STR,
 		BMP,
 		ELLIPSE,
+		NUM_TYPES
 	};
 
 	constexpr size_t typeSizes[] = {
@@ -113,6 +115,7 @@ namespace draw {
 		sizeof(bmpOptions),
 		sizeof(ellipseOptions),
 	};
+	static_assert(sizeof(typeSizes) / sizeof(size_t) == type::NUM_TYPES);
 
 	struct alignas(32) drawCall {
 		type t;

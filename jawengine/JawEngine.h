@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <cassert>
 
 #if (defined _WIN32 || defined _WIN64)
 #include "winvkc.h"

@@ -1,7 +1,7 @@
 #pragma once
 #define NOMINMAX
-#include <windows.h>
-#include "types.h"
+#include <windows.h>	// HWND
+#include "types.h"		// jaw::properties	
 
 namespace draw {
 	void init(const jaw::properties*, HWND);
