@@ -1,5 +1,4 @@
 // This code is currently Direct2D 1.0
-//TODO: Write it for 1.1+ but fall back to 1.0 for Windows 7
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <d2d1.h>
@@ -372,6 +371,8 @@ jaw::fontid draw::newFont(const draw::fontOptions* opt) {
 	return (jaw::fontid)i;
 }
 
+//TODO: change this to read the bmp file directly instead of going through all this windows mess
+//			this would be better for supporting asset packs later
 jaw::bmpid draw::loadBmp(const char* filename) {
 	if (numBmps == draw::MAX_NUM_BMPS) return (jaw::bmpid)draw::MAX_NUM_BMPS;
 	assert(filename != nullptr);

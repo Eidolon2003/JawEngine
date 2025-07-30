@@ -87,6 +87,12 @@ namespace jaw {
 		jaw::vec2i pos;
 		int32_t wheelDelta;
 		jaw::mouseFlags flags;
+		jaw::mouseFlags prevFlags;
+	};
+
+	struct key {
+		bool isDown;
+		bool isHeld;
 	};
 	
 	struct properties {
@@ -94,7 +100,6 @@ namespace jaw {
 		vec2i size = vec2i(640, 480);		// The logical size of the window
 		float scale = 1.f;					// Integer scaling values use nearest neighbor
 		float targetFramerate = 0;			// <=0 means VSync
-		bool enableKeyRepeat = false;
 		bool enableSubpixelTextRendering = false;
 		bool enablePerPrimitiveAA = false;
 		bool showCMD = false;

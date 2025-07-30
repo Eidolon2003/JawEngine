@@ -3,13 +3,14 @@
 #include "internal_input.h"
 #include <cmath>	//floorf, min
 #include <cassert>
+#include <windowsx.h>	//GET_X_LPARAM, GET_Y_LPARAM
 
 static jaw::properties* props;
 
 void handleMouse(WPARAM wparam, LPARAM lparam) {
 	jaw::mouse mouse;
-	mouse.pos.x = lparam & 0xFFFF;
-	mouse.pos.y = (lparam >> 16) & 0xFFFF;
+	mouse.pos.x = GET_X_LPARAM(lparam);
+	mouse.pos.y = GET_Y_LPARAM(lparam);
 	mouse.flags.all = wparam & 0xFF;
 	mouse.wheelDelta = GET_WHEEL_DELTA_WPARAM(wparam) / WHEEL_DELTA;
 
@@ -66,6 +67,26 @@ LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 	case WM_MOUSEWHEEL:
 		handleMouse(wparam, lparam);
 		return 0;
+
+	case WM_CHAR: {
+		wchar_t wc = (wchar_t)wparam;
+		char c[4];
+		assert(MB_CUR_MAX <= sizeof(c));
+		auto len = wctomb(c, wc);
+		assert(len == 1);
+		if (len == 1) input::updateChar(c[0]);
+	}	return 0;
+
+	case WM_KEYDOWN: {
+		if (lparam & (1 << 30)) return 0;	//Ignore windows' key repeat
+		uint8_t vkc = wparam & 0xFF;
+		input::updateKey(vkc, true);
+	}	return 0;
+
+	case WM_KEYUP: {
+		uint8_t vkc = wparam & 0xFF;
+		input::updateKey(vkc, false);
+	}	return 0;
 
 	case WM_CLOSE:
 		PostQuitMessage(NULL);

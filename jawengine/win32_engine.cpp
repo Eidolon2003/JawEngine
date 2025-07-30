@@ -86,10 +86,12 @@ void engine::start(jaw::properties* props) {
 	HWND hwnd = win::init(props);
 	ValidateRect(hwnd, NULL);
 	draw::init(props, hwnd);
+	input::init();
 	game::init();
 	startPoint = lastFrame = getTimePoint();
 
 	do {
+		input::beginFrame();
 		MSG msg;
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 			if (msg.message == WM_QUIT) running = false;
@@ -105,6 +107,7 @@ void engine::start(jaw::properties* props) {
 		limiter(props);
 	} while (running);
 
+	input::deinit();
 	draw::deinit();
 	win::deinit();
 	timeEndPeriod(timerInfo.wPeriodMin);
