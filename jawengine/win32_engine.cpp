@@ -1,6 +1,7 @@
 #include "JawEngine.h"
 #include "win32_internal_draw.h"
 #include "win32_internal_win.h"
+#include "internal_input.h"
 
 static bool running = true;
 static LARGE_INTEGER countsPerSecond;

@@ -6,12 +6,12 @@ static jaw::properties props;
 static uint64_t lastFramecount;
 static jaw::nanoseconds sumFrametimes;
 static float framerate;
-static draw::bmpid bitmap;
+static jaw::bmpid bitmap;
 
-static draw::argb pixels[64 * 64];
+static jaw::argb pixels[64 * 64];
 
 void game::init() {
-	draw::setBackgroundColor(draw::color::RED);
+	draw::setBackgroundColor(jaw::color::RED);
 	bitmap = draw::createBmp(jaw::vec2i(64, 64));
 }
 
@@ -24,16 +24,19 @@ void game::loop() {
 		sumFrametimes = 0;
 	}
 
+	const jaw::mouse* mouse = input::getMouse();
+
 	static std::string str;
 	str = std::to_string(props.logicFrametime) + '\n' 
 		+ std::to_string(props.totalFrametime) + '\n'
 		+ std::to_string(framerate) + '\n'
-		+ std::to_string(engine::getUptime() / 1'000'000'000.f);
+		+ std::to_string(engine::getUptime() / 1'000'000'000.f) + '\n'
+		+ std::to_string(mouse->pos.x) + ',' + std::to_string(mouse->pos.y);
 
 	draw::str(
 		draw::strOptions{
 			jaw::recti(0,0,props.size.x, props.size.y),
-			draw::color::WHITE,
+			jaw::color::WHITE,
 			0,
 			str.c_str()
 		},
@@ -46,7 +49,7 @@ void game::loop() {
 				jaw::vec2i(120,100),
 				jaw::vec2i(30, 40)
 			),
-			draw::color::CYAN
+			jaw::color::CYAN
 		},
 		2
 	);
@@ -55,7 +58,7 @@ void game::loop() {
 		draw::lineOptions{
 			jaw::vec2i(20, 100),
 			jaw::vec2i(80, 100),
-			draw::color::BLUE,
+			jaw::color::BLUE,
 			1
 		},
 		1
@@ -65,7 +68,7 @@ void game::loop() {
 		draw::lineOptions{
 			jaw::vec2i(20, 105),
 			jaw::vec2i(80, 105),
-			draw::color::BLUE,
+			jaw::color::BLUE,
 			2
 		},
 		1
@@ -75,7 +78,7 @@ void game::loop() {
 		draw::lineOptions{
 			jaw::vec2i(20, 110),
 			jaw::vec2i(80, 110),
-			draw::color::BLUE,
+			jaw::color::BLUE,
 			3
 		},
 		1
@@ -85,7 +88,7 @@ void game::loop() {
 		draw::lineOptions{
 			jaw::vec2i(120, 20),
 			jaw::vec2i(240, 180),
-			draw::color::BLUE,
+			jaw::color::BLUE,
 			2
 		},
 		1
@@ -94,7 +97,7 @@ void game::loop() {
 	draw::str(
 		draw::strOptions{
 			jaw::recti(50, 150, 300, 200),
-			draw::color::WHITE,
+			jaw::color::WHITE,
 			0,
 			"SPHINX OF BLACK QUARTZ, JUDGE MY VOW"
 		},
@@ -104,7 +107,7 @@ void game::loop() {
 	draw::str(
 		draw::strOptions{
 			jaw::recti(25, 175, 300, 200),
-			draw::color::WHITE,
+			jaw::color::WHITE,
 			0,
 			"the quick brown fox jumps over the lazy dog"
 		},
@@ -114,12 +117,12 @@ void game::loop() {
 	draw::rect(
 		draw::rectOptions{
 			jaw::recti(200, 10, 275, 100),
-			draw::color::MAGENTA
+			jaw::color::MAGENTA
 		},
 		0
 	);
 
-	pixels[5] = 0xFFFFFFFF;
+	pixels[5] = 0xFFFF0000 | (props.framecount & 0xFF) | ((props.framecount & 0xFF) << 8);
 	draw::writeBmp(bitmap, pixels, 64*64);
 	draw::bmp(
 		draw::bmpOptions{

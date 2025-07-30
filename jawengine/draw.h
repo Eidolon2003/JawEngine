@@ -2,34 +2,19 @@
 #include "types.h"
 
 namespace draw {
-	typedef uint32_t bmpid;
-	typedef uint32_t fontid;
-	typedef uint32_t argb;
-
 	constexpr size_t MAX_DRAW_SIZE = 30;
 	constexpr size_t MAX_QUEUE_SIZE = 1024*1024;
 	constexpr size_t MAX_NUM_FONTS = 1024;
 	constexpr size_t MAX_NUM_BMPS = 1024;
 	
-	namespace color {
-		constexpr argb RED = 0xFFFF0000;
-		constexpr argb GREEN = 0xFF00FF00;
-		constexpr argb BLUE = 0xFF0000FF;
-		constexpr argb WHITE = 0xFFFFFFFF;
-		constexpr argb BLACK = 0xFF000000;
-		constexpr argb CYAN = 0xFF00FFFF;
-		constexpr argb MAGENTA = 0xFFFF00FF;
-		constexpr argb YELLOW = 0xFFFFFF00;
-	};
-
-	void setBackgroundColor(argb);
+	void setBackgroundColor(jaw::argb);
 
 /*	-----------------------------------
 	Drawing Primitives
 */
 	struct lineOptions {
 		jaw::vec2i p1, p2;
-		argb color;
+		jaw::argb color;
 		uint32_t width;
 	};
 	static_assert(sizeof(lineOptions) <= MAX_DRAW_SIZE);
@@ -38,7 +23,7 @@ namespace draw {
 
 	struct rectOptions {
 		jaw::recti rect;
-		argb color;
+		jaw::argb color;
 	};
 	static_assert(sizeof(rectOptions) <= MAX_DRAW_SIZE);
 	bool rect(const rectOptions*, uint8_t z);
@@ -47,8 +32,8 @@ namespace draw {
 	//Note: The string this is pointing to must exist past the end of the frame
 	struct strOptions {
 		jaw::recti rect;
-		argb color;
-		fontid font = 0;
+		jaw::argb color;
+		jaw::fontid font = 0;
 		const char* str;
 	};
 	static_assert(sizeof(strOptions) <= MAX_DRAW_SIZE);
@@ -56,7 +41,7 @@ namespace draw {
 	inline bool str(const strOptions& o, uint8_t z) { return str(&o, z); }
 
 	struct bmpOptions {
-		bmpid bmp;
+		jaw::bmpid bmp;
 		jaw::recti src;
 		jaw::recti dest;
 	};
@@ -66,7 +51,7 @@ namespace draw {
 
 	struct ellipseOptions {
 		jaw::ellipse ellipse;
-		argb color;
+		jaw::argb color;
 	};
 	static_assert(sizeof(ellipseOptions) <= MAX_DRAW_SIZE);
 	bool ellipse(const ellipseOptions*, uint8_t z);
@@ -84,17 +69,17 @@ namespace draw {
 		bool bold = false;
 		enum { CENTER, LEFT, RIGHT } align = LEFT;
 	};
-	fontid newFont(const fontOptions*);
-	inline fontid newFont(const fontOptions& o) { return newFont(&o); }
+	jaw::fontid newFont(const fontOptions*);
+	inline jaw::fontid newFont(const fontOptions& o) { return newFont(&o); }
 
 
-	bmpid loadBmp(const char* filename);
-	bmpid createBmp(jaw::vec2i size);
+	jaw::bmpid loadBmp(const char* filename);
+	jaw::bmpid createBmp(jaw::vec2i size);
 
 	//Copies pixels into a bitmap. numPixels MUST equal the width x height of the bitmap
 	//These don't currently support alpha transparency, alpha channel ignored
 	//TODO: support partial copies
-	bool writeBmp(bmpid, const argb* pixels, size_t numPixels);
+	bool writeBmp(jaw::bmpid, const jaw::argb* pixels, size_t numPixels);
 
 /*	-----------------------------------
 	Lower level API below. The functions above are recommended for general use

@@ -12,6 +12,7 @@
 
 #include "types.h"
 #include "draw.h"
+#include "input.h"
 
 namespace game {
 	void init();

@@ -50,7 +50,7 @@ inline D2D1_RECT_F torectf(const jaw::recti& r) {
 	return D2D1::RectF((float)r.tl.x, (float)r.tl.y, (float)r.br.x, (float)r.br.y);
 }
 
-inline D2D1_COLOR_F tocolorf(const draw::argb c) {
+inline D2D1_COLOR_F tocolorf(const jaw::argb c) {
 	return D2D1::ColorF(c, (c >> 24) / 255.f);
 }
 
@@ -335,12 +335,12 @@ void draw::present() {
 	pRenderTarget->EndDraw();
 }
 
-void draw::setBackgroundColor(draw::argb color) {
+void draw::setBackgroundColor(jaw::argb color) {
 	backgroundColor = tocolorf(color);
 }
 
-draw::fontid draw::newFont(const draw::fontOptions* opt) {
-	if (numFonts == draw::MAX_NUM_FONTS) return (fontid)draw::MAX_NUM_FONTS;
+jaw::fontid draw::newFont(const draw::fontOptions* opt) {
+	if (numFonts == draw::MAX_NUM_FONTS) return (jaw::fontid)draw::MAX_NUM_FONTS;
 	assert(opt != nullptr);
 
 	auto i = numFonts++;
@@ -369,11 +369,11 @@ draw::fontid draw::newFont(const draw::fontOptions* opt) {
 		fonts[i]->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		break;
 	}
-	return (fontid)i;
+	return (jaw::fontid)i;
 }
 
-draw::bmpid draw::loadBmp(const char* filename) {
-	if (numBmps == draw::MAX_NUM_BMPS) return (bmpid)draw::MAX_NUM_BMPS;
+jaw::bmpid draw::loadBmp(const char* filename) {
+	if (numBmps == draw::MAX_NUM_BMPS) return (jaw::bmpid)draw::MAX_NUM_BMPS;
 	assert(filename != nullptr);
 
 	auto _ = towstrbuf(filename);
@@ -386,14 +386,14 @@ draw::bmpid draw::loadBmp(const char* filename) {
 		&decoder
 	);
 	if (!SUCCEEDED(hr)) {
-		return (bmpid)draw::MAX_NUM_BMPS;
+		return (jaw::bmpid)draw::MAX_NUM_BMPS;
 	}
 
 	IWICFormatConverter* converter;
 	hr = pIWICFactory->CreateFormatConverter(&converter);
 	if (!SUCCEEDED(hr)) {
 		decoder->Release();
-		return (bmpid)draw::MAX_NUM_BMPS;
+		return (jaw::bmpid)draw::MAX_NUM_BMPS;
 	}
 
 	IWICBitmapFrameDecode* frame;
@@ -401,7 +401,7 @@ draw::bmpid draw::loadBmp(const char* filename) {
 	if (!SUCCEEDED(hr)) {
 		decoder->Release();
 		converter->Release();
-		return (bmpid)draw::MAX_NUM_BMPS;
+		return (jaw::bmpid)draw::MAX_NUM_BMPS;
 	}
 
 	hr = converter->Initialize(
@@ -416,7 +416,7 @@ draw::bmpid draw::loadBmp(const char* filename) {
 		decoder->Release();
 		converter->Release();
 		frame->Release();
-		return (bmpid)draw::MAX_NUM_BMPS;
+		return (jaw::bmpid)draw::MAX_NUM_BMPS;
 	}
 
 	pRenderTarget->CreateBitmapFromWicBitmap(
@@ -428,11 +428,11 @@ draw::bmpid draw::loadBmp(const char* filename) {
 	converter->Release();
 	frame->Release();
 	decoder->Release();
-	return (bmpid)numBmps++;
+	return (jaw::bmpid)numBmps++;
 }
 
-draw::bmpid draw::createBmp(jaw::vec2i size) {
-	if (numBmps == draw::MAX_NUM_BMPS) return (bmpid)draw::MAX_NUM_BMPS;
+jaw::bmpid draw::createBmp(jaw::vec2i size) {
+	if (numBmps == draw::MAX_NUM_BMPS) return (jaw::bmpid)draw::MAX_NUM_BMPS;
 
 	float dpix, dpiy;
 	pRenderTarget->GetDpi(&dpix, &dpiy);
@@ -450,14 +450,14 @@ draw::bmpid draw::createBmp(jaw::vec2i size) {
 		bmps + numBmps
 	);
 	if (!SUCCEEDED(hr)) {
-		return (bmpid)draw::MAX_NUM_BMPS;
+		return (jaw::bmpid)draw::MAX_NUM_BMPS;
 	}
 
-	return (bmpid)numBmps++;
+	return (jaw::bmpid)numBmps++;
 }
 
 //TODO: Support alpha transparency
-bool draw::writeBmp(draw::bmpid bmp, const draw::argb* pixels, size_t numPixels) {
+bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb* pixels, size_t numPixels) {
 	if (bmp >= numBmps) return false;
 	assert(pixels != nullptr);
 
@@ -472,7 +472,7 @@ bool draw::writeBmp(draw::bmpid bmp, const draw::argb* pixels, size_t numPixels)
 	HRESULT hr = bmps[bmp]->CopyFromMemory(
 		&destRect,
 		pixels,
-		size.width * sizeof(draw::argb)
+		size.width * sizeof(jaw::argb)
 	);
 	return SUCCEEDED(hr);
 }

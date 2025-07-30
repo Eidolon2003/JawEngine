@@ -3,6 +3,20 @@
 
 namespace jaw {
 	typedef int64_t nanoseconds;
+	typedef uint32_t bmpid;
+	typedef uint32_t fontid;
+	typedef uint32_t argb;
+
+	namespace color {
+		constexpr argb RED = 0xFFFF0000;
+		constexpr argb GREEN = 0xFF00FF00;
+		constexpr argb BLUE = 0xFF0000FF;
+		constexpr argb WHITE = 0xFFFFFFFF;
+		constexpr argb BLACK = 0xFF000000;
+		constexpr argb CYAN = 0xFF00FFFF;
+		constexpr argb MAGENTA = 0xFFFF00FF;
+		constexpr argb YELLOW = 0xFFFFFF00;
+	};
 
 	//TODO: more convenient op overloads for these structs
 	struct vec2f {
@@ -11,7 +25,9 @@ namespace jaw {
 
 		constexpr vec2f operator+(const vec2f rhs) const { return { x + rhs.x, y + rhs.y }; }
 		constexpr vec2f operator+(const float rhs) const { return { x + rhs, y + rhs }; }
+		constexpr vec2f operator-(const vec2f rhs) const { return { x - rhs.x, y - rhs.y }; }
 		constexpr vec2f operator*(const float rhs) const { return { x * rhs, y * rhs }; }
+		constexpr vec2f operator/(const float rhs) const { return { x / rhs, y / rhs }; }
 	};
 
 	struct vec2i {
@@ -20,8 +36,14 @@ namespace jaw {
 
 		constexpr vec2i operator+(const vec2i rhs) const { return { x + rhs.x, y + rhs.y }; }
 		constexpr vec2i operator+(const int16_t rhs) const { return { x + rhs, y + rhs }; }
+		constexpr vec2i operator-(const vec2i rhs) const { return { x - rhs.x, y - rhs.y }; }
 		constexpr vec2i operator*(const int16_t rhs) const { return { x * rhs, y * rhs }; }
 		constexpr vec2i operator*(const float rhs) const { return { (int16_t)(x * rhs), (int16_t)(y * rhs) }; }
+		constexpr vec2i operator/(const int16_t rhs) const { return { x / rhs, y / rhs }; }
+		constexpr vec2i operator/(const float rhs) const { return { (int16_t)(x / rhs), (int16_t)(y / rhs) }; }
+
+		constexpr bool operator<(const vec2i rhs) const { return (x < rhs.x) && (y < rhs.y); }
+		constexpr bool operator>=(const int16_t rhs) const { return (x >= rhs) && (y >= rhs); }
 	};
 
 	struct rectf {
@@ -46,6 +68,25 @@ namespace jaw {
 		constexpr ellipse(vec2i c = vec2i(), vec2i r = vec2i()) {
 			center = c; radii = r;
 		}
+	};
+
+	union mouseFlags {
+		uint8_t all;
+		struct {
+			char lmb : 1;
+			char rmb : 1;
+			char shift : 1;
+			char ctrl : 1;
+			char mmb : 1;
+			char xmb1 : 1;
+			char xmb2 : 1;
+		};
+	};
+
+	struct mouse {
+		jaw::vec2i pos;
+		int32_t wheelDelta;
+		jaw::mouseFlags flags;
 	};
 	
 	struct properties {

@@ -1,10 +1,72 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "win32_internal_win.h"
+#include "internal_input.h"
 #include <cmath>	//floorf, min
 #include <cassert>
 
+static jaw::properties* props;
+
+void handleMouse(WPARAM wparam, LPARAM lparam) {
+	jaw::mouse mouse;
+	mouse.pos.x = lparam & 0xFFFF;
+	mouse.pos.y = (lparam >> 16) & 0xFFFF;
+	mouse.flags.all = wparam & 0xFF;
+	mouse.wheelDelta = GET_WHEEL_DELTA_WPARAM(wparam) / WHEEL_DELTA;
+
+	switch (props->mode) {
+	case jaw::properties::FULLSCREEN_CENTERED:
+	case jaw::properties::FULLSCREEN_CENTERED_INTEGER: {
+		const jaw::vec2i centerOffset = ((props->winsize - props->scaledSize()) / (int16_t)2);
+		mouse.pos = mouse.pos - centerOffset;
+	}	// This falls through intentionally!
+
+	case jaw::properties::WINDOWED: {
+		mouse.pos = mouse.pos / props->scale;
+
+		mouse.pos.x = std::max(
+			(int16_t)0,
+			std::min(
+				(int16_t)(props->size.x - 1),
+				mouse.pos.x
+			)
+		);
+		mouse.pos.y = std::max(
+			(int16_t)0,
+			std::min(
+				(int16_t)(props->size.y - 1),
+				mouse.pos.y
+			)
+		);
+
+	}	break;
+
+	case jaw::properties::FULLSCREEN_STRETCHED: {
+		mouse.pos.x = (int16_t)((float)mouse.pos.x / ((float)props->winsize.x / (float)props->size.x));
+		mouse.pos.y = (int16_t)((float)mouse.pos.y / ((float)props->winsize.y / (float)props->size.y));
+	} break;
+	}
+
+	//The computed mouse coordinate must fall inside the window
+	assert(mouse.pos >= 0 && mouse.pos < props->size);
+
+	input::updateMouse(&mouse);
+}
+
 LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 	switch (umsg) {
+	case WM_LBUTTONDOWN:
+	case WM_RBUTTONDOWN:
+	case WM_MBUTTONDOWN:
+	case WM_XBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONUP:
+	case WM_MBUTTONUP:
+	case WM_XBUTTONUP:
+	case WM_MOUSEMOVE:
+	case WM_MOUSEWHEEL:
+		handleMouse(wparam, lparam);
+		return 0;
+
 	case WM_CLOSE:
 		PostQuitMessage(NULL);
 		return 0;
@@ -24,7 +86,8 @@ LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 static WNDCLASSEX wc;
 static char className[256] = "JAWENGINE_WINDOW_CLASS_";
 
-HWND win::init(jaw::properties *props) {
+HWND win::init(jaw::properties *p) {
+	props = p;
 	HWND console = GetConsoleWindow();
 	ShowWindow(console, props->showCMD ? SW_SHOW : SW_HIDE);
 
