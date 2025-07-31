@@ -8,6 +8,7 @@
 #include <clocale>	//locale for wchar conversion
 #include <cmath>	//ceilf
 #include <cassert>	//assert
+#include <malloc.h> //alloca
 #include "draw.h"
 #include "win32_internal_draw.h"
 
@@ -79,8 +80,8 @@ void draw::init(const jaw::properties* p, HWND hwnd) {
 		&pBitmapTarget
 	);
 	pBitmapTarget->SetAntialiasMode(
-		props->enablePerPrimitiveAA ? 
-			D2D1_ANTIALIAS_MODE_PER_PRIMITIVE : D2D1_ANTIALIAS_MODE_ALIASED
+		props->enablePerPrimitiveAA ?
+		D2D1_ANTIALIAS_MODE_PER_PRIMITIVE : D2D1_ANTIALIAS_MODE_ALIASED
 	);
 	pBitmapTarget->GetBitmap(&pBitmapTargetBMP);
 
@@ -260,7 +261,7 @@ void draw::render() {
 		case draw::type::LINE:
 			renderLine(call);
 			break;
-		
+
 		case draw::type::RECT:
 			renderRect(call);
 			break;
@@ -457,10 +458,23 @@ jaw::bmpid draw::createBmp(jaw::vec2i size) {
 	return (jaw::bmpid)numBmps++;
 }
 
-//TODO: Support alpha transparency
 bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb* pixels, size_t numPixels) {
 	if (bmp >= numBmps) return false;
 	assert(pixels != nullptr);
+
+	// Allocate space for this array on the stack
+	jaw::argb* multiplied = (jaw::argb*)_malloca(numPixels * sizeof(jaw::argb));
+	assert(multiplied != nullptr);
+
+	for (int i = 0; i < numPixels; i++) {
+		auto px = pixels[i];
+		uint8_t a = px >> 24;
+		float anorm = a / 255.f;
+		uint8_t r = (uint8_t)(((px >> 16) & 0xFF) * anorm);
+		uint8_t g = (uint8_t)(((px >> 8) & 0xFF) * anorm);
+		uint8_t b = (uint8_t)((px & 0xFF) * anorm);
+		multiplied[i] = (a << 24) | (r << 16) | (g << 8) | b;
+	}
 
 	auto size = bmps[bmp]->GetPixelSize();
 	D2D1_RECT_U destRect;
@@ -472,9 +486,10 @@ bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb* pixels, size_t numPixels) {
 
 	HRESULT hr = bmps[bmp]->CopyFromMemory(
 		&destRect,
-		pixels,
+		multiplied,
 		size.width * sizeof(jaw::argb)
 	);
+	_freea(multiplied);
 	return SUCCEEDED(hr);
 }
 

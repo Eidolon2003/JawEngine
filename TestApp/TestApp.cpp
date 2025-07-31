@@ -1,9 +1,7 @@
 ﻿#include "../jawengine/JawEngine.h"
 #include <string>
-#include <iostream>
 
 static jaw::properties props;
-
 static uint64_t lastFramecount;
 static jaw::nanoseconds sumFrametimes;
 static float framerate;
@@ -13,22 +11,25 @@ static char inputString[256];
 
 void game::init() {
 	draw::setBackgroundColor(jaw::color::RED);
+
 	bitmap = draw::createBmp(jaw::vec2i(64, 64));
+
+	for (int i = 0; i < 64 * 64; i++) {
+		pixels[i] = 0x88FFFFFF;
+	}
+	draw::writeBmp(bitmap, pixels, 64 * 64);
 }
 
 void game::loop() {
 	if (input::getKey(key::ESC).isDown) engine::stop();
 
-	// Compute the average framerate over the last 10 frames
+	// Compute the average framerate over the last 1000 frames
 	sumFrametimes += props.totalFrametime;
-	if (props.framecount - lastFramecount == 10) {
-		framerate = 10.f * 1'000'000'000.f / sumFrametimes;
+	if (props.framecount - lastFramecount == 1000) {
+		framerate = 1000.f * 1'000'000'000.f / sumFrametimes;
 		lastFramecount = props.framecount;
 		sumFrametimes = 0;
 	}
-
-	auto a = input::getKey(key::A);
-	std::cout << a.isDown << ", " << a.isHeld << '\n';
 
 	const jaw::mouse* mouse = input::getMouse();
 	input::getString(inputString, 256);
@@ -48,15 +49,23 @@ void game::loop() {
 			0,
 			str.c_str()
 		},
-		0
+		2
+	);
+
+	draw::bmp(
+		draw::bmpOptions{
+			bitmap,
+			jaw::recti(0,0,64,64),
+			jaw::recti(20, 100, 84, 164)
+		},
+		1
 	);
 }
 
 int main() {
-	props.targetFramerate = 5;
+	props.targetFramerate = 10000;
 	props.size = jaw::vec2i(300,200);
 	props.scale = 4;
 	props.mode = jaw::properties::WINDOWED;
-	props.showCMD = true;
 	engine::start(&props);
 }

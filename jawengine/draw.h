@@ -77,8 +77,7 @@ namespace draw {
 	jaw::bmpid createBmp(jaw::vec2i size);
 
 	//Copies pixels into a bitmap. numPixels MUST equal the width x height of the bitmap
-	//These don't currently support alpha transparency, alpha channel ignored
-	//TODO: support partial copies
+	//This routine is slow compared to others in the API, so better to call as little as needed
 	bool writeBmp(jaw::bmpid, const jaw::argb* pixels, size_t numPixels);
 
 /*	-----------------------------------
