@@ -1,32 +1,32 @@
-﻿#include "../jawengine/JawEngine.h"
+﻿#define _CRT_SECURE_NO_WARNINGS
+#include "../jawengine/JawEngine.h"
 #include <string>
 
 static jaw::properties props;
 static uint64_t lastFramecount;
 static jaw::nanoseconds sumFrametimes;
 static float framerate;
-static jaw::bmpid bitmap;
-static jaw::argb pixels[64 * 64];
 static char inputString[256];
 
 void game::init() {
 	draw::setBackgroundColor(jaw::color::RED);
 
-	bitmap = draw::createBmp(jaw::vec2i(64, 64));
+	char* p1, *p2;
+	size_t s1 = asset::file("F:/C++/GameJam/assets.png", (void**)&p1);
+	assert(p1 != nullptr);
+	size_t s2 = asset::file("F:/C++/GameJam/assets.png", (void**)&p2);
+	assert(p1 == p2 && s1 == s2);
 
-	for (int i = 0; i < 64 * 64; i++) {
-		pixels[i] = 0x88FFFFFF;
-	}
-	draw::writeBmp(bitmap, pixels, 64 * 64);
+	strncat(inputString, p1 + 1, 3);	//Writes "PNG" to the screen
 }
 
 void game::loop() {
 	if (input::getKey(key::ESC).isDown) engine::stop();
 
-	// Compute the average framerate over the last 1000 frames
+	// Compute the average framerate over the last 100 frames
 	sumFrametimes += props.totalFrametime;
-	if (props.framecount - lastFramecount == 1000) {
-		framerate = 1000.f * 1'000'000'000.f / sumFrametimes;
+	if (props.framecount - lastFramecount == 100) {
+		framerate = 100.f * 1'000'000'000.f / sumFrametimes;
 		lastFramecount = props.framecount;
 		sumFrametimes = 0;
 	}
@@ -51,19 +51,10 @@ void game::loop() {
 		},
 		2
 	);
-
-	draw::bmp(
-		draw::bmpOptions{
-			bitmap,
-			jaw::recti(0,0,64,64),
-			jaw::recti(20, 100, 84, 164)
-		},
-		1
-	);
 }
 
 int main() {
-	props.targetFramerate = 10000;
+	props.targetFramerate = 0;
 	props.size = jaw::vec2i(300,200);
 	props.scale = 4;
 	props.mode = jaw::properties::WINDOWED;

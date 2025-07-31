@@ -93,9 +93,9 @@ LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 		return 0;
 
 	case WM_PAINT:
-		//The engine is calling ValidateRect and redrawing the whole window every frame
-		//Don't expect to receive any paint messages
-		assert(0);
+		// The only way I'm getting WM_PAINT that I've found is dragging the window off the
+		// edge of the screen and then bringing it back on
+		//assert(0);
 		ValidateRect(hwnd, NULL);
 		return 0;
 					

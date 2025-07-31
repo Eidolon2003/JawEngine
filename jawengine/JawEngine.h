@@ -11,6 +11,7 @@
 #endif
 
 #include "types.h"
+#include "asset.h"
 #include "draw.h"
 #include "input.h"
 

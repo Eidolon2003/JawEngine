@@ -1,7 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "input.h"
 #include "internal_input.h"
-#include <string>	//memcpy
+#include <string>	//strlen, strncat
 #include <cassert>
 
 static jaw::mouse mouse;
