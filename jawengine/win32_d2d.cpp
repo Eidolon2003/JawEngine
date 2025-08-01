@@ -24,6 +24,7 @@ static IDWriteRenderingParams* pParams = nullptr;
 static ID2D1SolidColorBrush* pSolidBrush = nullptr;
 static IWICImagingFactory* pIWICFactory = nullptr;
 static D2D1_BITMAP_INTERPOLATION_MODE interpMode;
+static D2D1_ANTIALIAS_MODE AAMode;
 
 static draw::drawCall writeQueue[draw::MAX_QUEUE_SIZE];
 static draw::drawCall renderQueue[draw::MAX_QUEUE_SIZE];
@@ -34,6 +35,7 @@ static IDWriteTextFormat* fonts[draw::MAX_NUM_FONTS];
 static size_t numFonts = 0;
 
 static ID2D1Bitmap* bmps[draw::MAX_NUM_BMPS];
+static ID2D1BitmapRenderTarget* bmpTargets[draw::MAX_NUM_BMPS];
 static size_t numBmps = 0;
 
 static wchar_t wstrBuffer[1024];
@@ -79,10 +81,11 @@ void draw::init(const jaw::properties* p, HWND hwnd) {
 		D2D1::SizeF((float)props->size.x, (float)props->size.y),
 		&pBitmapTarget
 	);
-	pBitmapTarget->SetAntialiasMode(
-		props->enablePerPrimitiveAA ?
-		D2D1_ANTIALIAS_MODE_PER_PRIMITIVE : D2D1_ANTIALIAS_MODE_ALIASED
-	);
+
+	AAMode = props->enablePerPrimitiveAA ?
+		D2D1_ANTIALIAS_MODE_PER_PRIMITIVE : D2D1_ANTIALIAS_MODE_ALIASED;
+
+	pBitmapTarget->SetAntialiasMode(AAMode);
 	pBitmapTarget->GetBitmap(&pBitmapTargetBMP);
 
 	pRenderTarget->CreateSolidColorBrush(
@@ -193,11 +196,11 @@ void draw::prepareRender() {
 	writeQueueFront = 0;
 }
 
-static void inline renderLine(draw::drawCall& c) {
+static void inline renderLine(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
 	draw::lineOptions* opt = (draw::lineOptions*)(c.data);
 	pSolidBrush->SetColor(tocolorf(opt->color));
 
-	pBitmapTarget->DrawLine(
+	target->DrawLine(
 		topoint2f(opt->p1),
 		topoint2f(opt->p2),
 		pSolidBrush,
@@ -205,20 +208,20 @@ static void inline renderLine(draw::drawCall& c) {
 	);
 }
 
-static void inline renderRect(draw::drawCall& c) {
+static void inline renderRect(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
 	draw::rectOptions* opt = (draw::rectOptions*)(c.data);
 	pSolidBrush->SetColor(tocolorf(opt->color));
-	pBitmapTarget->FillRectangle(
+	target->FillRectangle(
 		torectf(opt->rect),
 		pSolidBrush
 	);
 }
 
-static void inline renderStr(draw::drawCall& c) {
+static void inline renderStr(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
 	draw::strOptions* opt = (draw::strOptions*)(c.data);
 	pSolidBrush->SetColor(tocolorf(opt->color));
 	auto len = towstrbuf(opt->str);
-	pBitmapTarget->DrawText(
+	target->DrawText(
 		wstrBuffer,
 		(UINT32)len,
 		fonts[opt->font],
@@ -228,9 +231,9 @@ static void inline renderStr(draw::drawCall& c) {
 }
 
 //TODO: Needs options for alpha and interp mode
-static void inline renderBmp(draw::drawCall& c) {
+static void inline renderBmp(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
 	draw::bmpOptions* opt = (draw::bmpOptions*)(c.data);
-	pBitmapTarget->DrawBitmap(
+	target->DrawBitmap(
 		bmps[opt->bmp],
 		torectf(opt->dest),
 		1.f,
@@ -239,10 +242,10 @@ static void inline renderBmp(draw::drawCall& c) {
 	);
 }
 
-static void inline renderEllipse(draw::drawCall& c) {
+static void inline renderEllipse(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
 	draw::ellipseOptions* opt = (draw::ellipseOptions*)(c.data);
 	pSolidBrush->SetColor(tocolorf(opt->color));
-	pBitmapTarget->FillEllipse(
+	target->FillEllipse(
 		D2D1::Ellipse(
 			topoint2f(opt->ellipse.center),
 			(float)opt->ellipse.radii.x,
@@ -259,23 +262,23 @@ void draw::render() {
 		draw::drawCall& call = renderQueue[i];
 		switch (call.t) {
 		case draw::type::LINE:
-			renderLine(call);
+			renderLine(call, pBitmapTarget);
 			break;
 
 		case draw::type::RECT:
-			renderRect(call);
+			renderRect(call, pBitmapTarget);
 			break;
 
 		case draw::type::STR:
-			renderStr(call);
+			renderStr(call, pBitmapTarget);
 			break;
 
 		case draw::type::BMP:
-			renderBmp(call);
+			renderBmp(call, pBitmapTarget);
 			break;
 
 		case draw::type::ELLIPSE:
-			renderEllipse(call);
+			renderEllipse(call, pBitmapTarget);
 			break;
 		}
 	}
@@ -458,6 +461,29 @@ jaw::bmpid draw::createBmp(jaw::vec2i size) {
 	return (jaw::bmpid)numBmps++;
 }
 
+jaw::bmpid draw::createRenderableBmp(jaw::vec2i size) {
+	if (numBmps == draw::MAX_NUM_BMPS) return (jaw::bmpid)draw::MAX_NUM_BMPS;
+
+	HRESULT hr = pBitmapTarget->CreateCompatibleRenderTarget(
+		D2D1::SizeF((float)size.x, (float)size.y),
+		bmpTargets + numBmps
+	);
+	if (!SUCCEEDED(hr)) {
+		return (jaw::bmpid)draw::MAX_NUM_BMPS;
+	}
+
+	bmpTargets[numBmps]->SetAntialiasMode(AAMode);
+	bmpTargets[numBmps]->SetTextRenderingParams(pParams);
+
+	hr = bmpTargets[numBmps]->GetBitmap(bmps + numBmps);
+	if (!SUCCEEDED(hr)) {
+		bmpTargets[numBmps]->Release();
+		return (jaw::bmpid)draw::MAX_NUM_BMPS;
+	}
+
+	return (jaw::bmpid)numBmps++;
+}
+
 bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb* pixels, size_t numPixels) {
 	if (bmp >= numBmps) return false;
 	assert(pixels != nullptr);
@@ -550,5 +576,40 @@ bool draw::bmp(const draw::bmpOptions* opt, uint8_t z) {
 bool draw::ellipse(const draw::ellipseOptions* opt, uint8_t z) {
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
 	writeQueue[writeQueueFront++] = makeDraw(draw::type::ELLIPSE, z, opt);
+	return true;
+}
+
+bool draw::renderToBmp(const draw::drawCall& call, jaw::bmpid bmp) {
+	if (!bmpTargets[bmp]) return false;
+
+	bmpTargets[bmp]->BeginDraw();
+
+	switch (call.t) {
+	case LINE:
+		renderLine(call, bmpTargets[bmp]);
+		break;
+
+	case RECT:
+		renderRect(call, bmpTargets[bmp]);
+		break;
+
+	case STR:
+		renderStr(call, bmpTargets[bmp]);
+		break;
+
+	case BMP:
+		renderBmp(call, bmpTargets[bmp]);
+		break;
+
+	case ELLIPSE:
+		renderEllipse(call, bmpTargets[bmp]);
+		break;
+
+	default:
+		return false;
+	}
+
+	bmpTargets[bmp]->EndDraw();
+
 	return true;
 }

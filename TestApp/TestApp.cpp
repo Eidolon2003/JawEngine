@@ -8,16 +8,35 @@ static jaw::nanoseconds sumFrametimes;
 static float framerate;
 static char inputString[256];
 
+static jaw::bmpid bmp;
+
 void game::init() {
 	draw::setBackgroundColor(jaw::color::RED);
 
-	char* p1, *p2;
+	char* p1, * p2;
 	size_t s1 = asset::file("F:/C++/GameJam/assets.png", (void**)&p1);
 	assert(p1 != nullptr);
 	size_t s2 = asset::file("F:/C++/GameJam/assets.png", (void**)&p2);
 	assert(p1 == p2 && s1 == s2);
 
 	strncat(inputString, p1 + 1, 3);	//Writes "PNG" to the screen
+
+
+	bmp = draw::createRenderableBmp(jaw::vec2i(64, 64));
+
+	auto opt = draw::rectOptions{
+		jaw::recti(10,10,50,50),
+		jaw::color::WHITE
+	};
+
+	draw::renderToBmp(
+		draw::makeDraw(
+			draw::RECT,
+			0,
+			&opt
+		),
+		bmp
+	);
 }
 
 void game::loop() {
@@ -50,6 +69,15 @@ void game::loop() {
 			str.c_str()
 		},
 		2
+	);
+
+	draw::bmp(
+		draw::bmpOptions{
+			bmp,
+			jaw::recti(0,0,64,64),
+			jaw::recti(100,100,164,164)
+		},
+		0
 	);
 }
 

@@ -111,4 +111,10 @@ namespace draw {
 	bool enqueue(const drawCall*);
 	inline bool enqueue(const drawCall& d) { return enqueue(&d); }
 	bool enqueueMany(const drawCall*, size_t);
+
+	// Creates a BMP in the same way as createBmp, but that is usable with renderToBmp
+	jaw::bmpid createRenderableBmp(jaw::vec2i size);
+
+	// Immediately render to bitmap target for later use
+	bool renderToBmp(const drawCall&, jaw::bmpid);
 }
