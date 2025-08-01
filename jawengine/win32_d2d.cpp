@@ -255,37 +255,39 @@ static void inline renderEllipse(const draw::drawCall& c, ID2D1BitmapRenderTarge
 	);
 }
 
+static void inline renderAny(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
+	switch (c.t) {
+	case draw::type::LINE:
+		renderLine(c, target);
+		break;
+
+	case draw::type::RECT:
+		renderRect(c, target);
+		break;
+
+	case draw::type::STR:
+		renderStr(c, target);
+		break;
+
+	case draw::type::BMP:
+		renderBmp(c, target);
+		break;
+
+	case draw::type::ELLIPSE:
+		renderEllipse(c, target);
+		break;
+	}
+}
+
 void draw::render() {
 	pBitmapTarget->BeginDraw();
 	pBitmapTarget->Clear(backgroundColor);
 	for (size_t i = 0; i < renderQueueFront; i++) {
-		draw::drawCall& call = renderQueue[i];
-		switch (call.t) {
-		case draw::type::LINE:
-			renderLine(call, pBitmapTarget);
-			break;
-
-		case draw::type::RECT:
-			renderRect(call, pBitmapTarget);
-			break;
-
-		case draw::type::STR:
-			renderStr(call, pBitmapTarget);
-			break;
-
-		case draw::type::BMP:
-			renderBmp(call, pBitmapTarget);
-			break;
-
-		case draw::type::ELLIPSE:
-			renderEllipse(call, pBitmapTarget);
-			break;
-		}
+		renderAny(renderQueue[i], pBitmapTarget);
 	}
 	pBitmapTarget->EndDraw();
 
 	pRenderTarget->BeginDraw();
-
 	switch (props->mode) {
 	case jaw::properties::WINDOWED:
 	case jaw::properties::FULLSCREEN_STRETCHED: {
@@ -375,8 +377,7 @@ jaw::fontid draw::newFont(const draw::fontOptions* opt) {
 	return (jaw::fontid)i;
 }
 
-//TODO: change this to read the bmp file directly instead of going through all this windows mess
-//			this would be better for supporting asset packs later
+//TODO: Get rid of this function entirely in favor of the asset system
 jaw::bmpid draw::loadBmp(const char* filename) {
 	if (numBmps == draw::MAX_NUM_BMPS) return (jaw::bmpid)draw::MAX_NUM_BMPS;
 	assert(filename != nullptr);
@@ -581,35 +582,8 @@ bool draw::ellipse(const draw::ellipseOptions* opt, uint8_t z) {
 
 bool draw::renderToBmp(const draw::drawCall& call, jaw::bmpid bmp) {
 	if (!bmpTargets[bmp]) return false;
-
 	bmpTargets[bmp]->BeginDraw();
-
-	switch (call.t) {
-	case LINE:
-		renderLine(call, bmpTargets[bmp]);
-		break;
-
-	case RECT:
-		renderRect(call, bmpTargets[bmp]);
-		break;
-
-	case STR:
-		renderStr(call, bmpTargets[bmp]);
-		break;
-
-	case BMP:
-		renderBmp(call, bmpTargets[bmp]);
-		break;
-
-	case ELLIPSE:
-		renderEllipse(call, bmpTargets[bmp]);
-		break;
-
-	default:
-		return false;
-	}
-
+	renderAny(call, bmpTargets[bmp]);
 	bmpTargets[bmp]->EndDraw();
-
 	return true;
 }
