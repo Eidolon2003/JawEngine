@@ -3,7 +3,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <d2d1.h>
 #include <dwrite.h>
-#include <wincodec.h>
 #include <cstdint>
 #include <clocale>	//locale for wchar conversion
 #include <cmath>	//ceilf
@@ -22,7 +21,6 @@ static ID2D1Bitmap* pBitmapTargetBMP = nullptr;
 static IDWriteFactory* pDWFactory = nullptr;
 static IDWriteRenderingParams* pParams = nullptr;
 static ID2D1SolidColorBrush* pSolidBrush = nullptr;
-static IWICImagingFactory* pIWICFactory = nullptr;
 static D2D1_BITMAP_INTERPOLATION_MODE interpMode;
 static D2D1_ANTIALIAS_MODE AAMode;
 
@@ -93,14 +91,6 @@ void draw::init(const jaw::properties* p, HWND hwnd) {
 		&pSolidBrush
 	);
 
-	CoCreateInstance(
-		CLSID_WICImagingFactory,
-		NULL,
-		CLSCTX_INPROC_SERVER,
-		IID_IWICImagingFactory,
-		(LPVOID*)&pIWICFactory
-	);
-
 	// DirectWrite Setup
 	DWriteCreateFactory(
 		DWRITE_FACTORY_TYPE_SHARED,
@@ -151,7 +141,6 @@ void draw::init(const jaw::properties* p, HWND hwnd) {
 void draw::deinit() {
 	pBitmapTargetBMP->Release();
 	pBitmapTarget->Release();
-	pIWICFactory->Release();
 	pSolidBrush->Release();
 	pParams->Release();
 	pDWFactory->Release();
@@ -375,66 +364,6 @@ jaw::fontid draw::newFont(const draw::fontOptions* opt) {
 		break;
 	}
 	return (jaw::fontid)i;
-}
-
-//TODO: Get rid of this function entirely in favor of the asset system
-jaw::bmpid draw::loadBmp(const char* filename) {
-	if (numBmps == draw::MAX_NUM_BMPS) return (jaw::bmpid)draw::MAX_NUM_BMPS;
-	assert(filename != nullptr);
-
-	auto _ = towstrbuf(filename);
-	IWICBitmapDecoder* decoder;
-	HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
-		wstrBuffer,
-		NULL,
-		GENERIC_READ,
-		WICDecodeMetadataCacheOnLoad,
-		&decoder
-	);
-	if (!SUCCEEDED(hr)) {
-		return (jaw::bmpid)draw::MAX_NUM_BMPS;
-	}
-
-	IWICFormatConverter* converter;
-	hr = pIWICFactory->CreateFormatConverter(&converter);
-	if (!SUCCEEDED(hr)) {
-		decoder->Release();
-		return (jaw::bmpid)draw::MAX_NUM_BMPS;
-	}
-
-	IWICBitmapFrameDecode* frame;
-	hr = decoder->GetFrame(0, &frame);
-	if (!SUCCEEDED(hr)) {
-		decoder->Release();
-		converter->Release();
-		return (jaw::bmpid)draw::MAX_NUM_BMPS;
-	}
-
-	hr = converter->Initialize(
-		frame,
-		GUID_WICPixelFormat32bppPBGRA,
-		WICBitmapDitherTypeNone,
-		NULL,
-		0.f,
-		WICBitmapPaletteTypeCustom
-	);
-	if (!SUCCEEDED(hr)) {
-		decoder->Release();
-		converter->Release();
-		frame->Release();
-		return (jaw::bmpid)draw::MAX_NUM_BMPS;
-	}
-
-	pRenderTarget->CreateBitmapFromWicBitmap(
-		converter,
-		NULL,
-		bmps + numBmps
-	);
-
-	converter->Release();
-	frame->Release();
-	decoder->Release();
-	return (jaw::bmpid)numBmps++;
 }
 
 jaw::bmpid draw::createBmp(jaw::vec2i size) {

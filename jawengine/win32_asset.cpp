@@ -1,11 +1,13 @@
 #include <windows.h>
 #include <memoryapi.h>
+#include <wincodec.h>
 
 #include <cassert>
 #include <string>
 #include <unordered_map>
 
 #include "asset.h"
+#include "internal_asset.h"
 
 struct FileInfo {
 	size_t size;
@@ -16,6 +18,28 @@ struct FileInfo {
 
 static std::unordered_map<std::string, FileInfo> fileCache;
 
+static IWICImagingFactory* iwic;
+
+void asset::init() {
+	HRESULT hr = CoCreateInstance(
+		CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&iwic)
+	);
+	assert(SUCCEEDED(hr));
+}
+
+void asset::deinit() {
+	iwic->Release();
+
+	for (auto& [key, val] : fileCache) {
+		auto x = UnmapViewOfFile(val.rawData);
+		assert(x);
+
+		if (val.processedData) {
+			VirtualFree(val.processedData, 0, MEM_RELEASE);
+		}
+	}
+}
+
 size_t asset::file(const char* filename, void** data) {
 	if (fileCache.contains(filename)) {
 		auto& info = fileCache[filename];
@@ -25,7 +49,7 @@ size_t asset::file(const char* filename, void** data) {
 
 	HANDLE file = CreateFileA(
 		filename,
-		GENERIC_READ | GENERIC_WRITE,
+		GENERIC_READ,
 		FILE_SHARE_READ,
 		NULL,
 		OPEN_EXISTING,
@@ -44,7 +68,7 @@ size_t asset::file(const char* filename, void** data) {
 	HANDLE mapping = CreateFileMappingA(
 		file,
 		NULL,
-		PAGE_READWRITE,
+		PAGE_READONLY,
 		size.HighPart,
 		size.LowPart,
 		NULL
@@ -53,7 +77,7 @@ size_t asset::file(const char* filename, void** data) {
 
 	*data = MapViewOfFile(
 		mapping,
-		FILE_MAP_ALL_ACCESS,
+		FILE_MAP_READ,
 		0, 0,
 		(SIZE_T)(size.QuadPart)
 	);
@@ -66,12 +90,17 @@ size_t asset::file(const char* filename, void** data) {
 	CloseHandle(file);
 	CloseHandle(mapping);
 
-	fileCache[filename] = { .size = (size_t)(size.QuadPart), .rawData = *data };
+	fileCache[filename] = { 
+		(size_t)(size.QuadPart),
+		{0,0},
+		*data,
+		nullptr
+	};
 
 	return (size_t)(size.QuadPart);
 }
 
-jaw::vec2i asset::png(const char* filename, jaw::argb** outputData) {
+jaw::vec2i asset::bmp(const char* filename, jaw::argb** outputData) {
 	if (fileCache.contains(filename)) {
 		auto& info = fileCache[filename];
 		*outputData = (jaw::argb*)info.processedData;
@@ -81,24 +110,68 @@ jaw::vec2i asset::png(const char* filename, jaw::argb** outputData) {
 	void* rawData;
 	size_t size = asset::file(filename, &rawData);
 	if (rawData == nullptr) {
+		// Couldn't open the file
 		*outputData = nullptr;
 		return {};
 	}
 
-	// Allocating too much space for pixels now, read the PNG to actually determine this
+	IWICStream* stream;
+	HRESULT hr = iwic->CreateStream(&stream);
+	assert(SUCCEEDED(hr));
+	
+	hr = stream->InitializeFromMemory((WICInProcPointer)rawData, (DWORD)size);
+	assert(SUCCEEDED(hr));
+
+	IWICBitmapDecoder* decoder;
+	hr = iwic->CreateDecoderFromStream(stream, NULL, WICDecodeMetadataCacheOnLoad, &decoder);
+	assert(SUCCEEDED(hr));
+
+	IWICBitmapFrameDecode* frame;
+	hr = decoder->GetFrame(0, &frame);
+	assert(SUCCEEDED(hr));
+
+	IWICFormatConverter* formatConverter;
+	hr = iwic->CreateFormatConverter(&formatConverter);
+	assert(SUCCEEDED(hr));
+
+	hr = formatConverter->Initialize(
+		frame,
+		GUID_WICPixelFormat32bppBGRA,
+		WICBitmapDitherTypeNone,
+		nullptr,
+		0.0,
+		WICBitmapPaletteTypeCustom
+	);
+	assert(SUCCEEDED(hr));
+
+	UINT x, y;
+	formatConverter->GetSize(&x, &y);
+	jaw::vec2i dim(x, y);
+
 	jaw::argb* pixels = (jaw::argb*)VirtualAlloc(
-		NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE
+		NULL, (x * y * sizeof(jaw::argb)), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE
 	);
 	if (pixels == NULL) {
 		*outputData = nullptr;
 		return {};
 	}
 
-	// Process the PNG here
+	hr = formatConverter->CopyPixels(
+		nullptr,
+		x * sizeof(jaw::argb),
+		x * y * sizeof(jaw::argb),
+		(BYTE*)pixels
+	);
+	assert(SUCCEEDED(hr));
+
+	stream->Release();
+	decoder->Release();
+	frame->Release();
+	formatConverter->Release();
 
 	auto& info = fileCache[filename];
 	info.processedData = pixels;
-	info.dim = {};	// Figure out the dimensions of the image from reading the PNG
+	info.dim = dim;
 	*outputData = pixels;
-	return info.dim;	
+	return info.dim;
 }

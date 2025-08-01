@@ -72,13 +72,14 @@ namespace draw {
 	jaw::fontid newFont(const fontOptions*);
 	inline jaw::fontid newFont(const fontOptions& o) { return newFont(&o); }
 
-
-	jaw::bmpid loadBmp(const char* filename);
 	jaw::bmpid createBmp(jaw::vec2i size);
 
 	//Copies pixels into a bitmap. numPixels MUST equal the width x height of the bitmap
 	//This routine is slow compared to others in the API, so better to call as little as needed
 	bool writeBmp(jaw::bmpid, const jaw::argb* pixels, size_t numPixels);
+	inline bool writeBmp(jaw::bmpid b, const jaw::argb* pixels, jaw::vec2i dim) {
+		return writeBmp(b, pixels, (dim.x * dim.y));
+	}
 
 /*	-----------------------------------
 	Lower level API below. The functions above are recommended for general use

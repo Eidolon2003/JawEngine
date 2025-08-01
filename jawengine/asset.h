@@ -3,5 +3,8 @@
 
 namespace asset {
 	size_t file(const char* filename, void** data);
-	jaw::vec2i png(const char* filename, jaw::argb** pixelData);
+
+	// Supports multiple file formats
+	// PNG and BMP are recommended because they're lossless and support alpha
+	jaw::vec2i bmp(const char* filename, jaw::argb** pixelData);
 }

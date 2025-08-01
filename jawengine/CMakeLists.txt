@@ -11,7 +11,9 @@
 	"input.h"
 	"internal_input.h"
 	"input.cpp"
- "asset.h" "win32_asset.cpp")
+	"asset.h"
+	"internal_asset.h"
+	"win32_asset.cpp")
 set_property(TARGET mylib PROPERTY CXX_STANDARD 20)
 
 if(WIN32)
@@ -20,8 +22,7 @@ if(WIN32)
 		d2d1.lib
 		windowscodecs.lib
 		dwrite.lib
-		dsound.lib
-		dxguid.lib
+		#dxguid.lib
 	)
 	#[[]
 	find_library(WINMM "winmm.lib")

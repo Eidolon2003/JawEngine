@@ -2,6 +2,7 @@
 #include "win32_internal_draw.h"
 #include "win32_internal_win.h"
 #include "internal_input.h"
+#include "internal_asset.h"
 
 static bool running = true;
 static LARGE_INTEGER countsPerSecond;
@@ -81,6 +82,9 @@ void limiter(jaw::properties* props) {
 void engine::start(jaw::properties* props) {
 	assert(props != nullptr);
 
+	// This is for single-threaded only
+	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_SPEED_OVER_MEMORY);
+
 	timeGetDevCaps(&timerInfo, sizeof(timerInfo));
 	timeBeginPeriod(timerInfo.wPeriodMin);
 	auto _ = QueryPerformanceFrequency(&countsPerSecond);
@@ -89,6 +93,7 @@ void engine::start(jaw::properties* props) {
 	ValidateRect(hwnd, NULL);
 	draw::init(props, hwnd);
 	input::init();
+	asset::init();
 	game::init();
 	startPoint = lastFrame = getTimePoint();
 
@@ -109,10 +114,12 @@ void engine::start(jaw::properties* props) {
 		limiter(props);
 	} while (running);
 
+	asset::deinit();
 	input::deinit();
 	draw::deinit();
 	win::deinit();
 	timeEndPeriod(timerInfo.wPeriodMin);
+	CoUninitialize();
 }
 
 void engine::stop() {
