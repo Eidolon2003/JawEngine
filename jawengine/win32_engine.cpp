@@ -40,14 +40,16 @@ void limiter(jaw::properties* props) {
 	jaw::nanoseconds prevFrametime = props->totalFrametime;
 	jaw::nanoseconds targetFrametime = (jaw::nanoseconds)(1'000'000'000.0 / props->targetFramerate);
 
+	// I think because the game loop is called directly after the message loop,
+	// the game still perceives a massive jump in uptime before it's corrected here.
+	// This can still be made better, possibly by changing how uptime is calculated altogether.
+	// Perhaps it should be a running sum of frametimes rather than a direct measurement
 	if (thisFrametime >= prevFrametime * 5 && prevFrametime != 0) {
 		// Detect abnormally large frametime spikes
 		// Probably caused by something like the user moving the window
 		// We don't want the game to include this time because it would cause a huge time jump
-		// Fudge it by assuming this frame took the same as the previous (how to do better?)
-		startPoint += thisFrametime - prevFrametime;
-		//Don't need this assignment because it's already true
-		//props->totalFrametime = prevFrametime;
+		startPoint += thisFrametime;
+		props->totalFrametime = 0;
 		lastFrame = thisFrame;
 		return;
 	}

@@ -1,6 +1,7 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include "../jawengine/JawEngine.h"
 #include <string>
+#include <iostream>
 
 static jaw::properties props;
 static uint64_t lastFramecount;
@@ -9,6 +10,8 @@ static float framerate;
 static char inputString[256];
 
 static jaw::bmpid bmp;
+
+static jaw::nanoseconds prevUptime;
 
 void game::init() {
 	draw::setBackgroundColor(jaw::color::RED);
@@ -53,11 +56,18 @@ void game::loop() {
 	const jaw::mouse* mouse = input::getMouse();
 	input::getString(inputString, 256);
 
+	auto uptime = engine::getUptime();
+	std::cout << uptime << '\n';
+	if (uptime < prevUptime) {
+		int breakpoint = 6;
+	}
+	prevUptime = uptime;
+
 	static std::string str;
 	str = std::to_string(props.logicFrametime) + '\n'
 		+ std::to_string(props.totalFrametime) + '\n'
 		+ std::to_string(framerate) + '\n'
-		+ std::to_string(engine::getUptime() / 1'000'000'000.f) + '\n'
+		+ std::to_string(uptime / 1'000'000'000.f) + '\n'
 		+ std::to_string(mouse->pos.x) + ',' + std::to_string(mouse->pos.y) + '\n'
 		+ inputString;
 
@@ -86,5 +96,6 @@ int main() {
 	props.size = jaw::vec2i(300,200);
 	props.scale = 4;
 	props.mode = jaw::properties::WINDOWED;
+	props.showCMD = true;
 	engine::start(&props);
 }
