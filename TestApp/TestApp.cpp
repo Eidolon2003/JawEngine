@@ -41,7 +41,7 @@ void game::loop() {
 	str = std::to_string(props.logicFrametime) + '\n'
 		+ std::to_string(props.totalFrametime) + '\n'
 		+ std::to_string(framerate) + '\n'
-		+ std::to_string(engine::getUptime() / 1'000'000'000.f) + '\n'
+		+ std::to_string(props.uptime / 1'000'000'000.f) + '\n'
 		+ std::to_string(mouse->pos.x) + ',' + std::to_string(mouse->pos.y) + '\n'
 		+ inputString;
 

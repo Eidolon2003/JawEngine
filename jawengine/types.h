@@ -127,6 +127,7 @@ namespace jaw {
 		uint64_t framecount = 0;
 		jaw::nanoseconds totalFrametime = 0;
 		jaw::nanoseconds logicFrametime = 0;
+		jaw::nanoseconds uptime = 0;
 
 		//Convenience functions
 		vec2i scaledSize() const {

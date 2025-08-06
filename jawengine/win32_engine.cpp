@@ -41,39 +41,27 @@ void limiter(jaw::properties* props) {
 	jaw::nanoseconds prevFrametime = props->totalFrametime;
 	jaw::nanoseconds targetFrametime = (jaw::nanoseconds)(1'000'000'000.0 / props->targetFramerate);
 
-	// I think because the game loop is called directly after the message loop,
-	// the game still perceives a massive jump in uptime before it's corrected here.
-	// This can still be made better, possibly by changing how uptime is calculated altogether.
-	// Perhaps it should be a running sum of frametimes rather than a direct measurement
 	if (thisFrametime >= prevFrametime * 5 && prevFrametime != 0) {
 		// Detect abnormally large frametime spikes
 		// Probably caused by something like the user moving the window
 		// We don't want the game to include this time because it would cause a huge time jump
-		startPoint += thisFrametime;
-		props->totalFrametime = 0;
-		lastFrame = thisFrame;
-		return;
+		thisFrametime = 0;
+		goto end;
 	}
 
-	if (props->targetFramerate <= 0) {
-		// VSync is enabled, and we already waited for it
-		props->totalFrametime = thisFrame - lastFrame;
-		lastFrame = thisFrame;
-		return;
-	}
-
-	if (thisFrametime >= targetFrametime) {
-		// We've already taken too long, so no waiting required
-		// This is bad!
-		props->totalFrametime = thisFrametime;
-		lastFrame = thisFrame;
-		return;
+	if (props->targetFramerate <= 0 || thisFrametime >= targetFrametime) {
+		// either VSync is enabled, or we don't need to sleep
+		goto end;
 	}
 
 	// Here we know we need to sleep for some time to hit the target framerate
 	thisFrame = accurateSleep(targetFrametime - thisFrametime, thisFrame);
-	props->totalFrametime = thisFrame - lastFrame;
-	assert(props->totalFrametime >= targetFrametime);
+	thisFrametime = thisFrame - lastFrame;
+	assert(thisFrametime >= targetFrametime);
+
+end:
+	props->totalFrametime = thisFrametime;
+	props->uptime += thisFrametime;
 	lastFrame = thisFrame;
 	return;
 }
@@ -124,8 +112,4 @@ void engine::start(jaw::properties* props) {
 
 void engine::stop() {
 	running = false;
-}
-
-jaw::nanoseconds engine::getUptime() {
-	return getTimePoint() - startPoint;
 }

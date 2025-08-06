@@ -23,5 +23,4 @@ namespace game {
 namespace engine {
 	void start(jaw::properties*);
 	void stop();
-	jaw::nanoseconds getUptime();
 }
