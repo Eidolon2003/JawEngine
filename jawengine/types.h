@@ -100,6 +100,8 @@ namespace jaw {
 		vec2i size = vec2i(640, 480);		// The logical size of the window
 		float scale = 1.f;					// Integer scaling values use nearest neighbor
 		float targetFramerate = 0;			// <=0 means VSync
+		int monitorIndex = -1;				// Which monitor the window should open on
+											// Negative means primary, high values are capped
 		bool enableSubpixelTextRendering = false;
 		bool enablePerPrimitiveAA = false;
 		bool showCMD = false;
@@ -118,7 +120,7 @@ namespace jaw {
 			// A window of size "size" is stretched to fill the borderless fullscreen window
 			// Zero values for either size dimension will be filled in with the screen size
 			// The user-defined scale value is unused
-			// if size evently divides the screen size, nearest neighbor is used
+			// if size evenly divides the screen size, nearest neighbor is used
 			FULLSCREEN_STRETCHED
 		} mode = WINDOWED;
 

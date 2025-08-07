@@ -4,6 +4,9 @@
 #include <cmath>	//floorf, min
 #include <cassert>
 #include <windowsx.h>	//GET_X_LPARAM, GET_Y_LPARAM
+#include <vector>
+
+//#include <iostream>
 
 static jaw::properties* props;
 
@@ -107,29 +110,66 @@ LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 static WNDCLASSEX wc;
 static char className[256] = "JAWENGINE_WINDOW_CLASS_";
 
+struct monitor {
+	HMONITOR handle;
+	MONITORINFOEX info;
+};
+
+BOOL CALLBACK MonitorEnumProc(HMONITOR hmon, HDC hdc, LPRECT lprc, LPARAM data) {
+	auto mons = (std::vector<monitor>*)(data);
+	MONITORINFOEX info;
+	info.cbSize = sizeof(info);
+	if (GetMonitorInfo(hmon, &info)) {
+		mons->emplace_back(hmon, info);
+	}
+	return TRUE;
+}
+
 HWND win::init(jaw::properties *p) {
 	props = p;
+
+	// Show/Hide the console
 	HWND console = GetConsoleWindow();
 	ShowWindow(console, props->showCMD ? SW_SHOW : SW_HIDE);
 
+	// Enumerate monitors and select the correct one
+	std::vector<monitor> mons;
+	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, (LPARAM)&mons);
+	assert(mons.size() > 0);
+
+	props->monitorIndex = std::min(props->monitorIndex, (int)(mons.size() - 1));
+	if (props->monitorIndex < 0) {
+		// Find the primary monitor
+		for (int i = 0; i < mons.size(); i++) {
+			auto flags = mons[i].info.dwFlags;
+			if (flags & MONITORINFOF_PRIMARY) {
+				props->monitorIndex = i;
+				break;
+			}
+		}
+	}
+	assert(props->monitorIndex >= 0 && props->monitorIndex < mons.size());
+
+	RECT monitorRect = mons[props->monitorIndex].info.rcMonitor;
+	jaw::vec2i monitorTopLeft((int16_t)monitorRect.left, (int16_t)monitorRect.top);
+	jaw::vec2i monitorBottomRight((int16_t)monitorRect.right, (int16_t)monitorRect.bottom);
+	jaw::vec2i monitorDim = monitorBottomRight - monitorTopLeft;
+
 	DWORD style = 0;
 	RECT rect {};
-	struct { int x, y; } location = { 0,0 };
+	jaw::vec2i loc = monitorTopLeft;
 	switch (props->mode) {
 	case jaw::properties::WINDOWED: {
 		style = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 		props->winsize = props->scaledSize();
 		rect = { 0, 0, props->winsize.x, props->winsize.y };
 		AdjustWindowRect(&rect, style, false);
-		location = { CW_USEDEFAULT, CW_USEDEFAULT };
+		loc = loc + ((monitorDim - props->winsize) * 0.5f);	// Center the window
 	}	break;
 
 	case jaw::properties::FULLSCREEN_CENTERED: {
 		style = WS_POPUP;
-		props->winsize = jaw::vec2i(
-			(int16_t)GetSystemMetrics(SM_CXSCREEN),
-			(int16_t)GetSystemMetrics(SM_CYSCREEN)
-		);
+		props->winsize = monitorDim;
 
 		if (props->scale > 0) {
 			if (props->size.x <= 0)
@@ -152,15 +192,11 @@ HWND win::init(jaw::properties *p) {
 		}
 
 		rect = { 0, 0, props->winsize.x, props->winsize.y };
-		location = { 0, 0 };
 	}	break;
 
 	case jaw::properties::FULLSCREEN_CENTERED_INTEGER: {
 		style = WS_POPUP;
-		props->winsize = jaw::vec2i(
-			(int16_t)GetSystemMetrics(SM_CXSCREEN),
-			(int16_t)GetSystemMetrics(SM_CYSCREEN)
-		);
+		props->winsize = monitorDim;
 
 		if (props->scale > 0) {
 			if (props->size.x <= 0)
@@ -184,15 +220,11 @@ HWND win::init(jaw::properties *p) {
 		}
 
 		rect = { 0, 0, props->winsize.x, props->winsize.y };
-		location = { 0, 0 };
 	}	break;
 
 	case jaw::properties::FULLSCREEN_STRETCHED: {
 		style = WS_POPUP;
-		props->winsize = jaw::vec2i(
-			(int16_t)GetSystemMetrics(SM_CXSCREEN),
-			(int16_t)GetSystemMetrics(SM_CYSCREEN)
-		);
+		props->winsize = monitorDim;
 
 		if (props->size.x <= 0)
 			props->size.x = props->winsize.x;
@@ -202,7 +234,6 @@ HWND win::init(jaw::properties *p) {
 		props->scale = 1.f;
 
 		rect = { 0, 0, props->winsize.x, props->winsize.y };
-		location = { 0, 0 };
 	}	break;
 	}
 
@@ -227,7 +258,7 @@ HWND win::init(jaw::properties *p) {
 		wc.lpszClassName,							//Window Class
 		props->title,								//Window Text
 		style,										//Window Style (not resizable)
-		location.x, location.y,						//Location
+		loc.x, loc.y,								//Location
 		rect.right - rect.left,						//width of the window
 		rect.bottom - rect.top,						//height of the window							
 		NULL,										//Parent window

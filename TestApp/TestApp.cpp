@@ -71,5 +71,6 @@ int main() {
 	props.size = jaw::vec2i(300,200);
 	props.scale = 4;
 	props.mode = jaw::properties::WINDOWED;
+	props.monitorIndex = 0;
 	engine::start(&props);
 }
