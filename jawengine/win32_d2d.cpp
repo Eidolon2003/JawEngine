@@ -98,8 +98,8 @@ void draw::init(const jaw::properties* p, HWND hwnd) {
 		reinterpret_cast<IUnknown**>(&pDWFactory)
 	);
 
-	HMONITOR primaryMonitor = MonitorFromPoint({ 0, 0 }, MONITOR_DEFAULTTOPRIMARY);
-	pDWFactory->CreateMonitorRenderingParams(primaryMonitor, &pParams);
+	HMONITOR mon = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+	pDWFactory->CreateMonitorRenderingParams(mon, &pParams);
 	pDWFactory->CreateCustomRenderingParams(
 		pParams->GetGamma(),
 		pParams->GetEnhancedContrast(),
