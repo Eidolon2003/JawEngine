@@ -3,6 +3,7 @@
 #include "win32_internal_win.h"
 #include "internal_input.h"
 #include "internal_asset.h"
+#include "internal_state.h"
 
 static bool running = true;
 static LARGE_INTEGER countsPerSecond;
@@ -19,7 +20,7 @@ jaw::nanoseconds accurateSleep(jaw::nanoseconds time, jaw::nanoseconds startPoin
 	int msTimerAccuracy = timerInfo.wPeriodMin;
 	int msSleepTime = (int)(((time / 1'000'000LL) / msTimerAccuracy) - 1) * msTimerAccuracy;
 	if (msSleepTime > 0) Sleep((DWORD)msSleepTime);
-	// time remaining to wait is less then 2x the timer accuracy
+	// time remaining to wait is less than 2x the timer accuracy
 	// tried going for 1x timer accuracy, but it made frame pacing less consistent
 	assert((time - (getTimePoint() - startPoint)) < (timerInfo.wPeriodMin * 2'000'000));
 	jaw::nanoseconds retTime;
@@ -67,7 +68,7 @@ end:
 }
 
 //TODO: run the renderer and game loop on two separate threads
-void engine::start(jaw::properties* props) {
+void engine::start(jaw::properties* props, state::fptr initOnce, state::fptr init, state::fptr loop) {
 	assert(props != nullptr);
 
 	// This is for single-threaded only
@@ -82,8 +83,11 @@ void engine::start(jaw::properties* props) {
 	draw::init(props, hwnd);
 	input::init();
 	asset::init();
-	game::init();
 	startPoint = lastFrame = getTimePoint();
+
+	auto sid = state::create(props, initOnce, init, loop);
+	assert(sid == 0);
+	state::push(sid);
 
 	do {
 		input::beginFrame();
@@ -93,7 +97,12 @@ void engine::start(jaw::properties* props) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		game::loop();
+
+		if (!state::loop(props)) {
+			engine::stop();
+			break;
+		}
+
 		draw::prepareRender();
 		draw::render();
 		prelimit(props);

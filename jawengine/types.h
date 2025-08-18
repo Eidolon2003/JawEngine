@@ -6,6 +6,7 @@ namespace jaw {
 	typedef uint32_t bmpid;
 	typedef uint32_t fontid;
 	typedef uint32_t argb;
+	typedef uint32_t stateid;
 
 	namespace color {
 		constexpr argb RED = 0xFFFF0000;
@@ -123,6 +124,9 @@ namespace jaw {
 			// if size evenly divides the screen size, nearest neighbor is used
 			FULLSCREEN_STRETCHED
 		} mode = WINDOWED;
+
+		// This may be used for any sort of game data that needs to be passed around
+		void* data = nullptr;
 
 		//These are automatically populated by the system
 		vec2i winsize = vec2i();

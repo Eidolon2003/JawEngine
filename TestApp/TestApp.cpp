@@ -2,52 +2,54 @@
 #include "../jawengine/JawEngine.h"
 #include <string>
 
-static jaw::properties props;
-static uint64_t lastFramecount;
-static jaw::nanoseconds sumFrametimes;
-static float framerate;
-static char inputString[256];
+struct data {
+	uint64_t lastFramecount = 0;
+	jaw::nanoseconds sumFrametimes = 0;
+	float framerate = 0;
+	char inputString[256] = {};
+	jaw::bmpid bmp = 0;
+	jaw::vec2i bmpDim = 0;
+};
 
-static jaw::bmpid bmp;
-static jaw::vec2i bmpDim;
+void init(jaw::properties* props) {
+	data* d = (data*)props->data;
 
-void game::init() {
 	draw::setBackgroundColor(jaw::color::RED);
 
-	// This is the new procedure for loading a bitmap
-	// Split the asset and draw system apart, and give raw access to pixel data for any manipulation
 	jaw::argb* pixels;
-	bmpDim = asset::bmp("F:/C++/GameJam/assets.png", &pixels);
+	d->bmpDim = asset::bmp("F:/C++/GameJam/assets.png", &pixels);
 	assert(pixels != nullptr);
-	bmp = draw::createBmp(bmpDim);
-	draw::writeBmp(bmp, pixels, bmpDim);
+	d->bmp = draw::createBmp(d->bmpDim);
+	draw::writeBmp(d->bmp, pixels, d->bmpDim);
 }
 
-void game::loop() {
-	if (input::getKey(key::ESC).isDown) engine::stop();
+void loop(jaw::properties* props) {
+	data* d = (data*)props->data;
+
+	if (input::getKey(key::ESC).isDown) state::pop();
 
 	// Compute the average framerate over the last 100 frames
-	sumFrametimes += props.totalFrametime;
-	if (props.framecount - lastFramecount == 100) {
-		framerate = 100.f * 1'000'000'000.f / sumFrametimes;
-		lastFramecount = props.framecount;
-		sumFrametimes = 0;
+	d->sumFrametimes += props->totalFrametime;
+	if (props->framecount - d->lastFramecount == 100) {
+		d->framerate = 100.f * 1'000'000'000.f / d->sumFrametimes;
+		d->lastFramecount = props->framecount;
+		d->sumFrametimes = 0;
 	}
 
 	const jaw::mouse* mouse = input::getMouse();
-	input::getString(inputString, 256);
+	input::getString(d->inputString, 256);
 
 	static std::string str;
-	str = std::to_string(props.logicFrametime) + '\n'
-		+ std::to_string(props.totalFrametime) + '\n'
-		+ std::to_string(framerate) + '\n'
-		+ std::to_string(props.uptime / 1'000'000'000.f) + '\n'
+	str = std::to_string(props->logicFrametime) + '\n'
+		+ std::to_string(props->totalFrametime) + '\n'
+		+ std::to_string(d->framerate) + '\n'
+		+ std::to_string(props->uptime / 1'000'000'000.f) + '\n'
 		+ std::to_string(mouse->pos.x) + ',' + std::to_string(mouse->pos.y) + '\n'
-		+ inputString;
+		+ d->inputString;
 
 	draw::str(
 		draw::strOptions{
-			jaw::recti(0,0,props.size.x, props.size.y),
+			jaw::recti(0,0,props->size.x, props->size.y),
 			jaw::color::WHITE,
 			0,
 			str.c_str()
@@ -58,19 +60,22 @@ void game::loop() {
 	jaw::vec2i base(100, 0);
 	draw::bmp(
 		draw::bmpOptions{
-			bmp,
-			jaw::recti(jaw::vec2i(), bmpDim),
-			jaw::recti(base, base + bmpDim)
+			d->bmp,
+			jaw::recti(jaw::vec2i(), d->bmpDim),
+			jaw::recti(base, base + d->bmpDim)
 		},
 		0
 	);
 }
 
 int main() {
+	data* d = new data;
+	jaw::properties props;
+	props.data = d;
 	props.targetFramerate = 0;
 	props.size = jaw::vec2i(300,200);
 	props.scale = 4;
 	props.mode = jaw::properties::WINDOWED;
-	props.monitorIndex = 0;
-	engine::start(&props);
+	props.monitorIndex = -1;
+	engine::start(&props, nullptr, init, loop);
 }

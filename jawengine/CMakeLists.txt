@@ -13,7 +13,7 @@
 	"input.cpp"
 	"asset.h"
 	"internal_asset.h"
-	"win32_asset.cpp")
+	"win32_asset.cpp" "state.cpp" "state.h"  "internal_state.h")
 set_property(TARGET mylib PROPERTY CXX_STANDARD 20)
 
 if(WIN32)

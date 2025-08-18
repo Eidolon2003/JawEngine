@@ -14,13 +14,9 @@
 #include "asset.h"
 #include "draw.h"
 #include "input.h"
-
-namespace game {
-	void init();
-	void loop();
-}
+#include "state.h"
 
 namespace engine {
-	void start(jaw::properties*);
+	void start(jaw::properties*, state::fptr initOnce, state::fptr init, state::fptr loop);
 	void stop();
 }
