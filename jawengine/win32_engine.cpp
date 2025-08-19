@@ -68,7 +68,7 @@ end:
 }
 
 //TODO: run the renderer and game loop on two separate threads
-void engine::start(jaw::properties* props, state::fptr initOnce, state::fptr init, state::fptr loop) {
+void engine::start(jaw::properties* props, jaw::fptr initOnce, jaw::fptr init, jaw::fptr loop) {
 	assert(props != nullptr);
 
 	// This is for single-threaded only

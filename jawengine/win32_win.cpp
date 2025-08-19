@@ -6,11 +6,7 @@
 #include <windowsx.h>	//GET_X_LPARAM, GET_Y_LPARAM
 #include <vector>
 
-//#include <iostream>
-
-static jaw::properties* props;
-
-void handleMouse(WPARAM wparam, LPARAM lparam) {
+void handleMouse(WPARAM wparam, LPARAM lparam, jaw::properties* props) {
 	jaw::mouse mouse;
 	mouse.pos.x = GET_X_LPARAM(lparam);
 	mouse.pos.y = GET_Y_LPARAM(lparam);
@@ -53,10 +49,12 @@ void handleMouse(WPARAM wparam, LPARAM lparam) {
 	//The computed mouse coordinate must fall inside the window
 	assert(mouse.pos >= 0 && mouse.pos < props->size);
 
-	input::updateMouse(&mouse);
+	input::updateMouse(&mouse, props);
 }
 
 LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
+	auto props = (jaw::properties*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+
 	switch (umsg) {
 	case WM_LBUTTONDOWN:
 	case WM_RBUTTONDOWN:
@@ -68,7 +66,7 @@ LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 	case WM_XBUTTONUP:
 	case WM_MOUSEMOVE:
 	case WM_MOUSEWHEEL:
-		handleMouse(wparam, lparam);
+		handleMouse(wparam, lparam, props);
 		return 0;
 
 	case WM_CHAR: {
@@ -83,12 +81,12 @@ LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 	case WM_KEYDOWN: {
 		if (lparam & (1 << 30)) return 0;	//Ignore windows' key repeat
 		uint8_t vkc = wparam & 0xFF;
-		input::updateKey(vkc, true);
+		input::updateKey(vkc, true, props);
 	}	return 0;
 
 	case WM_KEYUP: {
 		uint8_t vkc = wparam & 0xFF;
-		input::updateKey(vkc, false);
+		input::updateKey(vkc, false, props);
 	}	return 0;
 
 	case WM_CLOSE:
@@ -125,9 +123,7 @@ BOOL CALLBACK MonitorEnumProc(HMONITOR hmon, HDC hdc, LPRECT lprc, LPARAM data) 
 	return TRUE;
 }
 
-HWND win::init(jaw::properties *p) {
-	props = p;
-
+HWND win::init(jaw::properties *props) {
 	// Show/Hide the console
 	HWND console = GetConsoleWindow();
 	ShowWindow(console, props->showCMD ? SW_SHOW : SW_HIDE);
@@ -267,6 +263,7 @@ HWND win::init(jaw::properties *p) {
 		NULL										//Additional application data
 	);
 	ShowWindow(hwnd, SW_SHOW);
+	SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)props);
 
 	return hwnd;
 }

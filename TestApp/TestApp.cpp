@@ -14,6 +14,9 @@ struct data {
 void init(jaw::properties* props) {
 	data* d = (data*)props->data;
 
+	input::clearAllBindings();
+	input::bindKeyDown(key::ESC, [](jaw::properties*) { engine::stop(); });
+
 	draw::setBackgroundColor(jaw::color::RED);
 
 	jaw::argb* pixels;
@@ -25,8 +28,6 @@ void init(jaw::properties* props) {
 
 void loop(jaw::properties* props) {
 	data* d = (data*)props->data;
-
-	if (input::getKey(key::ESC).isDown) state::pop();
 
 	// Compute the average framerate over the last 100 frames
 	d->sumFrametimes += props->totalFrametime;

@@ -140,4 +140,6 @@ namespace jaw {
 			return size * scale;
 		}
 	};
+
+	typedef void (*fptr)(jaw::properties*);
 }

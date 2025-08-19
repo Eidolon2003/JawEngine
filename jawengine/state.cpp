@@ -2,7 +2,7 @@
 #include "internal_state.h"
 
 struct functions {
-	state::fptr init, loop;
+	jaw::fptr init, loop;
 };
 
 static functions states[state::MAX_NUM_STATES];
@@ -13,7 +13,7 @@ static size_t stackTop = 0;
 
 static bool newStateFlag;
 
-jaw::stateid state::create(jaw::properties* props, state::fptr initOnce, state::fptr init, state::fptr loop) {
+jaw::stateid state::create(jaw::properties* props, jaw::fptr initOnce, jaw::fptr init, jaw::fptr loop) {
 	if (numStates == state::MAX_NUM_STATES
 		|| init == nullptr
 		|| loop == nullptr

@@ -17,6 +17,6 @@
 #include "state.h"
 
 namespace engine {
-	void start(jaw::properties*, state::fptr initOnce, state::fptr init, state::fptr loop);
+	void start(jaw::properties*, jaw::fptr initOnce, jaw::fptr init, jaw::fptr loop);
 	void stop();
 }

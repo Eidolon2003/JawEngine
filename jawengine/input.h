@@ -10,4 +10,7 @@ namespace input {
 	// Adds characters to this string upto size
 	// May also remove characters if the backspace key was pressed
 	void getString(char* str, size_t);
+
+	void clearAllBindings();
+	void bindKeyDown(uint8_t code, jaw::fptr);
 }

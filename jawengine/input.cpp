@@ -9,7 +9,9 @@ static char inputString[256];
 static size_t inputStringLength;
 static jaw::key keys[256];
 static bool keysReleased[256];
-unsigned backspaceCount;
+static unsigned backspaceCount;
+
+static jaw::fptr keyBindings[256];
 
 void input::init() {
 	mouse = {};
@@ -33,7 +35,7 @@ void input::beginFrame() {
 	inputStringLength = 0;
 }
 
-void input::updateMouse(const jaw::mouse* m) {
+void input::updateMouse(const jaw::mouse* m, jaw::properties* props) {
 	mouse.wheelDelta += m->wheelDelta;
 	mouse.flags.all = m->flags.all;
 	mouse.pos = m->pos;
@@ -53,11 +55,13 @@ void input::updateChar(char c) {
 
 // This logic is to make sure the game sees isDown being true
 // even if the key was pressed and released within one frame
-void input::updateKey(uint8_t code, bool isDown) {
+void input::updateKey(uint8_t code, bool isDown, jaw::properties* props) {
 	if (isDown) {
 		keys[code].isDown = true;
 		keysReleased[code] = false;
 		assert(keys[code].isHeld == false);
+
+		if (keyBindings[code]) keyBindings[code](props);
 	}
 	else {
 		if (keys[code].isHeld) {
@@ -89,4 +93,12 @@ void input::getString(char* str, size_t size) {
 
 jaw::key input::getKey(uint8_t code) {
 	return keys[code];
+}
+
+void input::clearAllBindings() {
+	memset(keyBindings, 0, 256 * sizeof(jaw::fptr));
+}
+
+void input::bindKeyDown(uint8_t code, jaw::fptr f) {
+	keyBindings[code] = f;
 }
