@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+constexpr float PI32 = 3.14159265f;
+
 namespace jaw {
 	typedef int64_t nanoseconds;
 	typedef uint32_t bmpid;
@@ -40,7 +42,6 @@ namespace jaw {
 		constexpr vec2i operator-(const vec2i rhs) const { return { x - rhs.x, y - rhs.y }; }
 		constexpr vec2i operator*(const int16_t rhs) const { return { x * rhs, y * rhs }; }
 		constexpr vec2i operator*(const float rhs) const { return { (int16_t)(x * rhs), (int16_t)(y * rhs) }; }
-		constexpr vec2i operator/(const int16_t rhs) const { return { x / rhs, y / rhs }; }
 		constexpr vec2i operator/(const float rhs) const { return { (int16_t)(x / rhs), (int16_t)(y / rhs) }; }
 
 		constexpr bool operator<(const vec2i rhs) const { return (x < rhs.x) && (y < rhs.y); }

@@ -51,9 +51,10 @@ void loop(jaw::properties* props) {
 	draw::str(
 		draw::strOptions{
 			jaw::recti(0,0,props->size.x, props->size.y),
+			str.c_str(),
 			jaw::color::WHITE,
 			0,
-			str.c_str()
+			0.f
 		},
 		2
 	);
@@ -63,7 +64,17 @@ void loop(jaw::properties* props) {
 		draw::bmpOptions{
 			d->bmp,
 			jaw::recti(jaw::vec2i(), d->bmpDim),
-			jaw::recti(base, base + d->bmpDim)
+			jaw::recti(base, base + d->bmpDim),
+			props->uptime / 1000000000.f
+		},
+		1
+	);
+
+	draw::rect(
+		draw::rectOptions{
+			jaw::recti(220, 100, 270, 150),
+			jaw::color::GREEN,
+			PI32/4
 		},
 		0
 	);

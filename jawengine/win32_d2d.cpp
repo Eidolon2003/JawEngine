@@ -54,6 +54,11 @@ inline D2D1_COLOR_F tocolorf(const jaw::argb c) {
 	return D2D1::ColorF(c, (c >> 24) / 255.f);
 }
 
+inline float radtodeg(float a) {
+	float deg = 360.f - (fmodf(a, 2*PI32) * (180.f / PI32));
+	return fmodf(deg + 360.f, 360.f);
+}
+
 void draw::init(const jaw::properties* p, HWND hwnd) {
 	setlocale(LC_ALL, "en_US.UTF-8");	//Needed for wchar_t conversion
 	props = p;
@@ -189,6 +194,9 @@ static void inline renderLine(const draw::drawCall& c, ID2D1BitmapRenderTarget* 
 	draw::lineOptions* opt = (draw::lineOptions*)(c.data);
 	pSolidBrush->SetColor(tocolorf(opt->color));
 
+	auto mid = (opt->p1 + opt->p2) / 2;
+	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(opt->angle), topoint2f(mid)));
+
 	target->DrawLine(
 		topoint2f(opt->p1),
 		topoint2f(opt->p2),
@@ -200,6 +208,10 @@ static void inline renderLine(const draw::drawCall& c, ID2D1BitmapRenderTarget* 
 static void inline renderRect(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
 	draw::rectOptions* opt = (draw::rectOptions*)(c.data);
 	pSolidBrush->SetColor(tocolorf(opt->color));
+
+	auto mid = (opt->rect.tl + opt->rect.br) / 2;
+	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(opt->angle), topoint2f(mid)));
+
 	target->FillRectangle(
 		torectf(opt->rect),
 		pSolidBrush
@@ -209,6 +221,10 @@ static void inline renderRect(const draw::drawCall& c, ID2D1BitmapRenderTarget* 
 static void inline renderStr(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
 	draw::strOptions* opt = (draw::strOptions*)(c.data);
 	pSolidBrush->SetColor(tocolorf(opt->color));
+
+	auto mid = (opt->rect.tl + opt->rect.br) / 2;
+	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(opt->angle), topoint2f(mid)));
+
 	auto len = towstrbuf(opt->str);
 	target->DrawText(
 		wstrBuffer,
@@ -222,6 +238,10 @@ static void inline renderStr(const draw::drawCall& c, ID2D1BitmapRenderTarget* t
 //TODO: Needs options for alpha and interp mode
 static void inline renderBmp(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
 	draw::bmpOptions* opt = (draw::bmpOptions*)(c.data);
+
+	auto mid = (opt->dest.tl + opt->dest.br) / 2;
+	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(opt->angle), topoint2f(mid)));
+
 	target->DrawBitmap(
 		bmps[opt->bmp],
 		torectf(opt->dest),
@@ -234,6 +254,9 @@ static void inline renderBmp(const draw::drawCall& c, ID2D1BitmapRenderTarget* t
 static void inline renderEllipse(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
 	draw::ellipseOptions* opt = (draw::ellipseOptions*)(c.data);
 	pSolidBrush->SetColor(tocolorf(opt->color));
+
+	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(opt->angle), topoint2f(opt->ellipse.center)));
+	
 	target->FillEllipse(
 		D2D1::Ellipse(
 			topoint2f(opt->ellipse.center),
@@ -452,8 +475,10 @@ bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb* pixels, size_t numPixels) {
 //TODO: see if I can do better than memcpy with wide registers or optimizing for 32 bytes, maybe?
 
 draw::drawCall draw::makeDraw(draw::type t, uint8_t z, const void* opt) {
-	assert(opt != nullptr);
-	assert(t < draw::type::NUM_TYPES);
+	if (opt == nullptr || t >= draw::NUM_TYPES) {
+		return { .t = NUM_TYPES };
+	}
+
 	draw::drawCall x = {};
 	x.t = t;
 	x.z = z;

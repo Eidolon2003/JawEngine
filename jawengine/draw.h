@@ -16,6 +16,7 @@ namespace draw {
 		jaw::vec2i p1, p2;
 		jaw::argb color;
 		uint32_t width;
+		float angle;
 	};
 	static_assert(sizeof(lineOptions) <= MAX_DRAW_SIZE);
 	bool line(const lineOptions*, uint8_t z);
@@ -24,18 +25,22 @@ namespace draw {
 	struct rectOptions {
 		jaw::recti rect;
 		jaw::argb color;
+		float angle;
 	};
 	static_assert(sizeof(rectOptions) <= MAX_DRAW_SIZE);
 	bool rect(const rectOptions*, uint8_t z);
 	inline bool rect(const rectOptions& o, uint8_t z) { return rect(&o, z); }
 
+	#pragma pack(push, 4)
 	//Note: The string this is pointing to must exist past the end of the frame
 	struct strOptions {
 		jaw::recti rect;
+		const char* str;
 		jaw::argb color;
 		jaw::fontid font = 0;
-		const char* str;
+		float angle;
 	};
+	#pragma pack(pop)
 	static_assert(sizeof(strOptions) <= MAX_DRAW_SIZE);
 	bool str(const strOptions*, uint8_t z);
 	inline bool str(const strOptions& o, uint8_t z) { return str(&o, z); }
@@ -44,6 +49,7 @@ namespace draw {
 		jaw::bmpid bmp;
 		jaw::recti src;
 		jaw::recti dest;
+		float angle;
 	};
 	static_assert(sizeof(bmpOptions) <= MAX_DRAW_SIZE);
 	bool bmp(const bmpOptions*, uint8_t z);
@@ -52,6 +58,7 @@ namespace draw {
 	struct ellipseOptions {
 		jaw::ellipse ellipse;
 		jaw::argb color;
+		float angle;
 	};
 	static_assert(sizeof(ellipseOptions) <= MAX_DRAW_SIZE);
 	bool ellipse(const ellipseOptions*, uint8_t z);
@@ -103,9 +110,9 @@ namespace draw {
 	static_assert(sizeof(typeSizes) / sizeof(size_t) == type::NUM_TYPES);
 
 	struct alignas(32) drawCall {
+		uint8_t data[MAX_DRAW_SIZE];
 		type t;
 		uint8_t z;
-		uint8_t data[MAX_DRAW_SIZE];
 	};
 	static_assert(sizeof(drawCall) == 32);
 	drawCall makeDraw(type t, uint8_t z, const void* opt);
