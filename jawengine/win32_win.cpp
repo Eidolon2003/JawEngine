@@ -136,7 +136,7 @@ HWND win::init(jaw::properties *props) {
 	props->monitorIndex = std::min(props->monitorIndex, (int)(mons.size() - 1));
 	if (props->monitorIndex < 0) {
 		// Find the primary monitor
-		for (int i = 0; i < mons.size(); i++) {
+		for (size_t i = 0; i < mons.size(); i++) {
 			auto flags = mons[i].info.dwFlags;
 			if (flags & MONITORINFOF_PRIMARY) {
 				props->monitorIndex = i;

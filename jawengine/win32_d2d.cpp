@@ -152,11 +152,11 @@ void draw::deinit() {
 	pRenderTarget->Release();
 	pD2DFactory->Release();
 
-	for (int i = 0; i < numFonts; i++) {
+	for (size_t i = 0; i < numFonts; i++) {
 		fonts[i]->Release();
 	}
 
-	for (int i = 0; i < numBmps; i++) {
+	for (size_t i = 0; i < numBmps; i++) {
 		bmps[i]->Release();
 	}
 }
@@ -445,7 +445,7 @@ bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb* pixels, size_t numPixels) {
 	jaw::argb* multiplied = (jaw::argb*)_malloca(numPixels * sizeof(jaw::argb));
 	assert(multiplied != nullptr);
 
-	for (int i = 0; i < numPixels; i++) {
+	for (size_t i = 0; i < numPixels; i++) {
 		auto px = pixels[i];
 		uint8_t a = px >> 24;
 		float anorm = a / 255.f;
