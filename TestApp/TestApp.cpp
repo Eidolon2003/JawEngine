@@ -11,7 +11,7 @@ struct data {
 	jaw::vec2i bmpDim = 0;
 };
 
-void init(jaw::properties* props) {
+static void init(jaw::properties* props) {
 	data* d = (data*)props->data;
 
 	input::clearAllBindings();
@@ -26,7 +26,7 @@ void init(jaw::properties* props) {
 	draw::writeBmp(d->bmp, pixels, d->bmpDim);
 }
 
-void loop(jaw::properties* props) {
+static void loop(jaw::properties* props) {
 	data* d = (data*)props->data;
 
 	// Compute the average framerate over the last 100 frames

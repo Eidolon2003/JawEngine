@@ -6,7 +6,7 @@
 #include <windowsx.h>	//GET_X_LPARAM, GET_Y_LPARAM
 #include <vector>
 
-void handleMouse(WPARAM wparam, LPARAM lparam, jaw::properties* props) {
+static void handleMouse(WPARAM wparam, LPARAM lparam, jaw::properties* props) {
 	jaw::mouse mouse;
 	mouse.pos.x = GET_X_LPARAM(lparam);
 	mouse.pos.y = GET_Y_LPARAM(lparam);
@@ -18,7 +18,7 @@ void handleMouse(WPARAM wparam, LPARAM lparam, jaw::properties* props) {
 	case jaw::properties::FULLSCREEN_CENTERED_INTEGER: {
 		const jaw::vec2i centerOffset = ((props->winsize - props->scaledSize()) / (int16_t)2);
 		mouse.pos = mouse.pos - centerOffset;
-	}	// This falls through intentionally!
+	} [[fallthrough]];
 
 	case jaw::properties::WINDOWED: {
 		mouse.pos = mouse.pos / props->scale;
@@ -52,7 +52,7 @@ void handleMouse(WPARAM wparam, LPARAM lparam, jaw::properties* props) {
 	input::updateMouse(&mouse, props);
 }
 
-LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
+static LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 	auto props = (jaw::properties*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
 	switch (umsg) {
@@ -71,7 +71,7 @@ LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 
 	case WM_CHAR: {
 		wchar_t wc = (wchar_t)wparam;
-		char c[4];
+		char c[5];
 		assert(MB_CUR_MAX <= sizeof(c));
 		auto len = wctomb(c, wc);
 		assert(len == 1);
@@ -79,7 +79,7 @@ LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 	}	return 0;
 
 	case WM_KEYDOWN: {
-		if (lparam & (1 << 30)) return 0;	//Ignore windows' key repeat
+		if (lparam & (1LL << 30)) return 0;	//Ignore windows' key repeat
 		uint8_t vkc = wparam & 0xFF;
 		input::updateKey(vkc, true, props);
 	}	return 0;
@@ -113,9 +113,9 @@ struct monitor {
 	MONITORINFOEX info;
 };
 
-BOOL CALLBACK MonitorEnumProc(HMONITOR hmon, HDC hdc, LPRECT lprc, LPARAM data) {
+static BOOL CALLBACK MonitorEnumProc(HMONITOR hmon, HDC hdc, LPRECT lprc, LPARAM data) {
 	auto mons = (std::vector<monitor>*)(data);
-	MONITORINFOEX info;
+	MONITORINFOEX info {};
 	info.cbSize = sizeof(info);
 	if (GetMonitorInfo(hmon, &info)) {
 		mons->emplace_back(hmon, info);
@@ -139,7 +139,7 @@ HWND win::init(jaw::properties *props) {
 		for (size_t i = 0; i < mons.size(); i++) {
 			auto flags = mons[i].info.dwFlags;
 			if (flags & MONITORINFOF_PRIMARY) {
-				props->monitorIndex = i;
+				props->monitorIndex = (int)i;
 				break;
 			}
 		}
@@ -233,7 +233,7 @@ HWND win::init(jaw::properties *props) {
 	}	break;
 	}
 
-	strncat(className, props->title, 256);
+	strncat(className, props->title, 256 - strlen(props->title));
 
 	wc = {};
 	wc.cbSize = sizeof(wc);

@@ -10,13 +10,13 @@ static LARGE_INTEGER countsPerSecond;
 static TIMECAPS timerInfo;
 static jaw::nanoseconds startPoint, lastFrame, thisFrame;
 
-jaw::nanoseconds getTimePoint() {
+static jaw::nanoseconds getTimePoint() {
 	LARGE_INTEGER timePoint;
 	auto _ = QueryPerformanceCounter(&timePoint);
 	return timePoint.QuadPart * (1'000'000'000ULL / countsPerSecond.QuadPart);
 }
 
-jaw::nanoseconds accurateSleep(jaw::nanoseconds time, jaw::nanoseconds startPoint) {
+static jaw::nanoseconds accurateSleep(jaw::nanoseconds time, jaw::nanoseconds startPoint) {
 	int msTimerAccuracy = timerInfo.wPeriodMin;
 	int msSleepTime = (int)(((time / 1'000'000LL) / msTimerAccuracy) - 1) * msTimerAccuracy;
 	if (msSleepTime > 0) Sleep((DWORD)msSleepTime);
@@ -28,12 +28,12 @@ jaw::nanoseconds accurateSleep(jaw::nanoseconds time, jaw::nanoseconds startPoin
 	return retTime;
 }
 
-void prelimit(jaw::properties* props) {
+static void prelimit(jaw::properties* props) {
 	// Record how long the frame took to process before any kind of limiting
 	props->logicFrametime = getTimePoint() - lastFrame;
 }
 
-void limiter(jaw::properties* props) {
+static void limiter(jaw::properties* props) {
 	props->framecount++;
 	thisFrame = getTimePoint();
 	assert(thisFrame > lastFrame);
@@ -72,11 +72,11 @@ void engine::start(jaw::properties* props, jaw::fptr initOnce, jaw::fptr init, j
 	assert(props != nullptr);
 
 	// This is for single-threaded only
-	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_SPEED_OVER_MEMORY);
+	auto hr_ = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_SPEED_OVER_MEMORY);
 
 	timeGetDevCaps(&timerInfo, sizeof(timerInfo));
 	timeBeginPeriod(timerInfo.wPeriodMin);
-	auto _ = QueryPerformanceFrequency(&countsPerSecond);
+	auto b = QueryPerformanceFrequency(&countsPerSecond);
 
 	HWND hwnd = win::init(props);
 	ValidateRect(hwnd, NULL);

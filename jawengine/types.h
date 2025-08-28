@@ -73,7 +73,7 @@ namespace jaw {
 	};
 
 	union mouseFlags {
-		uint8_t all;
+		uint8_t all {};
 		struct {
 			char lmb : 1;
 			char rmb : 1;
@@ -87,9 +87,9 @@ namespace jaw {
 
 	struct mouse {
 		jaw::vec2i pos;
-		int32_t wheelDelta;
-		jaw::mouseFlags flags;
-		jaw::mouseFlags prevFlags;
+		int32_t wheelDelta {};
+		jaw::mouseFlags flags {};
+		jaw::mouseFlags prevFlags {};
 	};
 
 	struct key {

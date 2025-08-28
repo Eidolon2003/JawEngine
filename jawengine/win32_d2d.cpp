@@ -37,24 +37,24 @@ static ID2D1BitmapRenderTarget* bmpTargets[draw::MAX_NUM_BMPS];
 static size_t numBmps = 0;
 
 static wchar_t wstrBuffer[1024];
-size_t towstrbuf(const char* str) {
+static size_t towstrbuf(const char* str) {
 	if (str == nullptr) return static_cast<size_t>(-1);
 	return mbstowcs(wstrBuffer, str, 1024);
 }
 
-inline D2D1_POINT_2F topoint2f(const jaw::vec2i& v) {
+static inline D2D1_POINT_2F topoint2f(const jaw::vec2i& v) {
 	return D2D1::Point2F((float)v.x, (float)v.y);
 }
 
-inline D2D1_RECT_F torectf(const jaw::recti& r) {
+static inline D2D1_RECT_F torectf(const jaw::recti& r) {
 	return D2D1::RectF((float)r.tl.x, (float)r.tl.y, (float)r.br.x, (float)r.br.y);
 }
 
-inline D2D1_COLOR_F tocolorf(const jaw::argb c) {
+static inline D2D1_COLOR_F tocolorf(const jaw::argb c) {
 	return D2D1::ColorF(c, (c >> 24) / 255.f);
 }
 
-inline float radtodeg(float a) {
+static inline float radtodeg(float a) {
 	float deg = 360.f - (fmodf(a, 2*PI32) * (180.f / PI32));
 	return fmodf(deg + 360.f, 360.f);
 }
@@ -456,7 +456,7 @@ bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb* pixels, size_t numPixels) {
 	}
 
 	auto size = bmps[bmp]->GetPixelSize();
-	D2D1_RECT_U destRect;
+	D2D1_RECT_U destRect {};
 	destRect.left = destRect.top = 0;
 	destRect.right = size.width;
 	destRect.bottom = size.height;

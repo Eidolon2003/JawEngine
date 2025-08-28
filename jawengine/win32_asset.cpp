@@ -10,10 +10,10 @@
 #include "internal_asset.h"
 
 struct FileInfo {
-	size_t size;
+	size_t size = 0;
 	jaw::vec2i dim;	// For image files specifically, won't have a value for others
-	void* rawData;
-	void* processedData;
+	void* rawData = nullptr;
+	void* processedData = nullptr;
 };
 
 static std::unordered_map<std::string, FileInfo> fileCache;
