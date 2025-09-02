@@ -6,8 +6,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "asset.h"
-#include "internal_asset.h"
+#include "../asset.h"
+#include "../common/internal_asset.h"
 
 struct FileInfo {
 	size_t size = 0;

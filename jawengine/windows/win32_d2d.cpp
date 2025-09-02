@@ -8,7 +8,7 @@
 #include <cmath>	//ceilf
 #include <cassert>	//assert
 #include <malloc.h> //alloca
-#include "draw.h"
+#include "../draw.h"
 #include "win32_internal_draw.h"
 
 static const jaw::properties* props;

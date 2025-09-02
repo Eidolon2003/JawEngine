@@ -1,9 +1,9 @@
-#include "JawEngine.h"
+#include "../JawEngine.h"
 #include "win32_internal_draw.h"
 #include "win32_internal_win.h"
-#include "internal_input.h"
-#include "internal_asset.h"
-#include "internal_state.h"
+#include "../common/internal_input.h"
+#include "../common/internal_asset.h"
+#include "../common/internal_state.h"
 
 static bool running = true;
 static LARGE_INTEGER countsPerSecond;

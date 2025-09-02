@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "win32_internal_win.h"
-#include "internal_input.h"
+#include "../common/internal_input.h"
 #include <cmath>	//floorf, min
 #include <cassert>
 #include <windowsx.h>	//GET_X_LPARAM, GET_Y_LPARAM
