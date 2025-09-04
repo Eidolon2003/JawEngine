@@ -16,7 +16,7 @@ namespace draw {
 		jaw::vec2i p1, p2;
 		jaw::argb color;
 		uint32_t width;
-		float angle;
+		float angle = 0;
 	};
 	static_assert(sizeof(lineOptions) <= MAX_DRAW_SIZE);
 	bool line(const lineOptions*, uint8_t z);
@@ -25,7 +25,7 @@ namespace draw {
 	struct rectOptions {
 		jaw::recti rect;
 		jaw::argb color;
-		float angle;
+		float angle = 0;
 	};
 	static_assert(sizeof(rectOptions) <= MAX_DRAW_SIZE);
 	bool rect(const rectOptions*, uint8_t z);
@@ -38,7 +38,7 @@ namespace draw {
 		const char* str;
 		jaw::argb color;
 		jaw::fontid font = 0;
-		float angle;
+		float angle = 0;
 	};
 	#pragma pack(pop)
 	static_assert(sizeof(strOptions) <= MAX_DRAW_SIZE);
@@ -49,7 +49,7 @@ namespace draw {
 		jaw::bmpid bmp;
 		jaw::recti src;
 		jaw::recti dest;
-		float angle;
+		float angle = 0;
 	};
 	static_assert(sizeof(bmpOptions) <= MAX_DRAW_SIZE);
 	bool bmp(const bmpOptions*, uint8_t z);
@@ -58,7 +58,7 @@ namespace draw {
 	struct ellipseOptions {
 		jaw::ellipse ellipse;
 		jaw::argb color;
-		float angle;
+		float angle = 0;
 	};
 	static_assert(sizeof(ellipseOptions) <= MAX_DRAW_SIZE);
 	bool ellipse(const ellipseOptions*, uint8_t z);
@@ -79,6 +79,7 @@ namespace draw {
 	jaw::fontid newFont(const fontOptions*);
 	inline jaw::fontid newFont(const fontOptions& o) { return newFont(&o); }
 
+	// Returns jaw::INVALID_ID on failure
 	jaw::bmpid createBmp(jaw::vec2i size);
 
 	//Copies pixels into a bitmap. numPixels MUST equal the width x height of the bitmap

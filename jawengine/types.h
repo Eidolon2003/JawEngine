@@ -5,11 +5,21 @@ constexpr float PI32 = 3.14159265f;
 
 namespace jaw {
 	typedef int64_t nanoseconds;
+
+	constexpr jaw::nanoseconds millis(float m) { return (jaw::nanoseconds)(m * 1'000'000); }
+	constexpr float to_millis(jaw::nanoseconds n) { return n / 1'000'000.f; }
+	constexpr jaw::nanoseconds seconds(float s) { return (jaw::nanoseconds)(s * 1'000'000'000); }
+	constexpr float to_seconds(jaw::nanoseconds n) { return n / 1'000'000'000.f; }
+
+	constexpr uint32_t INVALID_ID = UINT32_MAX;
 	typedef uint32_t bmpid;
 	typedef uint32_t fontid;
-	typedef uint32_t argb;
 	typedef uint32_t stateid;
+	typedef uint32_t sprid;
+	typedef uint32_t animstateid;
+	typedef uint32_t animdefid;
 
+	typedef uint32_t argb;
 	namespace color {
 		constexpr argb RED = 0xFFFF0000;
 		constexpr argb GREEN = 0xFF00FF00;
@@ -36,6 +46,7 @@ namespace jaw {
 	struct vec2i {
 		int16_t x, y;
 		constexpr vec2i(int16_t x = 0, int16_t y = 0) { this->x = x; this->y = y; }
+		constexpr vec2i(jaw::vec2f v) { x = (uint16_t)v.x; y = (uint16_t)v.y; }
 
 		constexpr vec2i operator+(const vec2i rhs) const { return { (int16_t)(x + rhs.x), (int16_t)(y + rhs.y) }; }
 		constexpr vec2i operator+(const int16_t rhs) const { return { (int16_t)(x + rhs), (int16_t)(y + rhs) }; }
@@ -142,5 +153,40 @@ namespace jaw {
 		}
 	};
 
-	typedef void (*fptr)(jaw::properties*);
+	struct animation {
+		unsigned startFrame = 0;
+		unsigned endFrame = 0;
+		unsigned row = 0;
+		jaw::nanoseconds frameInterval = jaw::millis(100);
+		bool loop = true;
+	};
+
+	// The engine will automatically handle the following:
+	// - Update pos using vel
+	// - Update age
+	// - Handle animation
+	struct sprite {
+		// Pixel coordinate and velocity in pixels per second
+		jaw::vec2f pos{}, vel{};
+		uint8_t z = 0;
+
+		// The id of this sprite's bitmap
+		jaw::bmpid bmp = INVALID_ID;
+
+		// The size in pixels of a single animation frame,
+		// or the sprite itself if not animated
+		jaw::vec2i frameSize{};
+
+		// Age is updated by the system
+		jaw::nanoseconds age = 0;
+
+		// Optional: if the sprite is animated
+		jaw::animstateid animState = INVALID_ID;
+
+		//Convenience functions
+		constexpr jaw::recti rect() const { return jaw::recti(pos, jaw::vec2i(pos) + frameSize); }
+	};
+
+	typedef void (*statefn)(jaw::properties*);
+	typedef void (*sprfn)(jaw::sprite*, jaw::properties*);
 }

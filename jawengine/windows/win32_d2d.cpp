@@ -239,6 +239,8 @@ static void inline renderStr(const draw::drawCall& c, ID2D1BitmapRenderTarget* t
 static void inline renderBmp(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
 	draw::bmpOptions* opt = (draw::bmpOptions*)(c.data);
 
+	if (opt->bmp >= numBmps) return;
+
 	auto mid = (opt->dest.tl + opt->dest.br) / 2;
 	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(opt->angle), topoint2f(mid)));
 
@@ -357,7 +359,7 @@ void draw::setBackgroundColor(jaw::argb color) {
 }
 
 jaw::fontid draw::newFont(const draw::fontOptions* opt) {
-	if (numFonts == draw::MAX_NUM_FONTS) return (jaw::fontid)draw::MAX_NUM_FONTS;
+	if (numFonts == draw::MAX_NUM_FONTS) return jaw::INVALID_ID;
 	assert(opt != nullptr);
 
 	auto i = numFonts++;
@@ -390,7 +392,7 @@ jaw::fontid draw::newFont(const draw::fontOptions* opt) {
 }
 
 jaw::bmpid draw::createBmp(jaw::vec2i size) {
-	if (numBmps == draw::MAX_NUM_BMPS) return (jaw::bmpid)draw::MAX_NUM_BMPS;
+	if (numBmps == draw::MAX_NUM_BMPS) return jaw::INVALID_ID;
 
 	float dpix, dpiy;
 	pRenderTarget->GetDpi(&dpix, &dpiy);
@@ -408,21 +410,21 @@ jaw::bmpid draw::createBmp(jaw::vec2i size) {
 		bmps + numBmps
 	);
 	if (!SUCCEEDED(hr)) {
-		return (jaw::bmpid)draw::MAX_NUM_BMPS;
+		return jaw::INVALID_ID;
 	}
 
 	return (jaw::bmpid)numBmps++;
 }
 
 jaw::bmpid draw::createRenderableBmp(jaw::vec2i size) {
-	if (numBmps == draw::MAX_NUM_BMPS) return (jaw::bmpid)draw::MAX_NUM_BMPS;
+	if (numBmps == draw::MAX_NUM_BMPS) return jaw::INVALID_ID;
 
 	HRESULT hr = pBitmapTarget->CreateCompatibleRenderTarget(
 		D2D1::SizeF((float)size.x, (float)size.y),
 		bmpTargets + numBmps
 	);
 	if (!SUCCEEDED(hr)) {
-		return (jaw::bmpid)draw::MAX_NUM_BMPS;
+		return jaw::INVALID_ID;
 	}
 
 	bmpTargets[numBmps]->SetAntialiasMode(AAMode);
@@ -431,7 +433,7 @@ jaw::bmpid draw::createRenderableBmp(jaw::vec2i size) {
 	hr = bmpTargets[numBmps]->GetBitmap(bmps + numBmps);
 	if (!SUCCEEDED(hr)) {
 		bmpTargets[numBmps]->Release();
-		return (jaw::bmpid)draw::MAX_NUM_BMPS;
+		return jaw::INVALID_ID;
 	}
 
 	return (jaw::bmpid)numBmps++;

@@ -6,18 +6,21 @@
 	"draw.h"
 	"input.h"
 	"state.h"
+	"sprite.h"
 	"common/internal_asset.h"
 	"common/internal_input.h"
 	"common/input.cpp"
 	"common/internal_state.h"
 	"common/state.cpp"
+	"common/internal_sprite.h"
+	"common/sprite.cpp"
 	"windows/win32_asset.cpp"
 	"windows/win32_engine.cpp"
 	"windows/win32_internal_win.h"
 	"windows/win32_win.cpp"
 	"windows/win32_internal_draw.h"
 	"windows/win32_d2d.cpp"
-)
+	)
 	
 set_property(TARGET jawengine PROPERTY CXX_STANDARD 20)
 

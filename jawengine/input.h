@@ -12,5 +12,5 @@ namespace input {
 	void getString(char* str, size_t);
 
 	void clearAllBindings();
-	void bindKeyDown(uint8_t code, jaw::fptr);
+	void bindKeyDown(uint8_t code, jaw::statefn);
 }

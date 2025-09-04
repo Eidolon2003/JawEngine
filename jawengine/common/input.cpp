@@ -11,7 +11,7 @@ static jaw::key keys[256];
 static bool keysReleased[256];
 static unsigned backspaceCount;
 
-static jaw::fptr keyBindings[256];
+static jaw::statefn keyBindings[256];
 
 void input::init() {
 	mouse = {};
@@ -96,9 +96,9 @@ jaw::key input::getKey(uint8_t code) {
 }
 
 void input::clearAllBindings() {
-	memset(keyBindings, 0, 256 * sizeof(jaw::fptr));
+	memset(keyBindings, 0, 256 * sizeof(jaw::statefn));
 }
 
-void input::bindKeyDown(uint8_t code, jaw::fptr f) {
+void input::bindKeyDown(uint8_t code, jaw::statefn f) {
 	keyBindings[code] = f;
 }

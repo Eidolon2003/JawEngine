@@ -15,8 +15,9 @@
 #include "draw.h"
 #include "input.h"
 #include "state.h"
+#include "sprite.h"
 
 namespace engine {
-	void start(jaw::properties*, jaw::fptr initOnce, jaw::fptr init, jaw::fptr loop);
+	void start(jaw::properties*, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop);
 	void stop();
 }

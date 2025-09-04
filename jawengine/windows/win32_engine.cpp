@@ -4,6 +4,7 @@
 #include "../common/internal_input.h"
 #include "../common/internal_asset.h"
 #include "../common/internal_state.h"
+#include "../common/internal_sprite.h"
 
 static bool running = true;
 static LARGE_INTEGER countsPerSecond;
@@ -68,7 +69,7 @@ end:
 }
 
 //TODO: run the renderer and game loop on two separate threads
-void engine::start(jaw::properties* props, jaw::fptr initOnce, jaw::fptr init, jaw::fptr loop) {
+void engine::start(jaw::properties* props, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop) {
 	assert(props != nullptr);
 
 	// This is for single-threaded only
@@ -97,6 +98,8 @@ void engine::start(jaw::properties* props, jaw::fptr initOnce, jaw::fptr init, j
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+
+		sprite::tick(props);
 
 		if (!state::loop(props)) {
 			engine::stop();

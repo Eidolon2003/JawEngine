@@ -9,6 +9,8 @@ struct data {
 	char inputString[256] = {};
 	jaw::bmpid bmp = 0;
 	jaw::vec2i bmpDim = 0;
+	jaw::sprid spr1 = 0;
+	jaw::sprid spr2 = 0;
 };
 
 static void init(jaw::properties* props) {
@@ -21,9 +23,42 @@ static void init(jaw::properties* props) {
 
 	jaw::argb* pixels;
 	d->bmpDim = asset::bmp("F:/C++/GameJam/assets.png", &pixels);
-	assert(pixels != nullptr);
-	d->bmp = draw::createBmp(d->bmpDim);
-	draw::writeBmp(d->bmp, pixels, d->bmpDim);
+	if (pixels) {
+		d->bmp = draw::createBmp(d->bmpDim);
+		if (d->bmp != jaw::INVALID_ID) {
+			draw::writeBmp(d->bmp, pixels, d->bmpDim);
+		}
+	}
+
+	sprite::clear();
+	d->spr1 = sprite::create(
+		{
+			.pos = jaw::vec2f(0, 0),
+			.vel = jaw::vec2f(20, 0),
+			.z = 1,
+			.bmp = d->bmp,
+			.frameSize = d->bmpDim
+		}
+	);
+
+	auto anim = anim::create(
+		{
+			.startFrame = 0,
+			.endFrame = 3,
+			.row = 2,
+			.frameInterval = jaw::seconds(0.2f),
+			.loop = true
+		}
+	);
+
+	d->spr2 = sprite::create(
+		{
+			.pos = jaw::vec2f(20, 180),
+			.bmp = d->bmp,
+			.frameSize = jaw::vec2i(16, 16),
+			.animState = anim::instanceOf(anim)
+		}
+	);
 }
 
 static void loop(jaw::properties* props) {
@@ -44,7 +79,7 @@ static void loop(jaw::properties* props) {
 	str = std::to_string(props->logicFrametime) + '\n'
 		+ std::to_string(props->totalFrametime) + '\n'
 		+ std::to_string(d->framerate) + '\n'
-		+ std::to_string(props->uptime / 1'000'000'000.f) + '\n'
+		+ std::to_string(jaw::to_seconds(props->uptime)) + '\n'
 		+ std::to_string(mouse->pos.x) + ',' + std::to_string(mouse->pos.y) + '\n'
 		+ d->inputString;
 
@@ -57,17 +92,6 @@ static void loop(jaw::properties* props) {
 			0.f
 		},
 		2
-	);
-
-	jaw::vec2i base(100, 0);
-	draw::bmp(
-		draw::bmpOptions{
-			d->bmp,
-			jaw::recti(jaw::vec2i(), d->bmpDim),
-			jaw::recti(base, base + d->bmpDim),
-			props->uptime / 1000000000.f
-		},
-		1
 	);
 
 	draw::rect(
