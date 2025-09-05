@@ -1,119 +1,77 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include "../jawengine/JawEngine.h"
-#include <string>
-#include <iostream>
+#include <cstdio>
 
-struct data {
-	uint64_t lastFramecount = 0;
-	jaw::nanoseconds sumFrametimes = 0;
-	float framerate = 0;
-	char inputString[256] = {};
-	jaw::bmpid bmp = 0;
-	jaw::vec2i bmpDim = 0;
-	jaw::sprid spr1 = 0;
-	jaw::sprid spr2 = 0;
-};
+static jaw::animdefid animation;
+static jaw::bmpid bitmap;
+static jaw::sprid maxID;
+static char buf[256];
 
-static void init(jaw::properties* props) {
-	data* d = (data*)props->data;
+void timedDestroy(jaw::sprid spr, jaw::properties* props) {
+	sprite::update(spr, props);
+	auto ptr = sprite::idtoptr(spr);
+	if (ptr->age > jaw::seconds(5)) {
+		anim::destroy(ptr->animState);
+		sprite::destroy(spr);
+	}
+}
 
-	input::clearAllBindings();
-	input::bindKeyUp(key::ESC, [](jaw::properties*) { engine::stop(); });
-
-	input::bindLMBDown([](jaw::properties* p) {
-		sprite::idtoptr(((data*)(p->data))->spr1)->pos.x -= 20;
+void createSprite(jaw::properties* props) {
+	auto anim = anim::instanceOf(animation);
+	auto id = sprite::create(jaw::sprite{
+		.pos = props->mouse.pos.tofloat(),
+		.vel = jaw::vec2f(0, -25),
+		.bmp = bitmap,
+		.frameSize = jaw::vec2i(16, 16),
+		.animState = anim
 	});
 
-	draw::setBackgroundColor(jaw::color::RED);
+	sprite::customUpdate(id, timedDestroy);
+
+	if (id > maxID) maxID = id;
+	if (anim > maxID) maxID = anim;
+}
+
+static void init(jaw::properties* props) {
+	input::clear();
+	sprite::clear();
+	anim::clear();
+
+	animation = anim::create({
+		.startFrame = 1,
+		.endFrame = 3,
+		.row = 2,
+		.frameInterval = jaw::millis(200),
+		.loop = true
+	});
 
 	jaw::argb* pixels;
-	d->bmpDim = asset::bmp("F:/C++/GameJam/assets.png", &pixels);
+	auto dim = asset::bmp("F:/C++/GameJam/assets.png", &pixels);
 	if (pixels) {
-		d->bmp = draw::createBmp(d->bmpDim);
-		if (d->bmp != jaw::INVALID_ID) {
-			draw::writeBmp(d->bmp, pixels, d->bmpDim);
+		bitmap = draw::createBmp(dim);
+		if (bitmap != jaw::INVALID_ID) {
+			draw::writeBmp(bitmap, pixels, dim);
 		}
 	}
 
-	sprite::clear();
-	d->spr1 = sprite::create(
-		{
-			.pos = jaw::vec2f(0, 0),
-			.vel = jaw::vec2f(20, 0),
-			.z = 1,
-			.bmp = d->bmp,
-			.frameSize = d->bmpDim
-		}
-	);
-
-	auto anim = anim::create(
-		{
-			.startFrame = 0,
-			.endFrame = 3,
-			.row = 2,
-			.frameInterval = jaw::seconds(0.2f),
-			.loop = true
-		}
-	);
-
-	d->spr2 = sprite::create(
-		{
-			.pos = jaw::vec2f(50, 100),
-			.bmp = d->bmp,
-			.frameSize = jaw::vec2i(16, 16),
-			.animState = anim::instanceOf(anim)
-		}
-	);
-
-	auto click = input::createClickable({
-		.getRect = [](jaw::properties* p) { return sprite::idtoptr(((data*)(p->data))->spr2)->rect(); },
-		.callback = [](jaw::properties*) { std::cout << "click!\n"; },
-		.condition = { .lmb = true, .shift = true }
-	});
+	input::bindLMBDown(createSprite);
+	input::bindKeyDown(key::ESC, [](jaw::properties*) { engine::stop(); });
 }
 
 static void loop(jaw::properties* props) {
-	data* d = (data*)props->data;
+	snprintf(buf, sizeof(buf), "%u", maxID);
 
-	// Compute the average framerate over the last 100 frames
-	d->sumFrametimes += props->totalFrametime;
-	if (props->framecount - d->lastFramecount == 100) {
-		d->framerate = 100.f * 1'000'000'000.f / d->sumFrametimes;
-		d->lastFramecount = props->framecount;
-		d->sumFrametimes = 0;
-	}
-
-	input::getString(d->inputString, 256);
-
-	static std::string str;
-	str = std::to_string(props->logicFrametime) + '\n'
-		+ std::to_string(props->totalFrametime) + '\n'
-		+ std::to_string(d->framerate) + '\n'
-		+ std::to_string(jaw::to_seconds(props->uptime)) + '\n'
-		+ std::to_string(props->mouse.pos.x) + ',' + std::to_string(props->mouse.pos.y) + '\n'
-		+ d->inputString;
-
-	draw::str(
-		draw::strOptions{
-			jaw::recti(0,0,props->size.x, props->size.y),
-			str.c_str(),
-			jaw::color::WHITE,
-			0,
-			0.f
-		},
-		2
-	);
+	draw::str(draw::strOptions{
+		.rect = jaw::recti(jaw::vec2i(), props->winsize),
+		.str = buf,
+		.color = jaw::color::WHITE
+	},
+	1);
 }
 
 int main() {
-	data* d = new data;
 	jaw::properties props;
-	props.data = d;
-	props.targetFramerate = 0;
-	props.size = jaw::vec2i(300,200);
+	props.size = jaw::vec2i(300, 200);
 	props.scale = 4;
-	props.mode = jaw::properties::WINDOWED;
-	props.monitorIndex = -1;
-	props.showCMD = true;
 	engine::start(&props, nullptr, init, loop);
 }

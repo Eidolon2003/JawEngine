@@ -58,6 +58,8 @@ namespace jaw {
 
 		constexpr bool operator<(const vec2i rhs) const { return (x < rhs.x) && (y < rhs.y); }
 		constexpr bool operator>=(const vec2i rhs) const { return (x >= rhs.x) && (y >= rhs.y); }
+
+		jaw::vec2f tofloat() { return jaw::vec2f(x, y); }
 	};
 
 	struct rectf {
@@ -190,7 +192,7 @@ namespace jaw {
 	};
 
 	typedef void (*statefn)(jaw::properties*);
-	typedef void (*sprfn)(jaw::sprite*, jaw::properties*);
+	typedef void (*sprfn)(jaw::sprid, jaw::properties*);
 	typedef jaw::recti(*rectfn)(jaw::properties*);
 
 	struct clickable {

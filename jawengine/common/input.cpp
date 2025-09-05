@@ -170,7 +170,7 @@ jaw::key input::getKey(uint8_t code) {
 	return keys[code];
 }
 
-void input::clearAllBindings() {
+void input::clear() {
 	memset(keyDownBindings, 0, 256 * sizeof(jaw::statefn));
 	memset(keyUpBindings, 0, 256 * sizeof(jaw::statefn));
 	lmbDown = lmbUp = rmbDown = rmbUp = mmbDown = mmbUp = xmb1Down = xmb1Up = xmb2Down = xmb2Up = nullptr;

@@ -12,7 +12,7 @@ namespace input {
 	void getString(char* str, size_t);
 
 	// Clear all key and mouse bindings
-	void clearAllBindings();
+	void clear();
 
 	void bindKeyDown(uint8_t code, jaw::statefn);
 	void bindKeyUp(uint8_t code, jaw::statefn);
