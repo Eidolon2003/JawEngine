@@ -1,6 +1,7 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include "../jawengine/JawEngine.h"
 #include <string>
+#include <iostream>
 
 struct data {
 	uint64_t lastFramecount = 0;
@@ -17,7 +18,11 @@ static void init(jaw::properties* props) {
 	data* d = (data*)props->data;
 
 	input::clearAllBindings();
-	input::bindKeyDown(key::ESC, [](jaw::properties*) { engine::stop(); });
+	input::bindKeyUp(key::ESC, [](jaw::properties*) { engine::stop(); });
+
+	input::bindLMBDown([](jaw::properties* p) {
+		sprite::idtoptr(((data*)(p->data))->spr1)->pos.x -= 20;
+	});
 
 	draw::setBackgroundColor(jaw::color::RED);
 
@@ -53,12 +58,18 @@ static void init(jaw::properties* props) {
 
 	d->spr2 = sprite::create(
 		{
-			.pos = jaw::vec2f(20, 180),
+			.pos = jaw::vec2f(50, 100),
 			.bmp = d->bmp,
 			.frameSize = jaw::vec2i(16, 16),
 			.animState = anim::instanceOf(anim)
 		}
 	);
+
+	auto click = input::createClickable({
+		.getRect = [](jaw::properties* p) { return sprite::idtoptr(((data*)(p->data))->spr2)->rect(); },
+		.callback = [](jaw::properties*) { std::cout << "click!\n"; },
+		.condition = { .lmb = true, .shift = true }
+	});
 }
 
 static void loop(jaw::properties* props) {
@@ -72,7 +83,6 @@ static void loop(jaw::properties* props) {
 		d->sumFrametimes = 0;
 	}
 
-	const jaw::mouse* mouse = input::getMouse();
 	input::getString(d->inputString, 256);
 
 	static std::string str;
@@ -80,7 +90,7 @@ static void loop(jaw::properties* props) {
 		+ std::to_string(props->totalFrametime) + '\n'
 		+ std::to_string(d->framerate) + '\n'
 		+ std::to_string(jaw::to_seconds(props->uptime)) + '\n'
-		+ std::to_string(mouse->pos.x) + ',' + std::to_string(mouse->pos.y) + '\n'
+		+ std::to_string(props->mouse.pos.x) + ',' + std::to_string(props->mouse.pos.y) + '\n'
 		+ d->inputString;
 
 	draw::str(
@@ -93,15 +103,6 @@ static void loop(jaw::properties* props) {
 		},
 		2
 	);
-
-	draw::rect(
-		draw::rectOptions{
-			jaw::recti(220, 100, 270, 150),
-			jaw::color::GREEN,
-			PI32/4
-		},
-		0
-	);
 }
 
 int main() {
@@ -113,5 +114,6 @@ int main() {
 	props.scale = 4;
 	props.mode = jaw::properties::WINDOWED;
 	props.monitorIndex = -1;
+	props.showCMD = true;
 	engine::start(&props, nullptr, init, loop);
 }

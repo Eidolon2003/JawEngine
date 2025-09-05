@@ -18,6 +18,7 @@ namespace jaw {
 	typedef uint32_t sprid;
 	typedef uint32_t animstateid;
 	typedef uint32_t animdefid;
+	typedef uint32_t clickableid;
 
 	typedef uint32_t argb;
 	namespace color {
@@ -56,7 +57,7 @@ namespace jaw {
 		constexpr vec2i operator/(const float rhs) const { return { (int16_t)(x / rhs), (int16_t)(y / rhs) }; }
 
 		constexpr bool operator<(const vec2i rhs) const { return (x < rhs.x) && (y < rhs.y); }
-		constexpr bool operator>=(const int16_t rhs) const { return (x >= rhs) && (y >= rhs); }
+		constexpr bool operator>=(const vec2i rhs) const { return (x >= rhs.x) && (y >= rhs.y); }
 	};
 
 	struct rectf {
@@ -140,12 +141,13 @@ namespace jaw {
 		// This may be used for any sort of game data that needs to be passed around
 		void* data = nullptr;
 
-		//These are automatically populated by the system
+		//These are automatically populated by the system, read only
 		vec2i winsize = vec2i();
 		uint64_t framecount = 0;
 		jaw::nanoseconds totalFrametime = 0;
 		jaw::nanoseconds logicFrametime = 0;
 		jaw::nanoseconds uptime = 0;
+		jaw::mouse mouse{};
 
 		//Convenience functions
 		vec2i scaledSize() const {
@@ -189,4 +191,11 @@ namespace jaw {
 
 	typedef void (*statefn)(jaw::properties*);
 	typedef void (*sprfn)(jaw::sprite*, jaw::properties*);
+	typedef jaw::recti(*rectfn)(jaw::properties*);
+
+	struct clickable {
+		jaw::rectfn getRect = nullptr;
+		jaw::statefn callback = nullptr;
+		jaw::mouseFlags condition{};
+	};
 }

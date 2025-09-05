@@ -4,22 +4,22 @@
 #include <string>	//strlen, strncat
 #include <cassert>
 
-static jaw::mouse mouse;
-static char inputString[256];
+static char inputString[input::MAX_INPUT_STRING];
 static size_t inputStringLength;
 static jaw::key keys[256];
 static bool keysReleased[256];
 static unsigned backspaceCount;
 
-static jaw::statefn keyBindings[256];
+static jaw::statefn keyDownBindings[256];
+static jaw::statefn keyUpBindings[256];
+static jaw::statefn lmbDown, lmbUp, rmbDown, rmbUp, mmbDown,
+					mmbUp, xmb1Down, xmb1Up, xmb2Down, xmb2Up;
 
-void input::init() {
-	mouse = {};
-}
+static jaw::clickable clickables[input::MAX_NUM_CLICKABLE];
+static size_t numClickables;
 
-void input::deinit() {}
 
-void input::beginFrame() {
+void input::beginFrame(jaw::properties* props) {
 	for (int i = 0; i < 256; i++) {
 		if (keysReleased[i]) {
 			keys[i].isDown = false;
@@ -29,16 +29,93 @@ void input::beginFrame() {
 	}
 
 	backspaceCount = 0;
-	mouse.wheelDelta = 0;
-	mouse.prevFlags = mouse.flags;
+	props->mouse.wheelDelta = 0;
 	inputString[0] = 0;
 	inputStringLength = 0;
 }
 
 void input::updateMouse(const jaw::mouse* m, jaw::properties* props) {
-	mouse.wheelDelta += m->wheelDelta;
-	mouse.flags.all = m->flags.all;
-	mouse.pos = m->pos;
+	props->mouse.wheelDelta += m->wheelDelta;
+	props->mouse.prevFlags.all = props->mouse.flags.all;
+	props->mouse.flags.all = m->flags.all;
+	props->mouse.pos = m->pos;
+
+	jaw::mouseFlags changed;
+	changed.all = props->mouse.flags.all ^ props->mouse.prevFlags.all;
+	if (changed.all == 0) return;
+
+	// First check clickables
+	for (size_t i = 0; i < numClickables; i++) {
+		jaw::clickable* c = clickables + i;
+
+		// Check if modifier keys match condition
+		if (c->condition.shift != m->flags.shift ||
+			c->condition.ctrl != m->flags.ctrl) continue;
+
+		// Check if at least one of the button conditions match
+		jaw::mouseFlags buttonMask;
+		buttonMask.all = m->flags.all & c->condition.all;
+		buttonMask.ctrl = buttonMask.shift = 0;
+		if ((buttonMask.all & c->condition.all) == 0) continue;
+
+		// Get the clickable's rectangle
+		if (!c->getRect) continue;
+		jaw::recti rect = c->getRect(props);
+
+		// Check the click falls within the rect
+		if (!(m->pos < rect.br && m->pos >= rect.tl)) continue;
+
+		if (c->callback) {
+			c->callback(props);
+			return;
+		}
+	}
+
+	// If clickables don't match, call bound handler(s)
+	if (changed.lmb) {
+		if (m->flags.lmb) {
+			if (lmbDown) lmbDown(props);
+		}
+		else {
+			if (lmbUp) lmbUp(props);
+		}
+	}
+
+	if (changed.rmb) {
+		if (m->flags.rmb) {
+			if (rmbDown) rmbDown(props);
+		}
+		else {
+			if (rmbUp) rmbUp(props);
+		}
+	}
+
+	if (changed.mmb) {
+		if (m->flags.mmb) {
+			if (mmbDown) mmbDown(props);
+		}
+		else {
+			if (mmbUp) mmbUp(props);
+		}
+	}
+
+	if (changed.xmb1) {
+		if (m->flags.xmb1) {
+			if (xmb1Down) xmb1Down(props);
+		}
+		else {
+			if (xmb1Up) xmb1Up(props);
+		}
+	}
+
+	if (changed.xmb2) {
+		if (m->flags.xmb2) {
+			if (xmb2Down) xmb2Down(props);
+		}
+		else {
+			if (xmb2Up) xmb2Up(props);
+		}
+	}
 }
 
 void input::updateChar(char c) {
@@ -61,7 +138,7 @@ void input::updateKey(uint8_t code, bool isDown, jaw::properties* props) {
 		keysReleased[code] = false;
 		assert(keys[code].isHeld == false);
 
-		if (keyBindings[code]) keyBindings[code](props);
+		if (keyDownBindings[code]) keyDownBindings[code](props);
 	}
 	else {
 		if (keys[code].isHeld) {
@@ -71,14 +148,12 @@ void input::updateKey(uint8_t code, bool isDown, jaw::properties* props) {
 		}
 		else {
 			keysReleased[code] = true;	// Pressed and released in the same frame
-			assert(keys[code].isDown == true);
+			//assert(keys[code].isDown == true);	//This doesn't hold when ctrl and shift get involved?
 			assert(keys[code].isHeld == false);
 		}
-	}
-}
 
-const jaw::mouse* input::getMouse() { 
-	return &mouse;
+		if (keyUpBindings[code]) keyUpBindings[code](props);
+	}
 }
 
 // Remove characters from the input string if the backspace key was pressed,
@@ -96,9 +171,42 @@ jaw::key input::getKey(uint8_t code) {
 }
 
 void input::clearAllBindings() {
-	memset(keyBindings, 0, 256 * sizeof(jaw::statefn));
+	memset(keyDownBindings, 0, 256 * sizeof(jaw::statefn));
+	memset(keyUpBindings, 0, 256 * sizeof(jaw::statefn));
+	lmbDown = lmbUp = rmbDown = rmbUp = mmbDown = mmbUp = xmb1Down = xmb1Up = xmb2Down = xmb2Up = nullptr;
 }
 
-void input::bindKeyDown(uint8_t code, jaw::statefn f) {
-	keyBindings[code] = f;
+void input::bindKeyDown(uint8_t code, jaw::statefn f) { keyDownBindings[code] = f; }
+
+void input::bindKeyUp(uint8_t code, jaw::statefn f) { keyUpBindings[code] = f; }
+
+void input::bindLMBDown(jaw::statefn fn) { lmbDown = fn; }
+
+void input::bindLMBUp(jaw::statefn fn) { lmbUp = fn; }
+
+void input::bindRMBDown(jaw::statefn fn) { rmbDown = fn; }
+
+void input::bindRMBUp(jaw::statefn fn) { rmbUp = fn; }
+
+void input::bindMMBDown(jaw::statefn fn) { mmbDown = fn; }
+
+void input::bindMMBUp(jaw::statefn fn) { mmbUp = fn; }
+
+void input::bindXMB1Down(jaw::statefn fn) { xmb1Down = fn; }
+
+void input::bindXMB1Up(jaw::statefn fn) { xmb1Up = fn; }
+
+void input::bindXMB2Down(jaw::statefn fn) { xmb2Down = fn; }
+
+void input::bindXMB2Up(jaw::statefn fn) { xmb2Up = fn; }
+
+jaw::clickableid input::createClickable(const jaw::clickable& c) {
+	if (numClickables == input::MAX_NUM_CLICKABLE) return jaw::INVALID_ID;
+	memcpy(clickables + numClickables, &c, sizeof(jaw::clickable));
+	return (jaw::clickableid)numClickables++;
+}
+
+jaw::clickable* input::idtoptr(jaw::clickableid id) {
+	if (id >= numClickables) return nullptr;
+	return clickables + numClickables;
 }

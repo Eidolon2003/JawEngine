@@ -82,7 +82,6 @@ void engine::start(jaw::properties* props, jaw::statefn initOnce, jaw::statefn i
 	HWND hwnd = win::init(props);
 	ValidateRect(hwnd, NULL);
 	draw::init(props, hwnd);
-	input::init();
 	asset::init();
 	startPoint = lastFrame = getTimePoint();
 
@@ -91,7 +90,7 @@ void engine::start(jaw::properties* props, jaw::statefn initOnce, jaw::statefn i
 	state::push(sid);
 
 	do {
-		input::beginFrame();
+		input::beginFrame(props);
 		MSG msg;
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 			if (msg.message == WM_QUIT) running = false;
@@ -115,7 +114,6 @@ void engine::start(jaw::properties* props, jaw::statefn initOnce, jaw::statefn i
 	} while (running);
 
 	asset::deinit();
-	input::deinit();
 	draw::deinit();
 	win::deinit();
 	timeEndPeriod(timerInfo.wPeriodMin);
