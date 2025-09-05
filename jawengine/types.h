@@ -33,9 +33,11 @@ namespace jaw {
 	};
 
 	//TODO: more convenient op overloads for these structs
+	struct vec2i;
 	struct vec2f {
 		float x, y;
 		constexpr vec2f(float x = 0, float y = 0) { this->x = x; this->y = y; }
+		constexpr vec2f(jaw::vec2i);
 
 		constexpr vec2f operator+(const vec2f rhs) const { return { x + rhs.x, y + rhs.y }; }
 		constexpr vec2f operator+(const float rhs) const { return { x + rhs, y + rhs }; }
@@ -58,9 +60,8 @@ namespace jaw {
 
 		constexpr bool operator<(const vec2i rhs) const { return (x < rhs.x) && (y < rhs.y); }
 		constexpr bool operator>=(const vec2i rhs) const { return (x >= rhs.x) && (y >= rhs.y); }
-
-		jaw::vec2f tofloat() { return jaw::vec2f(x, y); }
 	};
+	inline constexpr jaw::vec2f::vec2f(jaw::vec2i v) { x = (float)v.x; y = (float)v.y; }
 
 	struct rectf {
 		vec2f tl, br;

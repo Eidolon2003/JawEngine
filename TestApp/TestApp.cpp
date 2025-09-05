@@ -43,7 +43,7 @@ void rectDraw(jaw::sprid spr, jaw::properties* props) {
 void createSprite(jaw::properties* props) {
 	auto anim = anim::instanceOf(animation);
 	auto id = sprite::create(jaw::sprite{
-		.pos = props->mouse.pos.tofloat(),
+		.pos = props->mouse.pos,
 		.vel = jaw::vec2f(0, 0),
 		.animState = anim
 	});

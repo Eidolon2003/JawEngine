@@ -218,7 +218,7 @@ jaw::clickableid input::createClickable(const jaw::clickable& c) {
 		isOpen[newID] = false;
 	}
 	else {
-		newID = nextID++;
+		newID = (jaw::clickableid)nextID++;
 	}
 
 	memcpy(clickables + newID, &c, sizeof(jaw::clickable));
