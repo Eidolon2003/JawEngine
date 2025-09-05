@@ -6,7 +6,7 @@
 
 struct animState {
 	jaw::animdefid animation = jaw::INVALID_ID;
-	unsigned frame = 0;
+	uint32_t frame = 0;
 	jaw::nanoseconds animTimer = 0;
 	bool finished = false;
 };
@@ -67,6 +67,11 @@ jaw::animstateid anim::instanceOf(jaw::animdefid defID) {
 bool anim::finished(jaw::animstateid stateID) {
 	if (stateID >= nextStateID || isStateOpen[stateID]) return false;
 	return animStates[stateID].finished;
+}
+
+uint32_t anim::getFrame(jaw::animstateid stateID) {
+	if (stateID >= nextStateID || isStateOpen[stateID]) return UINT32_MAX;
+	return animStates[stateID].frame;
 }
 
 

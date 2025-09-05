@@ -59,4 +59,8 @@ namespace anim {
 	// Returns whether or not a non-looped animation has finished
 	// Returns false on invalid ID on looped animations
 	bool finished(jaw::animstateid);
+
+	// Returns which frame the given animation is currently on
+	// Returns UINT32_MAX on invalid ID
+	uint32_t getFrame(jaw::animstateid);
 }

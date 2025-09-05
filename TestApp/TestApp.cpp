@@ -3,7 +3,6 @@
 #include <cstdio>
 
 static jaw::animdefid animation;
-static jaw::bmpid bitmap;
 static jaw::sprid maxID;
 static char buf[256];
 
@@ -16,17 +15,41 @@ void timedDestroy(jaw::sprid spr, jaw::properties* props) {
 	}
 }
 
+void rectDraw(jaw::sprid spr, jaw::properties* props) {
+	auto ptr = sprite::idtoptr(spr);
+	if (!ptr) return;
+
+	jaw::argb color;
+	switch (anim::getFrame(ptr->animState)) {
+	case 0:
+		color = jaw::color::RED;
+		break;
+	case 1:
+		color = jaw::color::GREEN;
+		break;
+	case 2:
+		color = jaw::color::BLUE;
+		break;
+	default:
+		assert(false);
+	}
+
+	draw::rect(draw::rectOptions{
+		.rect = jaw::recti(ptr->pos, ptr->pos + 8),
+		.color = color
+	}, 0);
+}
+
 void createSprite(jaw::properties* props) {
 	auto anim = anim::instanceOf(animation);
 	auto id = sprite::create(jaw::sprite{
 		.pos = props->mouse.pos.tofloat(),
-		.vel = jaw::vec2f(0, -25),
-		.bmp = bitmap,
-		.frameSize = jaw::vec2i(16, 16),
+		.vel = jaw::vec2f(0, 0),
 		.animState = anim
 	});
 
 	sprite::customUpdate(id, timedDestroy);
+	sprite::customDraw(id, rectDraw);
 
 	if (id > maxID) maxID = id;
 	if (anim > maxID) maxID = anim;
@@ -38,23 +61,12 @@ static void init(jaw::properties* props) {
 	anim::clear();
 
 	animation = anim::create({
-		.startFrame = 1,
-		.endFrame = 3,
-		.row = 2,
+		.startFrame = 0,
+		.endFrame = 2,
 		.frameInterval = jaw::millis(200),
 		.loop = true
 	});
 
-	jaw::argb* pixels;
-	auto dim = asset::bmp("F:/C++/GameJam/assets.png", &pixels);
-	if (pixels) {
-		bitmap = draw::createBmp(dim);
-		if (bitmap != jaw::INVALID_ID) {
-			draw::writeBmp(bitmap, pixels, dim);
-		}
-	}
-
-	input::bindLMBDown(createSprite);
 	input::bindKeyDown(key::ESC, [](jaw::properties*) { engine::stop(); });
 }
 
@@ -67,6 +79,8 @@ static void loop(jaw::properties* props) {
 		.color = jaw::color::WHITE
 	},
 	1);
+
+	if (props->mouse.flags.lmb) createSprite(props);
 }
 
 int main() {
