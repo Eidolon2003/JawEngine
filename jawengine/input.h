@@ -11,7 +11,7 @@ namespace input {
 	// May also remove characters if the backspace key was pressed
 	void getString(char* str, size_t);
 
-	// Clear all key and mouse bindings
+	// Clear all key and mouse bindings, and all clickables
 	void clear();
 
 	void bindKeyDown(uint8_t code, jaw::statefn);
@@ -31,6 +31,9 @@ namespace input {
 
 	// Returns jaw::INVALID_ID on failure
 	jaw::clickableid createClickable(const jaw::clickable&);
+
+	// Destroys a clickable if it exists
+	void destroy(jaw::clickableid);
 
 	// Returns nullptr on invalid ID
 	jaw::clickable* idtoptr(jaw::clickableid);

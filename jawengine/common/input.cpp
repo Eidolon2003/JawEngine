@@ -16,7 +16,10 @@ static jaw::statefn lmbDown, lmbUp, rmbDown, rmbUp, mmbDown,
 					mmbUp, xmb1Down, xmb1Up, xmb2Down, xmb2Up;
 
 static jaw::clickable clickables[input::MAX_NUM_CLICKABLE];
-static size_t numClickables;
+static jaw::clickableid openSlots[input::MAX_NUM_CLICKABLE];
+static bool isOpen[input::MAX_NUM_CLICKABLE];
+static size_t nextID;
+static size_t numOpen;
 
 
 void input::beginFrame(jaw::properties* props) {
@@ -45,7 +48,9 @@ void input::updateMouse(const jaw::mouse* m, jaw::properties* props) {
 	if (changed.all == 0) return;
 
 	// First check clickables
-	for (size_t i = 0; i < numClickables; i++) {
+	for (size_t i = 0; i < nextID; i++) {
+		if (isOpen[i]) continue;
+
 		jaw::clickable* c = clickables + i;
 
 		// Check if modifier keys match condition
@@ -170,12 +175,6 @@ jaw::key input::getKey(uint8_t code) {
 	return keys[code];
 }
 
-void input::clear() {
-	memset(keyDownBindings, 0, 256 * sizeof(jaw::statefn));
-	memset(keyUpBindings, 0, 256 * sizeof(jaw::statefn));
-	lmbDown = lmbUp = rmbDown = rmbUp = mmbDown = mmbUp = xmb1Down = xmb1Up = xmb2Down = xmb2Up = nullptr;
-}
-
 void input::bindKeyDown(uint8_t code, jaw::statefn f) { keyDownBindings[code] = f; }
 
 void input::bindKeyUp(uint8_t code, jaw::statefn f) { keyUpBindings[code] = f; }
@@ -200,13 +199,39 @@ void input::bindXMB2Down(jaw::statefn fn) { xmb2Down = fn; }
 
 void input::bindXMB2Up(jaw::statefn fn) { xmb2Up = fn; }
 
+void input::clear() {
+	memset(keyDownBindings, 0, sizeof(keyDownBindings));
+	memset(keyUpBindings, 0, sizeof(keyUpBindings));
+	lmbDown = lmbUp = rmbDown = rmbUp = mmbDown = mmbUp = xmb1Down = xmb1Up = xmb2Down = xmb2Up = nullptr;
+
+	nextID = 0;
+	numOpen = 0;
+	memset(isOpen, 0, sizeof(isOpen));
+}
+
 jaw::clickableid input::createClickable(const jaw::clickable& c) {
-	if (numClickables == input::MAX_NUM_CLICKABLE) return jaw::INVALID_ID;
-	memcpy(clickables + numClickables, &c, sizeof(jaw::clickable));
-	return (jaw::clickableid)numClickables++;
+	if (nextID == input::MAX_NUM_CLICKABLE && numOpen == 0) return jaw::INVALID_ID;
+
+	jaw::clickableid newID;
+	if (numOpen > 0) {
+		newID = openSlots[--numOpen];
+		isOpen[newID] = false;
+	}
+	else {
+		newID = nextID++;
+	}
+
+	memcpy(clickables + newID, &c, sizeof(jaw::clickable));
+	return newID;
+}
+
+void input::destroy(jaw::clickableid id) {
+	if (id >= nextID || isOpen[id]) return;
+	isOpen[id] = true;
+	openSlots[numOpen++] = id;
 }
 
 jaw::clickable* input::idtoptr(jaw::clickableid id) {
-	if (id >= numClickables) return nullptr;
-	return clickables + numClickables;
+	if (id >= nextID || isOpen[id]) return nullptr;
+	return clickables + id;
 }
