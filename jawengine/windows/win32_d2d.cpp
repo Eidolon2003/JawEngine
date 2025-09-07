@@ -242,7 +242,22 @@ static void inline renderBmp(const draw::drawCall& c, ID2D1BitmapRenderTarget* t
 	if (opt->bmp >= numBmps) return;
 
 	auto mid = (opt->dest.tl + opt->dest.br) / 2;
-	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(opt->angle), topoint2f(mid)));
+	auto transform = D2D1::Matrix3x2F::Identity();
+	
+	if (opt->mirrorX) {
+		transform = transform * D2D1::Matrix3x2F::Scale(-1.f, 1.f);
+		opt->dest.br.x = -opt->dest.br.x;
+		opt->dest.tl.x = -opt->dest.tl.x;
+	}
+
+	if (opt->mirrorY) {
+		transform = transform * D2D1::Matrix3x2F::Scale(1.f, -1.f);
+		opt->dest.br.y = -opt->dest.br.y;
+		opt->dest.tl.y = -opt->dest.tl.y;
+	}
+
+	transform = transform * D2D1::Matrix3x2F::Rotation(radtodeg(opt->angle), topoint2f(mid));
+	target->SetTransform(transform);
 
 	target->DrawBitmap(
 		bmps[opt->bmp],

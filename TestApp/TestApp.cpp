@@ -1,91 +1,127 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include "../jawengine/JawEngine.h"
-#include <cstdio>
 
-static jaw::animdefid animation;
-static jaw::sprid maxID;
-static char buf[256];
+#define SPEED 100
 
-void timedDestroy(jaw::sprid spr, jaw::properties* props) {
-	sprite::update(spr, props);
-	auto ptr = sprite::idtoptr(spr);
-	if (ptr->age > jaw::seconds(5)) {
-		anim::destroy(ptr->animState);
-		sprite::destroy(spr);
+static jaw::sprid guy = jaw::INVALID_ID;
+
+static jaw::bmpid bmpIdle = jaw::INVALID_ID;
+static jaw::animdefid animIdle = jaw::INVALID_ID;
+
+static jaw::bmpid bmpWalk = jaw::INVALID_ID;
+static jaw::animdefid animWalk = jaw::INVALID_ID;
+
+static void handleAnim(jaw::sprite* spr) {
+	anim::destroy(spr->animState);
+
+	if (spr->vel.x == 0) {
+		spr->animState = anim::instanceOf(animIdle);
+		spr->bmp = bmpIdle;
+	}
+	else {
+		spr->animState = anim::instanceOf(animWalk);
+		spr->bmp = bmpWalk;
 	}
 }
 
-void rectDraw(jaw::sprid spr, jaw::properties* props) {
-	auto ptr = sprite::idtoptr(spr);
-	if (!ptr) return;
+static void leftDown(jaw::properties* props) {
+	jaw::sprite* spr = sprite::idtoptr(guy);
+	if (!spr) return;
 
-	jaw::argb color;
-	switch (anim::getFrame(ptr->animState)) {
-	case 0:
-		color = jaw::color::RED;
-		break;
-	case 1:
-		color = jaw::color::GREEN;
-		break;
-	case 2:
-		color = jaw::color::BLUE;
-		break;
-	default:
-		assert(false);
-	}
-
-	draw::rect(draw::rectOptions{
-		.rect = jaw::recti(ptr->pos, ptr->pos + 8),
-		.color = color
-	}, 0);
+	spr->mirrorX = true;
+	spr->vel.x -= SPEED;
+	handleAnim(spr);
 }
 
-void createSprite(jaw::properties* props) {
-	auto anim = anim::instanceOf(animation);
-	auto id = sprite::create(jaw::sprite{
-		.pos = props->mouse.pos,
-		.vel = jaw::vec2f(0, 0),
-		.animState = anim
-	});
+static void leftUp(jaw::properties* props) {
+	jaw::sprite* spr = sprite::idtoptr(guy);
+	if (!spr) return;
 
-	sprite::customUpdate(id, timedDestroy);
-	sprite::customDraw(id, rectDraw);
+	spr->vel.x += SPEED;
+	handleAnim(spr);
+}
 
-	if (id > maxID) maxID = id;
-	if (anim > maxID) maxID = anim;
+static void rightDown(jaw::properties* props) {
+	jaw::sprite* spr = sprite::idtoptr(guy);
+	if (!spr) return;
+
+	spr->mirrorX = false;
+	spr->vel.x += SPEED;
+	handleAnim(spr);
+}
+
+static void rightUp(jaw::properties* props) {
+	jaw::sprite* spr = sprite::idtoptr(guy);
+	if (!spr) return;
+
+	spr->vel.x -= SPEED;
+	handleAnim(spr);
+}
+
+static void showBox(jaw::sprid id, jaw::properties* props) {
+	jaw::sprite* spr = sprite::idtoptr(id);
+	if (!spr) return;
+
+	sprite::draw(id, props);
+	draw::rect(
+		draw::rectOptions{
+			.rect = spr->rect(),
+			.color = 0xFF555555
+		},
+		spr->z - 1
+	);
 }
 
 static void init(jaw::properties* props) {
-	input::clear();
-	sprite::clear();
-	anim::clear();
+	jaw::argb* pixels;
+	jaw::vec2i dim = asset::bmp("F:/assets/test-animation/idle-40x70x6.png", &pixels);
+	if (pixels) {
+		bmpIdle = draw::createBmp(dim);
+		draw::writeBmp(bmpIdle, pixels, dim);
+	}
 
-	animation = anim::create({
+	dim = asset::bmp("F:/assets/test-animation/walk-40x70x12.png", &pixels);
+	if (pixels) {
+		bmpWalk = draw::createBmp(dim);
+		draw::writeBmp(bmpWalk, pixels, dim);
+	}
+
+	animIdle = anim::create({
 		.startFrame = 0,
-		.endFrame = 2,
-		.frameInterval = jaw::millis(200),
+		.endFrame = 5,
+		.frameInterval = jaw::millis(250),
 		.loop = true
 	});
 
-	input::bindKeyDown(key::ESC, [](jaw::properties*) { engine::stop(); });
+	animWalk = anim::create({
+		.startFrame = 0,
+		.endFrame = 11,
+		.frameInterval = jaw::millis(100),
+		.loop = true
+	});
+
+	guy = sprite::create({
+		.pos = (props->size / 2) - jaw::vec2i(20, 0),
+		.z = 1,
+		.mirrorX = false,
+		.bmp = bmpIdle,
+		.frameSize = { 40, 70 },
+		.animState = anim::instanceOf(animIdle)
+	});
+	//sprite::customDraw(guy, showBox);
+
+	input::bindKeyDown(key::A, leftDown);
+	input::bindKeyUp(key::A, leftUp);
+	input::bindKeyDown(key::D, rightDown);
+	input::bindKeyUp(key::D, rightUp);
 }
 
-static void loop(jaw::properties* props) {
-	snprintf(buf, sizeof(buf), "%u", maxID);
-
-	draw::str(draw::strOptions{
-		.rect = jaw::recti(jaw::vec2i(), props->winsize),
-		.str = buf,
-		.color = jaw::color::WHITE
-	},
-	1);
-
-	if (props->mouse.flags.lmb) createSprite(props);
-}
+static void loop(jaw::properties* props) {}
 
 int main() {
 	jaw::properties props;
-	props.size = jaw::vec2i(300, 200);
+	props.title = "Animation Test";
+	props.size = jaw::vec2i(400, 225);
 	props.scale = 4;
 	engine::start(&props, nullptr, init, loop);
 }

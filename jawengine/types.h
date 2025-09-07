@@ -174,6 +174,8 @@ namespace jaw {
 		// Pixel coordinate and velocity in pixels per second
 		jaw::vec2f pos{}, vel{};
 		uint8_t z = 0;
+		bool mirrorX = false;
+		bool mirrorY = false;
 
 		// The id of this sprite's bitmap
 		jaw::bmpid bmp = INVALID_ID;

@@ -50,6 +50,8 @@ namespace draw {
 		jaw::recti src;
 		jaw::recti dest;
 		float angle = 0;
+		bool mirrorX = false;
+		bool mirrorY = false;
 	};
 	static_assert(sizeof(bmpOptions) <= MAX_DRAW_SIZE);
 	bool bmp(const bmpOptions*, uint8_t z);

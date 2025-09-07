@@ -151,7 +151,9 @@ void sprite::draw(jaw::sprid id, jaw::properties* props) {
 			draw::bmpOptions{
 				.bmp = spr->bmp,
 				.src = jaw::recti(jaw::vec2i(), spr->frameSize),
-				.dest = spr->rect()
+				.dest = spr->rect(),
+				.mirrorX = spr->mirrorX,
+				.mirrorY = spr->mirrorY
 			},
 			spr->z
 		);
@@ -171,7 +173,9 @@ void sprite::draw(jaw::sprid id, jaw::properties* props) {
 		draw::bmpOptions{
 			.bmp = spr->bmp,
 			.src = src,
-			.dest = spr->rect()
+			.dest = spr->rect(),
+			.mirrorX = spr->mirrorX,
+			.mirrorY = spr->mirrorY
 		},
 		spr->z
 	);
