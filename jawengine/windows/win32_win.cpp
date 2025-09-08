@@ -90,7 +90,7 @@ static LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lpa
 	}	return 0;
 
 	case WM_CLOSE:
-		PostQuitMessage(NULL);
+		PostQuitMessage(0);
 		return 0;
 
 	case WM_PAINT:

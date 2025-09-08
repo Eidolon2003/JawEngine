@@ -1,7 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "../input.h"
 #include "internal_input.h"
-#include <string>	//strlen, strncat
+#include <cstring>	//strlen, strncat
 #include <cassert>
 
 static char inputString[input::MAX_INPUT_STRING];

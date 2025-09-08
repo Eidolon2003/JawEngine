@@ -9,6 +9,11 @@
 #include "../asset.h"
 #include "../common/internal_asset.h"
 
+// This is for compatbility with mingw on Linux
+#ifdef __MINGW32__
+typedef BYTE *WICInProcPointer;
+#endif
+
 struct FileInfo {
 	size_t size = 0;
 	jaw::vec2i dim;	// For image files specifically, won't have a value for others
