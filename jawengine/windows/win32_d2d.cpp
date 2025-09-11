@@ -1,6 +1,11 @@
-// This code is currently Direct2D 1.0
-
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <d2d1.h>
 #include <dwrite.h>
 #include <cstdint>
@@ -460,7 +465,7 @@ bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb* pixels, size_t numPixels) {
 
 	// Allocate space for this array on the stack
 	jaw::argb* multiplied = (jaw::argb*)_malloca(numPixels * sizeof(jaw::argb));
-	assert(multiplied != nullptr);
+	if (!multiplied) { return false; }
 
 	for (size_t i = 0; i < numPixels; i++) {
 		auto px = pixels[i];

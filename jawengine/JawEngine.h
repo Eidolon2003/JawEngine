@@ -16,6 +16,7 @@
 #include "input.h"
 #include "state.h"
 #include "sprite.h"
+#include "sound.h"
 
 namespace engine {
 	void start(jaw::properties*, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop);

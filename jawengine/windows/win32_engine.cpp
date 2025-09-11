@@ -1,3 +1,7 @@
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 #include "../JawEngine.h"
 #include "win32_internal_draw.h"
 #include "win32_internal_win.h"
@@ -5,6 +9,10 @@
 #include "../common/internal_asset.h"
 #include "../common/internal_state.h"
 #include "../common/internal_sprite.h"
+#include "../common/internal_sound.h"
+
+#include <objbase.h>	//CoInitializeEx
+#include <mmsystem.h>	//timer
 
 static bool running = true;
 static LARGE_INTEGER countsPerSecond;
@@ -82,6 +90,7 @@ void engine::start(jaw::properties* props, jaw::statefn initOnce, jaw::statefn i
 	HWND hwnd = win::init(props);
 	ValidateRect(hwnd, NULL);
 	draw::init(props, hwnd);
+	sound::init();
 	asset::init();
 	startPoint = lastFrame = getTimePoint();
 
@@ -114,6 +123,7 @@ void engine::start(jaw::properties* props, jaw::statefn initOnce, jaw::statefn i
 	} while (running);
 
 	asset::deinit();
+	sound::deinit();
 	draw::deinit();
 	win::deinit();
 	timeEndPeriod(timerInfo.wPeriodMin);

@@ -1,3 +1,7 @@
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <windows.h>
 #include <memoryapi.h>
 #include <wincodec.h>
@@ -78,7 +82,11 @@ size_t asset::file(const char* filename, void** data) {
 		size.LowPart,
 		NULL
 	);
-	assert(mapping != NULL);
+	if (!mapping) {
+		CloseHandle(file);
+		*data = nullptr;
+		return 0;
+	}
 
 	*data = MapViewOfFile(
 		mapping,

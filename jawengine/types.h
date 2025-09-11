@@ -19,6 +19,7 @@ namespace jaw {
 	typedef uint32_t animstateid;
 	typedef uint32_t animdefid;
 	typedef uint32_t clickableid;
+	typedef uint32_t soundid;
 
 	typedef uint32_t argb;
 	namespace color {
