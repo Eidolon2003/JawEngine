@@ -26,16 +26,36 @@ static WAVEFORMATEX format{
 	.nAvgBytesPerSec = SAMPLE_RATE * BLOCK_ALIGN,
 	.nBlockAlign = BLOCK_ALIGN,
 	.wBitsPerSample = SAMPLE_DEPTH,
-	.cbSize = NULL
+	.cbSize = 0
 };
 
+typedef HRESULT (WINAPI *XAudio2Create_t)(IXAudio2** ppXAudio2, UINT Flags, XAUDIO2_PROCESSOR XAudio2Processor);
+
+static HMODULE dll;
+static XAudio2Create_t pXAudio2Create;
+
 void sound::init() {
-	auto hr = XAudio2Create(&xaudio);
-	if (FAILED(hr)) return;
+	dll = LoadLibraryA("xaudio2_8.dll");
+	if (!dll) {
+		return;
+	}
+
+	pXAudio2Create = (XAudio2Create_t)GetProcAddress(dll, "XAudio2Create");
+	if (!pXAudio2Create) {
+		FreeLibrary(dll);
+		return;
+	}
+
+	auto hr = pXAudio2Create(&xaudio, 0, XAUDIO2_DEFAULT_PROCESSOR);
+	if (FAILED(hr)) {
+		FreeLibrary(dll);
+		return;
+	}
 
 	hr = xaudio->CreateMasteringVoice(&master);
 	if (FAILED(hr)) {
 		xaudio->Release();
+		FreeLibrary(dll);
 		return;
 	}
 }

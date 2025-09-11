@@ -2,10 +2,10 @@
 #include "../jawengine/JawEngine.h"
 
 #include <cstdlib>
+#include <math.h>
 
 size_t makeSine(float freq, jaw::nanoseconds length, int16_t** data) {
 	constexpr int SAMPLE_RATE = 44100;
-	constexpr int CHANNELS = 2;
 	constexpr float AMPLITUDE = 0.5f;
 
 	float seconds = jaw::to_seconds(length);
