@@ -131,10 +131,6 @@ static BOOL CALLBACK MonitorEnumProc(HMONITOR hmon, HDC hdc, LPRECT lprc, LPARAM
 }
 
 HWND win::init(jaw::properties *props) {
-	// Show/Hide the console
-	HWND console = GetConsoleWindow();
-	ShowWindow(console, props->showCMD ? SW_SHOW : SW_HIDE);
-
 	// Enumerate monitors and select the correct one
 	std::vector<monitor> mons;
 	EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, (LPARAM)&mons);
@@ -271,6 +267,12 @@ HWND win::init(jaw::properties *props) {
 	);
 	ShowWindow(hwnd, SW_SHOW);
 	SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)props);
+
+	if (!props->showCMD) {
+		HWND console = GetConsoleWindow();
+		ShowWindow(console, SW_HIDE);
+		FreeConsole();
+	}
 
 	return hwnd;
 }
