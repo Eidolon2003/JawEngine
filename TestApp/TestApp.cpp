@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <math.h>
 
+#include <iostream>
+
 size_t makeSine(float freq, jaw::nanoseconds length, int16_t** data) {
 	constexpr int SAMPLE_RATE = 44100;
 	constexpr float AMPLITUDE = 0.5f;
@@ -34,11 +36,14 @@ static void init(jaw::properties* props) {
 		sound::write(id, sine, len, false);
 		sound::start(id);
 	}
+
+	printf("AVX2 Support: %d\n", props->cpuid.avx2);
 }
 
 static void loop(jaw::properties* props) {}
 
 int main() {
 	jaw::properties props;
+	props.showCMD = true;
 	engine::start(&props, nullptr, init, loop);
 }

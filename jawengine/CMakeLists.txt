@@ -35,3 +35,11 @@ if(WIN32)
 		#dxguid.lib
 	)
 endif()
+
+if(REQUIRE_AVX2)
+	if(MSVC)
+		target_compile_options(jawengine PRIVATE /arch:AVX2)
+	else()
+		target_compile_options(jawengine PRIVATE -mavx2)
+	endif()
+endif()

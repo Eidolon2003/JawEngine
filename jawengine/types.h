@@ -112,6 +112,10 @@ namespace jaw {
 		bool isDown;
 		bool isHeld;
 	};
+
+	struct cpuflags {
+		bool avx2;
+	};
 	
 	struct properties {
 		const char* title = " ";
@@ -152,6 +156,7 @@ namespace jaw {
 		jaw::nanoseconds logicFrametime = 0;
 		jaw::nanoseconds uptime = 0;
 		jaw::mouse mouse{};
+		jaw::cpuflags cpuid;
 
 		//Convenience functions
 		vec2i scaledSize() const {

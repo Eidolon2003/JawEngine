@@ -13,6 +13,7 @@
 
 #include <objbase.h>	//CoInitializeEx
 #include <mmsystem.h>	//timer
+#include <intrin.h>		//CPUID
 
 static bool running = true;
 static LARGE_INTEGER countsPerSecond;
@@ -76,9 +77,43 @@ end:
 	return;
 }
 
+void readCPU(jaw::properties* props) {
+	bool avx2 = false;
+	int flags[4];
+
+	// Calling __cpuid with 0 gets the highest valid ID
+	// We need ID of at least 7 to support AVX2
+	__cpuid(flags, 0);
+
+	if (flags[0] >= 7) {
+		// Check for AVX2 support
+		__cpuid(flags, 7);
+		if (flags[1] & (1 << 5) &&
+			(_xgetbv(0) & 6) == 6) {
+			avx2 = true;
+		}
+	}
+
+#ifdef __AVX2__
+	if (avx2) {
+		props->cpuid.avx2 = true;
+		return;
+	}
+	else {
+		MessageBox(NULL, "Your CPU does not support AVX2", "Instruction Set Not Supported", MB_OK | MB_ICONWARNING);
+		exit(1);
+	}
+#else
+	props->cpuid.avx2 = avx2;
+#endif
+}
+
 //TODO: run the renderer and game loop on two separate threads
 void engine::start(jaw::properties* props, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop) {
 	assert(props != nullptr);
+
+	// Read CPU flags for instruction set extensions
+	readCPU(props);
 
 	// This is for single-threaded only
 	auto hr_ = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_SPEED_OVER_MEMORY);

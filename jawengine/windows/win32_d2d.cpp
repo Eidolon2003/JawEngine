@@ -64,9 +64,31 @@ static inline float radtodeg(float a) {
 	return fmodf(deg + 360.f, 360.f);
 }
 
+static void multiplyAlpha_fallback(jaw::argb* dst, const jaw::argb* src, size_t n) {
+	for (size_t i = 0; i < n; i++) {
+		auto px = src[i];
+		uint8_t a = px >> 24;
+		float anorm = a / 255.f;
+		uint8_t r = (uint8_t)(((px >> 16) & 0xFF) * anorm);
+		uint8_t g = (uint8_t)(((px >> 8) & 0xFF) * anorm);
+		uint8_t b = (uint8_t)((px & 0xFF) * anorm);
+		dst[i] = (a << 24) | (r << 16) | (g << 8) | b;
+	}
+}
+static void multiplyAlpha_avx2(jaw::argb* dst, const jaw::argb* src, size_t n) {
+	// implementation to come
+	multiplyAlpha_fallback(dst, src, n);
+}
+static auto multiplyAlpha = multiplyAlpha_fallback;
+
 void draw::init(const jaw::properties* p, HWND hwnd) {
 	setlocale(LC_ALL, "en_US.UTF-8");	//Needed for wchar_t conversion
 	props = p;
+
+	// Set multiplyAlpha to use AVX2 if supported
+	if (props->cpuid.avx2) {
+		multiplyAlpha = multiplyAlpha_avx2;
+	}
 
 	// Direct2D Setup
 	D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &pD2DFactory);
@@ -467,15 +489,7 @@ bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb* pixels, size_t numPixels) {
 	jaw::argb* multiplied = (jaw::argb*)_malloca(numPixels * sizeof(jaw::argb));
 	if (!multiplied) { return false; }
 
-	for (size_t i = 0; i < numPixels; i++) {
-		auto px = pixels[i];
-		uint8_t a = px >> 24;
-		float anorm = a / 255.f;
-		uint8_t r = (uint8_t)(((px >> 16) & 0xFF) * anorm);
-		uint8_t g = (uint8_t)(((px >> 8) & 0xFF) * anorm);
-		uint8_t b = (uint8_t)((px & 0xFF) * anorm);
-		multiplied[i] = (a << 24) | (r << 16) | (g << 8) | b;
-	}
+	multiplyAlpha(multiplied, pixels, numPixels);
 
 	auto size = bmps[bmp]->GetPixelSize();
 	D2D1_RECT_U destRect {};
