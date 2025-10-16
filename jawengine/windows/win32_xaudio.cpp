@@ -29,10 +29,10 @@ static WAVEFORMATEX format{
 	.cbSize = 0
 };
 
-typedef HRESULT (WINAPI *XAudio2Create_t)(IXAudio2** ppXAudio2, UINT Flags, XAUDIO2_PROCESSOR XAudio2Processor);
+typedef HRESULT WINAPI XAudio2Create_t(IXAudio2** ppXAudio2, UINT Flags, XAUDIO2_PROCESSOR XAudio2Processor);
 
 static HMODULE dll;
-static XAudio2Create_t pXAudio2Create;
+static XAudio2Create_t* pXAudio2Create;
 
 void sound::init() {
 	dll = LoadLibraryA("xaudio2_8.dll");
@@ -40,7 +40,7 @@ void sound::init() {
 		return;
 	}
 
-	pXAudio2Create = (XAudio2Create_t)GetProcAddress(dll, "XAudio2Create");
+	pXAudio2Create = (XAudio2Create_t*)GetProcAddress(dll, "XAudio2Create");
 	if (!pXAudio2Create) {
 		FreeLibrary(dll);
 		return;
@@ -64,8 +64,15 @@ void sound::deinit() {
 	for (size_t i = 0; i < nextID; i++) {
 		sounds[i]->DestroyVoice();
 	}
+	nextID = 0;
+
 	master->DestroyVoice();
+	master = nullptr;
 	xaudio->Release();
+	xaudio = nullptr;
+	FreeLibrary(dll);
+	dll = NULL;
+	pXAudio2Create = nullptr;
 }
 
 jaw::soundid sound::create() {

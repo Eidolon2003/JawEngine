@@ -38,6 +38,7 @@ void asset::init() {
 
 void asset::deinit() {
 	iwic->Release();
+	iwic = nullptr;
 
 	for (auto& [key, val] : fileCache) {
 		auto x = UnmapViewOfFile(val.rawData);
@@ -47,6 +48,8 @@ void asset::deinit() {
 			VirtualFree(val.processedData, 0, MEM_RELEASE);
 		}
 	}
+
+	fileCache.clear();
 }
 
 size_t asset::file(const char* filename, void** data) {

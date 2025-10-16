@@ -277,6 +277,9 @@ HWND win::init(jaw::properties *props) {
 	return hwnd;
 }
 
-void win::deinit() {
+void win::deinit(HWND hwnd) {
 	UnregisterClassA(wc.lpszClassName, wc.hInstance);
+	// Reset className to "JAWENGINE_WINDOW_CLASS_", which is 23 chars long
+	className[23] = 0;
+	DestroyWindow(hwnd);
 }

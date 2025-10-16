@@ -133,6 +133,7 @@ void engine::start(jaw::properties* props, jaw::statefn initOnce, jaw::statefn i
 	assert(sid == 0);
 	state::push(sid);
 
+	running = true;
 	do {
 		input::beginFrame(props);
 		MSG msg;
@@ -157,12 +158,26 @@ void engine::start(jaw::properties* props, jaw::statefn initOnce, jaw::statefn i
 		limiter(props);
 	} while (running);
 
+	input::clear();
+	sprite::clear();
+	anim::clear();
+
+	state::deinit();
 	asset::deinit();
 	sound::deinit();
 	draw::deinit();
-	win::deinit();
+	win::deinit(hwnd);
 	timeEndPeriod(timerInfo.wPeriodMin);
 	CoUninitialize();
+
+	// Reset property variables set by the engine
+	props->winsize = jaw::vec2i();
+	props->framecount = 0;
+	props->totalFrametime = 0;
+	props->logicFrametime = 0;
+	props->uptime = 0;
+	props->mouse = {};
+	props->cpuid = {};
 }
 
 void engine::stop() {

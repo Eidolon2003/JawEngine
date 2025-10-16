@@ -233,20 +233,33 @@ void draw::init(const jaw::properties* p, HWND hwnd) {
 
 void draw::deinit() {
 	pBitmapTargetBMP->Release();
+	pBitmapTargetBMP = nullptr;
 	pBitmapTarget->Release();
+	pBitmapTarget = nullptr;
 	pSolidBrush->Release();
+	pSolidBrush = nullptr;
 	pParams->Release();
+	pParams = nullptr;
 	pDWFactory->Release();
+	pDWFactory = nullptr;
 	pRenderTarget->Release();
+	pRenderTarget = nullptr;
 	pD2DFactory->Release();
+	pD2DFactory = nullptr;
 
 	for (size_t i = 0; i < numFonts; i++) {
 		fonts[i]->Release();
 	}
+	numFonts = 0;
 
 	for (size_t i = 0; i < numBmps; i++) {
 		bmps[i]->Release();
 	}
+	numBmps = 0;
+
+	props = nullptr;
+	backgroundColor = tocolorf(0);
+	writeQueueFront = renderQueueFront = 0;
 }
 
 //Sort from the writeQueue into the renderQueue, reset writeQueue

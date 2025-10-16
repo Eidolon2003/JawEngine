@@ -55,3 +55,9 @@ bool state::loop(jaw::properties* props) {
 	f.loop(props);
 	return true;
 }
+
+void state::deinit() {
+	newStateFlag = false;
+	numStates = 0;
+	stackTop = 0;
+}

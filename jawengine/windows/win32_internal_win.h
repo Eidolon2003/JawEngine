@@ -9,5 +9,5 @@
 
 namespace win {
 	HWND init(jaw::properties*);
-	void deinit();
+	void deinit(HWND hwnd);
 }
