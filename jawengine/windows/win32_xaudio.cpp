@@ -8,10 +8,10 @@
 #include <windows.h>
 #include <xaudio2.h>
 
-static IXAudio2* xaudio;
-static IXAudio2MasteringVoice* master;
+static IXAudio2 *xaudio;
+static IXAudio2MasteringVoice *master;
 
-static IXAudio2SourceVoice* sounds[sound::MAX_NUM_SOUNDS];
+static IXAudio2SourceVoice *sounds[sound::MAX_NUM_SOUNDS];
 static size_t nextID;
 
 #define CHANNELS 2
@@ -29,10 +29,10 @@ static WAVEFORMATEX format{
 	.cbSize = 0
 };
 
-typedef HRESULT WINAPI XAudio2Create_t(IXAudio2** ppXAudio2, UINT Flags, XAUDIO2_PROCESSOR XAudio2Processor);
+typedef HRESULT WINAPI XAudio2Create_t(IXAudio2 **ppXAudio2, UINT Flags, XAUDIO2_PROCESSOR XAudio2Processor);
 
 static HMODULE dll;
-static XAudio2Create_t* pXAudio2Create;
+static XAudio2Create_t *pXAudio2Create;
 
 void sound::init() {
 	dll = LoadLibraryA("xaudio2_8.dll");
@@ -83,7 +83,7 @@ jaw::soundid sound::create() {
 	return (jaw::soundid)nextID++;
 }
 
-bool sound::write(jaw::soundid id, int16_t* data, size_t size, bool loop) {
+bool sound::write(jaw::soundid id, int16_t *data, size_t size, bool loop) {
 	if (id >= nextID || !data) return false;
 
 	XAUDIO2_BUFFER buffer{

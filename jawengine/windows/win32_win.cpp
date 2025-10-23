@@ -13,7 +13,7 @@
 #include <windowsx.h>	//GET_X_LPARAM, GET_Y_LPARAM
 #include <vector>
 
-static void handleMouse(WPARAM wparam, LPARAM lparam, jaw::properties* props) {
+static void handleMouse(WPARAM wparam, LPARAM lparam, jaw::properties *props) {
 	jaw::mouse mouse;
 	mouse.pos.x = GET_X_LPARAM(lparam);
 	mouse.pos.y = GET_Y_LPARAM(lparam);

@@ -21,13 +21,13 @@ typedef BYTE *WICInProcPointer;
 struct FileInfo {
 	size_t size = 0;
 	jaw::vec2i dim;	// For image files specifically, won't have a value for others
-	void* rawData = nullptr;
-	void* processedData = nullptr;
+	void *rawData = nullptr;
+	void *processedData = nullptr;
 };
 
 static std::unordered_map<std::string, FileInfo> fileCache;
 
-static IWICImagingFactory* iwic;
+static IWICImagingFactory *iwic;
 
 void asset::init() {
 	HRESULT hr = CoCreateInstance(
@@ -40,7 +40,7 @@ void asset::deinit() {
 	iwic->Release();
 	iwic = nullptr;
 
-	for (auto& [key, val] : fileCache) {
+	for (auto &[key, val] : fileCache) {
 		auto x = UnmapViewOfFile(val.rawData);
 		assert(x);
 
@@ -52,9 +52,9 @@ void asset::deinit() {
 	fileCache.clear();
 }
 
-size_t asset::file(const char* filename, void** data) {
+size_t asset::file(const char *filename, void **data) {
 	if (fileCache.contains(filename)) {
-		auto& info = fileCache[filename];
+		auto &info = fileCache[filename];
 		*data = info.rawData;
 		return info.size;
 	}
@@ -116,14 +116,14 @@ size_t asset::file(const char* filename, void** data) {
 	return (size_t)(size.QuadPart);
 }
 
-jaw::vec2i asset::bmp(const char* filename, jaw::argb** outputData) {
+jaw::vec2i asset::bmp(const char *filename, jaw::argb **outputData) {
 	if (fileCache.contains(filename)) {
-		auto& info = fileCache[filename];
+		auto &info = fileCache[filename];
 		*outputData = (jaw::argb*)info.processedData;
 		return info.dim;
 	}
 
-	void* rawData;
+	void *rawData;
 	size_t size = asset::file(filename, &rawData);
 	if (rawData == nullptr) {
 		// Couldn't open the file
@@ -131,22 +131,22 @@ jaw::vec2i asset::bmp(const char* filename, jaw::argb** outputData) {
 		return {};
 	}
 
-	IWICStream* stream;
+	IWICStream *stream;
 	HRESULT hr = iwic->CreateStream(&stream);
 	assert(SUCCEEDED(hr));
 	
 	hr = stream->InitializeFromMemory((WICInProcPointer)rawData, (DWORD)size);
 	assert(SUCCEEDED(hr));
 
-	IWICBitmapDecoder* decoder;
+	IWICBitmapDecoder *decoder;
 	hr = iwic->CreateDecoderFromStream(stream, NULL, WICDecodeMetadataCacheOnLoad, &decoder);
 	assert(SUCCEEDED(hr));
 
-	IWICBitmapFrameDecode* frame;
+	IWICBitmapFrameDecode *frame;
 	hr = decoder->GetFrame(0, &frame);
 	assert(SUCCEEDED(hr));
 
-	IWICFormatConverter* formatConverter;
+	IWICFormatConverter *formatConverter;
 	hr = iwic->CreateFormatConverter(&formatConverter);
 	assert(SUCCEEDED(hr));
 
@@ -164,7 +164,7 @@ jaw::vec2i asset::bmp(const char* filename, jaw::argb** outputData) {
 	formatConverter->GetSize(&x, &y);
 	jaw::vec2i dim(x, y);
 
-	jaw::argb* pixels = (jaw::argb*)VirtualAlloc(
+	jaw::argb *pixels = (jaw::argb*)VirtualAlloc(
 		NULL, (x * y * sizeof(jaw::argb)), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE
 	);
 	if (pixels == NULL) {
@@ -185,7 +185,7 @@ jaw::vec2i asset::bmp(const char* filename, jaw::argb** outputData) {
 	frame->Release();
 	formatConverter->Release();
 
-	auto& info = fileCache[filename];
+	auto &info = fileCache[filename];
 	info.processedData = pixels;
 	info.dim = dim;
 	*outputData = pixels;

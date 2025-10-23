@@ -13,7 +13,7 @@ static size_t stackTop = 0;
 
 static bool newStateFlag;
 
-jaw::stateid state::create(jaw::properties* props, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop) {
+jaw::stateid state::create(jaw::properties *props, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop) {
 	if (numStates == state::MAX_NUM_STATES
 		|| init == nullptr
 		|| loop == nullptr
@@ -43,10 +43,10 @@ bool state::pop() {
 	return true;
 }
 
-bool state::loop(jaw::properties* props) {
+bool state::loop(jaw::properties *props) {
 	if (stackTop == 0) return false;
 	const jaw::stateid s = stack[stackTop - 1];
-	const functions& f = states[s];
+	const functions &f = states[s];
 
 	if (newStateFlag) {
 		newStateFlag = false;

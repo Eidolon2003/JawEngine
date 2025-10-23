@@ -38,12 +38,12 @@ static jaw::nanoseconds accurateSleep(jaw::nanoseconds time, jaw::nanoseconds st
 	return retTime;
 }
 
-static void prelimit(jaw::properties* props) {
+static void prelimit(jaw::properties *props) {
 	// Record how long the frame took to process before any kind of limiting
 	props->logicFrametime = getTimePoint() - lastFrame;
 }
 
-static void limiter(jaw::properties* props) {
+static void limiter(jaw::properties *props) {
 	props->framecount++;
 	thisFrame = getTimePoint();
 	assert(thisFrame > lastFrame);
@@ -77,7 +77,7 @@ end:
 	return;
 }
 
-void readCPU(jaw::properties* props) {
+void readCPU(jaw::properties *props) {
 	bool avx2 = false;
 	int flags[4];
 
@@ -109,7 +109,7 @@ void readCPU(jaw::properties* props) {
 }
 
 //TODO: run the renderer and game loop on two separate threads
-void engine::start(jaw::properties* props, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop) {
+void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop) {
 	assert(props != nullptr);
 
 	// Read CPU flags for instruction set extensions

@@ -18,16 +18,16 @@
 
 #include <intrin.h>
 
-static const jaw::properties* props;
+static const jaw::properties *props;
 static D2D1_COLOR_F backgroundColor = D2D1::ColorF(0);
 
-static ID2D1Factory* pD2DFactory = nullptr;
-static ID2D1HwndRenderTarget* pRenderTarget = nullptr;
-static ID2D1BitmapRenderTarget* pBitmapTarget = nullptr;
-static ID2D1Bitmap* pBitmapTargetBMP = nullptr;
-static IDWriteFactory* pDWFactory = nullptr;
-static IDWriteRenderingParams* pParams = nullptr;
-static ID2D1SolidColorBrush* pSolidBrush = nullptr;
+static ID2D1Factory *pD2DFactory = nullptr;
+static ID2D1HwndRenderTarget *pRenderTarget = nullptr;
+static ID2D1BitmapRenderTarget *pBitmapTarget = nullptr;
+static ID2D1Bitmap *pBitmapTargetBMP = nullptr;
+static IDWriteFactory *pDWFactory = nullptr;
+static IDWriteRenderingParams *pParams = nullptr;
+static ID2D1SolidColorBrush *pSolidBrush = nullptr;
 static D2D1_BITMAP_INTERPOLATION_MODE interpMode;
 static D2D1_ANTIALIAS_MODE AAMode;
 
@@ -36,24 +36,24 @@ static draw::drawCall renderQueue[draw::MAX_QUEUE_SIZE];
 static size_t writeQueueFront = 0;
 static size_t renderQueueFront = 0;
 
-static IDWriteTextFormat* fonts[draw::MAX_NUM_FONTS];
+static IDWriteTextFormat *fonts[draw::MAX_NUM_FONTS];
 static size_t numFonts = 0;
 
-static ID2D1Bitmap* bmps[draw::MAX_NUM_BMPS];
-static ID2D1BitmapRenderTarget* bmpTargets[draw::MAX_NUM_BMPS];
+static ID2D1Bitmap *bmps[draw::MAX_NUM_BMPS];
+static ID2D1BitmapRenderTarget *bmpTargets[draw::MAX_NUM_BMPS];
 static size_t numBmps = 0;
 
 static wchar_t wstrBuffer[1024];
-static size_t towstrbuf(const char* str) {
+static size_t towstrbuf(const char *str) {
 	if (str == nullptr) return static_cast<size_t>(-1);
 	return mbstowcs(wstrBuffer, str, 1024);
 }
 
-static inline D2D1_POINT_2F topoint2f(const jaw::vec2i& v) {
+static inline D2D1_POINT_2F topoint2f(const jaw::vec2i &v) {
 	return D2D1::Point2F((float)v.x, (float)v.y);
 }
 
-static inline D2D1_RECT_F torectf(const jaw::recti& r) {
+static inline D2D1_RECT_F torectf(const jaw::recti &r) {
 	return D2D1::RectF((float)r.tl.x, (float)r.tl.y, (float)r.br.x, (float)r.br.y);
 }
 
@@ -66,9 +66,9 @@ static inline float radtodeg(float a) {
 	return fmodf(deg + 360.f, 360.f);
 }
 
-void multiplyAlpha_fallback(jaw::argb* dst, const jaw::argb* src, size_t n) {
-	const uint8_t* src_bytes = (const uint8_t*)src;
-	uint8_t* dst_bytes = (uint8_t*)dst;
+void multiplyAlpha_fallback(jaw::argb *dst, const jaw::argb *src, size_t n) {
+	const uint8_t *src_bytes = (const uint8_t*)src;
+	uint8_t *dst_bytes = (uint8_t*)dst;
 	for (size_t i = 0; i < n * 4; i += 4) {
 		// ideally we'd round(x / 255)
 		// (x + 128) >> 8 is pretty close and a lot faster
@@ -78,7 +78,7 @@ void multiplyAlpha_fallback(jaw::argb* dst, const jaw::argb* src, size_t n) {
 		dst_bytes[i+3] = src_bytes[i+3];
 	}
 }
-void multiplyAlpha_avx2(jaw::argb* dst, const jaw::argb* src, size_t n) {
+void multiplyAlpha_avx2(jaw::argb *dst, const jaw::argb *src, size_t n) {
 	size_t i = 0;
 	size_t rounded_n = n & ~7;
 
@@ -143,7 +143,7 @@ void multiplyAlpha_avx2(jaw::argb* dst, const jaw::argb* src, size_t n) {
 }
 static auto multiplyAlpha = multiplyAlpha_fallback;
 
-void draw::init(const jaw::properties* p, HWND hwnd) {
+void draw::init(const jaw::properties *p, HWND hwnd) {
 	setlocale(LC_ALL, "en_US.UTF-8");	//Needed for wchar_t conversion
 	props = p;
 
@@ -275,7 +275,7 @@ void draw::prepareRender() {
 	//Step 2: Calculate indicies based on these counts
 	size_t sum = 0;
 	size_t tmp = 0;
-	for (size_t& count : counts) {
+	for (size_t &count : counts) {
 		tmp = count;
 		count = sum;
 		sum += tmp;
@@ -291,8 +291,8 @@ void draw::prepareRender() {
 	writeQueueFront = 0;
 }
 
-static void inline renderLine(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
-	draw::lineOptions* opt = (draw::lineOptions*)(c.data);
+static void inline renderLine(const draw::drawCall &c, ID2D1BitmapRenderTarget *target) {
+	draw::lineOptions *opt = (draw::lineOptions*)(c.data);
 	pSolidBrush->SetColor(tocolorf(opt->color));
 
 	auto mid = (opt->p1 + opt->p2) / 2;
@@ -306,8 +306,8 @@ static void inline renderLine(const draw::drawCall& c, ID2D1BitmapRenderTarget* 
 	);
 }
 
-static void inline renderRect(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
-	draw::rectOptions* opt = (draw::rectOptions*)(c.data);
+static void inline renderRect(const draw::drawCall &c, ID2D1BitmapRenderTarget *target) {
+	draw::rectOptions *opt = (draw::rectOptions*)(c.data);
 	pSolidBrush->SetColor(tocolorf(opt->color));
 
 	auto mid = (opt->rect.tl + opt->rect.br) / 2;
@@ -319,8 +319,8 @@ static void inline renderRect(const draw::drawCall& c, ID2D1BitmapRenderTarget* 
 	);
 }
 
-static void inline renderStr(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
-	draw::strOptions* opt = (draw::strOptions*)(c.data);
+static void inline renderStr(const draw::drawCall &c, ID2D1BitmapRenderTarget *target) {
+	draw::strOptions *opt = (draw::strOptions*)(c.data);
 	pSolidBrush->SetColor(tocolorf(opt->color));
 
 	auto mid = (opt->rect.tl + opt->rect.br) / 2;
@@ -337,8 +337,8 @@ static void inline renderStr(const draw::drawCall& c, ID2D1BitmapRenderTarget* t
 }
 
 //TODO: Needs options for alpha and interp mode
-static void inline renderBmp(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
-	draw::bmpOptions* opt = (draw::bmpOptions*)(c.data);
+static void inline renderBmp(const draw::drawCall &c, ID2D1BitmapRenderTarget *target) {
+	draw::bmpOptions *opt = (draw::bmpOptions*)(c.data);
 
 	if (opt->bmp >= numBmps) return;
 
@@ -369,8 +369,8 @@ static void inline renderBmp(const draw::drawCall& c, ID2D1BitmapRenderTarget* t
 	);
 }
 
-static void inline renderEllipse(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
-	draw::ellipseOptions* opt = (draw::ellipseOptions*)(c.data);
+static void inline renderEllipse(const draw::drawCall &c, ID2D1BitmapRenderTarget *target) {
+	draw::ellipseOptions *opt = (draw::ellipseOptions*)(c.data);
 	pSolidBrush->SetColor(tocolorf(opt->color));
 
 	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(opt->angle), topoint2f(opt->ellipse.center)));
@@ -385,7 +385,7 @@ static void inline renderEllipse(const draw::drawCall& c, ID2D1BitmapRenderTarge
 	);
 }
 
-static void inline renderAny(const draw::drawCall& c, ID2D1BitmapRenderTarget* target) {
+static void inline renderAny(const draw::drawCall &c, ID2D1BitmapRenderTarget *target) {
 	switch (c.t) {
 	case draw::type::LINE:
 		renderLine(c, target);
@@ -474,7 +474,7 @@ void draw::setBackgroundColor(jaw::argb color) {
 	backgroundColor = tocolorf(color);
 }
 
-jaw::fontid draw::newFont(const draw::fontOptions* opt) {
+jaw::fontid draw::newFont(const draw::fontOptions *opt) {
 	if (numFonts == draw::MAX_NUM_FONTS) return jaw::INVALID_ID;
 	assert(opt != nullptr);
 
@@ -556,12 +556,12 @@ jaw::bmpid draw::createRenderableBmp(jaw::vec2i size) {
 }
 
 #if 1
-bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb* pixels, size_t numPixels) {
+bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb *pixels, size_t numPixels) {
 	if (bmp >= numBmps) return false;
 	assert(pixels != nullptr);
 
 	// Allocate space for this array on the stack
-	jaw::argb* multiplied = (jaw::argb*)_malloca(numPixels * sizeof(jaw::argb));
+	jaw::argb *multiplied = (jaw::argb*)_malloca(numPixels * sizeof(jaw::argb));
 	if (!multiplied) { return false; }
 
 	multiplyAlpha(multiplied, pixels, numPixels);
@@ -584,15 +584,15 @@ bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb* pixels, size_t numPixels) {
 }
 #else
 // This version is for testing if the avx multiply routine produces the right answer
-bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb* pixels, size_t numPixels) {
+bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb *pixels, size_t numPixels) {
 	if (bmp >= numBmps) return false;
 	assert(pixels != nullptr);
 
 	// Allocate space for this array on the stack
-	jaw::argb* multiplied1 = (jaw::argb*)_malloca(numPixels * sizeof(jaw::argb));
+	jaw::argb *multiplied1 = (jaw::argb*)_malloca(numPixels * sizeof(jaw::argb));
 	if (!multiplied1) { return false; }
 
-	jaw::argb* multiplied2 = (jaw::argb*)_malloca(numPixels * sizeof(jaw::argb));
+	jaw::argb *multiplied2 = (jaw::argb*)_malloca(numPixels * sizeof(jaw::argb));
 	if (!multiplied2) { return false; }
 
 	multiplyAlpha_fallback(multiplied1, pixels, numPixels);
@@ -620,7 +620,7 @@ bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb* pixels, size_t numPixels) {
 
 //TODO: see if I can do better than memcpy with wide registers or optimizing for 32 bytes, maybe?
 
-draw::drawCall draw::makeDraw(draw::type t, uint8_t z, const void* opt) {
+draw::drawCall draw::makeDraw(draw::type t, uint8_t z, const void *opt) {
 	if (opt == nullptr || t >= draw::NUM_TYPES) {
 		return { .t = NUM_TYPES };
 	}
@@ -632,7 +632,7 @@ draw::drawCall draw::makeDraw(draw::type t, uint8_t z, const void* opt) {
 	return x;
 }
 
-bool draw::enqueue(const draw::drawCall* c) {
+bool draw::enqueue(const draw::drawCall *c) {
 	assert(c != nullptr);
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
 	memcpy(writeQueue + writeQueueFront, c, sizeof(draw::drawCall));
@@ -640,7 +640,7 @@ bool draw::enqueue(const draw::drawCall* c) {
 	return true;
 }
 
-bool draw::enqueueMany(const draw::drawCall* c, size_t l) {
+bool draw::enqueueMany(const draw::drawCall *c, size_t l) {
 	assert(c != nullptr);
 	if (writeQueueFront + l > MAX_QUEUE_SIZE) return false;
 	memcpy(writeQueue + writeQueueFront, c, sizeof(draw::drawCall) * l);
@@ -648,39 +648,39 @@ bool draw::enqueueMany(const draw::drawCall* c, size_t l) {
 	return true;
 }
 
-bool draw::line(const draw::lineOptions* opt, uint8_t z) {
+bool draw::line(const draw::lineOptions *opt, uint8_t z) {
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
 	writeQueue[writeQueueFront++] = makeDraw(draw::type::LINE, z, opt);
 	return true;
 }
 
-bool draw::rect(const draw::rectOptions* opt, uint8_t z) {
+bool draw::rect(const draw::rectOptions *opt, uint8_t z) {
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
 	writeQueue[writeQueueFront++] = makeDraw(draw::type::RECT, z, opt);
 	return true;
 }
 
-bool draw::str(const draw::strOptions* opt, uint8_t z) {
+bool draw::str(const draw::strOptions *opt, uint8_t z) {
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
 	if (opt->font >= numFonts) return false;
 	writeQueue[writeQueueFront++] = makeDraw(draw::type::STR, z, opt);
 	return true;
 }
 
-bool draw::bmp(const draw::bmpOptions* opt, uint8_t z) {
+bool draw::bmp(const draw::bmpOptions *opt, uint8_t z) {
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
 	if (opt->bmp >= numBmps) return false;
 	writeQueue[writeQueueFront++] = makeDraw(draw::type::BMP, z, opt);
 	return true;
 }
 
-bool draw::ellipse(const draw::ellipseOptions* opt, uint8_t z) {
+bool draw::ellipse(const draw::ellipseOptions *opt, uint8_t z) {
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
 	writeQueue[writeQueueFront++] = makeDraw(draw::type::ELLIPSE, z, opt);
 	return true;
 }
 
-bool draw::renderToBmp(const draw::drawCall& call, jaw::bmpid bmp) {
+bool draw::renderToBmp(const draw::drawCall &call, jaw::bmpid bmp) {
 	if (!bmpTargets[bmp]) return false;
 	bmpTargets[bmp]->BeginDraw();
 	renderAny(call, bmpTargets[bmp]);

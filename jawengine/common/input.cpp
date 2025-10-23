@@ -22,7 +22,7 @@ static size_t nextID;
 static size_t numOpen;
 
 
-void input::beginFrame(jaw::properties* props) {
+void input::beginFrame(jaw::properties *props) {
 	for (int i = 0; i < 256; i++) {
 		if (keysReleased[i]) {
 			keys[i].isDown = false;
@@ -37,7 +37,7 @@ void input::beginFrame(jaw::properties* props) {
 	inputStringLength = 0;
 }
 
-void input::updateMouse(const jaw::mouse* m, jaw::properties* props) {
+void input::updateMouse(const jaw::mouse *m, jaw::properties *props) {
 	props->mouse.wheelDelta += m->wheelDelta;
 	props->mouse.prevFlags.all = props->mouse.flags.all;
 	props->mouse.flags.all = m->flags.all;
@@ -51,7 +51,7 @@ void input::updateMouse(const jaw::mouse* m, jaw::properties* props) {
 	for (size_t i = 0; i < nextID; i++) {
 		if (isOpen[i]) continue;
 
-		jaw::clickable* c = clickables + i;
+		jaw::clickable *c = clickables + i;
 
 		// Check if modifier keys match condition
 		if (c->condition.shift != m->flags.shift ||
@@ -137,7 +137,7 @@ void input::updateChar(char c) {
 
 // This logic is to make sure the game sees isDown being true
 // even if the key was pressed and released within one frame
-void input::updateKey(uint8_t code, bool isDown, jaw::properties* props) {
+void input::updateKey(uint8_t code, bool isDown, jaw::properties *props) {
 	if (isDown) {
 		keys[code].isDown = true;
 		keysReleased[code] = false;
@@ -163,7 +163,7 @@ void input::updateKey(uint8_t code, bool isDown, jaw::properties* props) {
 
 // Remove characters from the input string if the backspace key was pressed,
 // then add new ones
-void input::getString(char* str, size_t size) {
+void input::getString(char *str, size_t size) {
 	size_t len = strlen(str);
 	for (size_t i = 0; i < backspaceCount && len > 0; i++) {
 		str[--len] = 0;
@@ -209,7 +209,7 @@ void input::clear() {
 	memset(isOpen, 0, sizeof(isOpen));
 }
 
-jaw::clickableid input::createClickable(const jaw::clickable& c) {
+jaw::clickableid input::createClickable(const jaw::clickable &c) {
 	if (nextID == input::MAX_NUM_CLICKABLE && numOpen == 0) return jaw::INVALID_ID;
 
 	jaw::clickableid newID;
@@ -231,7 +231,7 @@ void input::destroy(jaw::clickableid id) {
 	openSlots[numOpen++] = id;
 }
 
-jaw::clickable* input::idtoptr(jaw::clickableid id) {
+jaw::clickable *input::idtoptr(jaw::clickableid id) {
 	if (id >= nextID || isOpen[id]) return nullptr;
 	return clickables + id;
 }

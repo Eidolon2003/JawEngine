@@ -118,7 +118,7 @@ namespace jaw {
 	};
 	
 	struct properties {
-		const char* title = " ";
+		const char *title = " ";
 		vec2i size = vec2i(640, 480);		// The logical size of the window
 		float scale = 1.f;					// Integer scaling values use nearest neighbor
 		float targetFramerate = 0;			// <=0 means VSync
@@ -147,7 +147,7 @@ namespace jaw {
 		} mode = WINDOWED;
 
 		// This may be used for any sort of game data that needs to be passed around
-		void* data = nullptr;
+		void *data = nullptr;
 
 		//These are automatically populated by the system, read only
 		vec2i winsize = vec2i();

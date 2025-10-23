@@ -2,16 +2,16 @@
 #include "../jawengine/JawEngine.h"
 
 jaw::bmpid bmp;
-jaw::argb* img;
+jaw::argb *img;
 jaw::vec2i dim;
 
-static void init(jaw::properties* props) {
+static void init(jaw::properties *props) {
 	dim = asset::bmp("F:/assets/test-animation/idle-40x70x6.png", &img);
 	bmp = draw::createBmp(dim);
 	draw::writeBmp(bmp, img, dim);
 }
 
-static void loop(jaw::properties* props) {
+static void loop(jaw::properties *props) {
 	draw::bmp(draw::bmpOptions{
 		.bmp = bmp,
 		.src = jaw::recti(0,dim),

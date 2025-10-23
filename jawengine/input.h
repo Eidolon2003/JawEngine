@@ -9,7 +9,7 @@ namespace input {
 
 	// Adds characters to this string upto size
 	// May also remove characters if the backspace key was pressed
-	void getString(char* str, size_t);
+	void getString(char *str, size_t);
 
 	// Clear all key and mouse bindings, and all clickables
 	void clear();
@@ -36,5 +36,5 @@ namespace input {
 	void destroy(jaw::clickableid);
 
 	// Returns nullptr on invalid ID
-	jaw::clickable* idtoptr(jaw::clickableid);
+	jaw::clickable *idtoptr(jaw::clickableid);
 }

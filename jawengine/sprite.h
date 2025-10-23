@@ -16,7 +16,7 @@ namespace sprite {
 
 	// Convert sprite ID to a pointer for reading or writing
 	// Returns nullptr on invalid ID
-	jaw::sprite* idtoptr(jaw::sprid);
+	jaw::sprite *idtoptr(jaw::sprid);
 
 	// Assign a custom update function to a sprite
 	// By default, the default handler is called
@@ -47,7 +47,7 @@ namespace anim {
 
 	// Convert IDs to pointers
 	// Returns nullptr for invalid ID
-	jaw::animation* idtoptr(jaw::animdefid);
+	jaw::animation *idtoptr(jaw::animdefid);
 
 	// Create an instance of an animation type to tie to one or more sprites
 	// Returns jaw::INVALID_ID if out of space
