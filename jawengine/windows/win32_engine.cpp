@@ -8,7 +8,11 @@
 #include "../common/internal_input.h"
 #include "../common/internal_asset.h"
 #include "../common/internal_state.h"
+
+#ifndef NSPRITE
 #include "../common/internal_sprite.h"
+#endif
+
 #include "../common/internal_sound.h"
 
 #include <objbase.h>	//CoInitializeEx
@@ -143,7 +147,9 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 			DispatchMessage(&msg);
 		}
 
+#ifndef NSPRITE
 		sprite::tick(props);
+#endif
 
 		if (!state::loop(props)) {
 			engine::stop();
@@ -158,10 +164,12 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 		limiter(props);
 	} while (running);
 
-	input::clear();
+#ifndef NSPRITE
 	sprite::clear();
 	anim::clear();
+#endif
 
+	input::clear();
 	state::deinit();
 	asset::deinit();
 	sound::deinit();

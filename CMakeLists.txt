@@ -11,6 +11,7 @@ endif()
 
 # Compilation Options
 option(REQUIRE_AVX2 "Enable AVX2 optimizations" OFF)
+option(NSPRITE "Disable Sprite and Animation APIs" OFF)
 
 project("JawEngine")
 

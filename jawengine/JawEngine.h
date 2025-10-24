@@ -15,7 +15,11 @@
 #include "draw.h"
 #include "input.h"
 #include "state.h"
+
+#ifndef NSPRITE
 #include "sprite.h"
+#endif
+
 #include "sound.h"
 
 namespace engine {

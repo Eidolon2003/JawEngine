@@ -3,6 +3,7 @@ target_link_libraries(TestApp jawengine)
 set_property(TARGET TestApp PROPERTY CXX_STANDARD 20)
 
 if(REQUIRE_AVX2)
+	message("TestApp REQUIRE_AVX2 ON")
 	if(MSVC)
 		target_compile_options(TestApp PRIVATE /arch:AVX2)
 	else()

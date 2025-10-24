@@ -15,9 +15,6 @@ namespace jaw {
 	typedef uint32_t bmpid;
 	typedef uint32_t fontid;
 	typedef uint32_t stateid;
-	typedef uint32_t sprid;
-	typedef uint32_t animstateid;
-	typedef uint32_t animdefid;
 	typedef uint32_t clickableid;
 	typedef uint32_t soundid;
 
@@ -164,6 +161,11 @@ namespace jaw {
 		}
 	};
 
+#ifndef NSPRITE
+	typedef uint32_t sprid;
+	typedef uint32_t animstateid;
+	typedef uint32_t animdefid;
+
 	struct animation {
 		unsigned startFrame = 0;
 		unsigned endFrame = 0;
@@ -200,8 +202,10 @@ namespace jaw {
 		constexpr jaw::recti rect() const { return jaw::recti(pos, jaw::vec2i(pos) + frameSize); }
 	};
 
-	typedef void (*statefn)(jaw::properties*);
 	typedef void (*sprfn)(jaw::sprid, jaw::properties*);
+#endif
+
+	typedef void (*statefn)(jaw::properties*);
 	typedef jaw::recti(*rectfn)(jaw::properties*);
 
 	struct clickable {
