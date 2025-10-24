@@ -13,14 +13,22 @@
 #include "types.h"
 #include "asset.h"
 #include "draw.h"
-#include "input.h"
-#include "state.h"
 
-#ifndef NSPRITE
+#ifndef JAW_NSPRITE
 #include "sprite.h"
 #endif
 
+#ifndef JAW_NSOUND
 #include "sound.h"
+#endif
+
+#ifndef JAW_NINPUT
+#include "input.h"
+#endif
+
+#ifndef JAW_NSTATE
+#include "state.h"
+#endif
 
 namespace engine {
 	void start(jaw::properties*, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop);

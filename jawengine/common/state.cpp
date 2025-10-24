@@ -15,7 +15,6 @@ static bool newStateFlag;
 
 jaw::stateid state::create(jaw::properties *props, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop) {
 	if (numStates == state::MAX_NUM_STATES
-		|| init == nullptr
 		|| loop == nullptr
 	) {
 		return jaw::INVALID_ID;
@@ -48,7 +47,7 @@ bool state::loop(jaw::properties *props) {
 	const jaw::stateid s = stack[stackTop - 1];
 	const functions &f = states[s];
 
-	if (newStateFlag) {
+	if (newStateFlag && f.init) {
 		newStateFlag = false;
 		f.init(props);
 	}

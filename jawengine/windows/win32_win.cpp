@@ -7,12 +7,17 @@
 #endif
 
 #include "win32_internal_win.h"
+
+#ifndef JAW_NINPUT
 #include "../common/internal_input.h"
+#endif
+
 #include <cmath>	//floorf, min
 #include <cassert>
 #include <windowsx.h>	//GET_X_LPARAM, GET_Y_LPARAM
 #include <vector>
 
+#ifndef JAW_NINPUT
 static void handleMouse(WPARAM wparam, LPARAM lparam, jaw::properties *props) {
 	jaw::mouse mouse;
 	mouse.pos.x = GET_X_LPARAM(lparam);
@@ -58,11 +63,13 @@ static void handleMouse(WPARAM wparam, LPARAM lparam, jaw::properties *props) {
 
 	input::updateMouse(&mouse, props);
 }
+#endif
 
 static LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 	auto props = (jaw::properties*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
 	switch (umsg) {
+#ifndef JAW_NINPUT
 	case WM_LBUTTONDOWN:
 	case WM_RBUTTONDOWN:
 	case WM_MBUTTONDOWN:
@@ -95,6 +102,7 @@ static LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lpa
 		uint8_t vkc = wparam & 0xFF;
 		input::updateKey(vkc, false, props);
 	}	return 0;
+#endif
 
 	case WM_CLOSE:
 		PostQuitMessage(0);

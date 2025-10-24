@@ -14,9 +14,6 @@ namespace jaw {
 	constexpr uint32_t INVALID_ID = UINT32_MAX;
 	typedef uint32_t bmpid;
 	typedef uint32_t fontid;
-	typedef uint32_t stateid;
-	typedef uint32_t clickableid;
-	typedef uint32_t soundid;
 
 	typedef uint32_t argb;
 	namespace color {
@@ -85,6 +82,7 @@ namespace jaw {
 		}
 	};
 
+#ifndef JAW_NINPUT
 	union mouseFlags {
 		uint8_t all {};
 		struct {
@@ -109,9 +107,10 @@ namespace jaw {
 		bool isDown;
 		bool isHeld;
 	};
+#endif
 
 	struct cpuflags {
-		bool avx2;
+		bool avx2 = false;
 	};
 	
 	struct properties {
@@ -152,8 +151,11 @@ namespace jaw {
 		jaw::nanoseconds totalFrametime = 0;
 		jaw::nanoseconds logicFrametime = 0;
 		jaw::nanoseconds uptime = 0;
+		jaw::cpuflags cpuid{};
+
+#ifndef JAW_NINPUT
 		jaw::mouse mouse{};
-		jaw::cpuflags cpuid;
+#endif
 
 		//Convenience functions
 		vec2i scaledSize() const {
@@ -161,7 +163,11 @@ namespace jaw {
 		}
 	};
 
-#ifndef NSPRITE
+#ifndef JAW_NSOUND
+	typedef uint32_t soundid;
+#endif
+
+#ifndef JAW_NSPRITE
 	typedef uint32_t sprid;
 	typedef uint32_t animstateid;
 	typedef uint32_t animdefid;
@@ -208,9 +214,16 @@ namespace jaw {
 	typedef void (*statefn)(jaw::properties*);
 	typedef jaw::recti(*rectfn)(jaw::properties*);
 
+#ifndef JAW_NINPUT
+	typedef uint32_t clickableid;
 	struct clickable {
 		jaw::rectfn getRect = nullptr;
 		jaw::statefn callback = nullptr;
 		jaw::mouseFlags condition{};
 	};
+#endif
+
+#ifndef JAW_NSTATE
+	typedef uint32_t stateid;
+#endif
 }

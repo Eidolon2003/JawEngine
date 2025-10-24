@@ -44,7 +44,7 @@
 		},
 
 		{
-			"name": "windows-native-debug",
+			"name": "native-debug",
 			"inherits": "windows-native-base",
 			"architecture": {
 				"value": "x64",
@@ -54,13 +54,13 @@
 		},
 
 		{
-			"name": "windows-native-release",
-			"inherits": "windows-native-debug",
+			"name": "native-release",
+			"inherits": "native-debug",
 			"cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
 		},
 
 		{
-			"name": "windows-linux-debug",
+			"name": "windows-debug",
 			"inherits": "windows-linux-base",
 			"architecture": {
 				"value": "x64",
@@ -70,31 +70,31 @@
 		},
 
 		{
-			"name": "windows-linux-release",
-			"inherits": "windows-linux-debug",
+			"name": "windows-release",
+			"inherits": "windows-debug",
 			"cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
 		}
 	],
 
 	"buildPresets": [
 		{
-			"name": "windows-native-debug",
-			"configurePreset": "windows-native-debug"
+			"name": "native-debug",
+			"configurePreset": "native-debug"
 		},
 
 		{
-			"name": "windows-native-release",
-			"configurePreset": "windows-native-release"
+			"name": "native-release",
+			"configurePreset": "native-release"
 		},
 
 		{
-			"name": "windows-linux-debug",
-			"configurePreset": "windows-linux-debug"
+			"name": "windows-debug",
+			"configurePreset": "windows-debug"
 		},
 
 		{
-			"name": "windows-linux-release",
-			"configurePreset": "windows-linux-release"
+			"name": "windows-release",
+			"configurePreset": "windows-release"
 		}
 	]
 }
