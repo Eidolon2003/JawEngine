@@ -3,20 +3,46 @@
 #include "avx2.h"
 #include <intrin.h>
 
+static inline void cpuid(int regs[4], int leaf, int subleaf = 0) {
+#if defined(_MSC_VER)
+	__cpuidex(regs, leaf, subleaf);
+#elif defined(__GNUC__) || defined(__clang__)
+	unsigned int eax, ebx, ecx, edx;
+	__asm__ volatile("cpuid"
+		: "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx)
+		: "a"(leaf), "c"(subleaf));
+	regs[0] = eax; regs[1] = ebx; regs[2] = ecx; regs[3] = edx;
+#else
+	regs[0] = regs[1] = regs[2] = regs[3] = 0;
+#endif
+}
+
+static inline uint64_t xgetbv(uint32_t index) {
+#if defined(_MSC_VER)
+	return _xgetbv(index);
+#elif defined(__GNUC__) || defined(__clang__)
+	uint32_t eax, edx;
+	__asm__ volatile(".byte 0x0f,0x01,0xd0" : "=a"(eax), "=d"(edx) : "c"(index));
+	return ((uint64_t)edx << 32) | eax;
+#else
+	return 0;
+#endif
+}
+
 bool isAVX2() {
 	int flags[4];
 	// Calling __cpuid with 0 gets the highest valid ID
 	// We need ID of at least 7 to support AVX2
-	__cpuid(flags, 0);
+	cpuid(flags, 0);
 
 	if (flags[0] >= 7) {
 		// Check for AVX2 support from the processor
-		__cpuid(flags, 7);
+		cpuid(flags, 7);
 		if (flags[1] & (1 << 5)) {
 			// Check for support from the operating system.
 			// A native Windows machine will pass the ==6 test
-			auto xgetbv = _xgetbv(0);
-			return (xgetbv & 6) == 6;
+			auto x = xgetbv(0);
+			return (x & 6) == 6;
 		}
 		else return false;
 	}

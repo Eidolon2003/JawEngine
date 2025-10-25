@@ -22,5 +22,6 @@ static void loop(jaw::properties *props) {
 int main() {
 	jaw::properties props;
 	props.scale = 4;
+	props.showCMD = true;
 	engine::start(&props, nullptr, init, loop);
 }
