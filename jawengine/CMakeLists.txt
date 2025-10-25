@@ -1,4 +1,4 @@
-﻿set(JAWENGINE_SOURCES)
+﻿set(JAWENGINE_SOURCES "common/avx2.cpp")
 
 if(WIN32)
 	message("JawEngine for Windows")
@@ -52,6 +52,12 @@ if(REQUIRE_AVX2)
 		target_compile_options(jawengine PRIVATE /arch:AVX2)
 	else()
 		target_compile_options(jawengine PRIVATE -mavx2)
+	endif()
+else()
+	if(MSVC)
+		set_source_files_properties("common/avx2.cpp" PROPERTIES COMPILE_FLAGS /arch:AVX2)
+	else()
+		set_source_files_properties("common/avx2.cpp" PROPERTIES COMPILE_FLAGS -mavx2)
 	endif()
 endif()
 
