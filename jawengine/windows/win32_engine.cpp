@@ -89,28 +89,49 @@ end:
 	return;
 }
 
+static bool isWINE() {
+	static bool cached = false;
+	static bool wine = false;
+
+	if (!cached) {
+		HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+		wine = ntdll && GetProcAddress(ntdll, "wine_get_version");
+		cached = true;
+	}
+	return wine;
+}
+
+// TODO: update this routine to probe for AVX2 support by trying to execute an instruction
+#include <iostream>
 static void readCPU(jaw::properties *props) {
 	bool avx2 = false;
 	int flags[4];
 
-	// Calling __cpuid with 0 gets the highest valid ID
-	// We need ID of at least 7 to support AVX2
-	__cpuid(flags, 0);
+	if (isWINE()) {
+		// This assumes that any system running WINE supports AVX2
+		// This will NOT always be the case, and will crash on systems that don't
+		// WINE does not correctly support the CPUID flag and xgetbv checks that I do for Windows below
+		avx2 = true;
+		std::cerr << "Warning: Assuming AVX2 support under WINE. This may crash on CPUs without AVX2 extensions\n";
+	}
+	else {
+		// Calling __cpuid with 0 gets the highest valid ID
+		// We need ID of at least 7 to support AVX2
+		__cpuid(flags, 0);
 
-	if (flags[0] >= 7) {
-		// Check for AVX2 support from the processor
-		__cpuid(flags, 7);
-		if (flags[1] & (1 << 5)) {
-			// Check for support from the operating system.
-			// A native Windows machine will pass the ==6 test,
-			// but also allow ==0 for WINE support because WINE doesn't correctly implement xgetbv
-			auto xgetbv = _xgetbv(0);
-			if ((xgetbv & 6) == 6 || xgetbv == 0) {
-				avx2 = true;
+		if (flags[0] >= 7) {
+			// Check for AVX2 support from the processor
+			__cpuid(flags, 7);
+			if (flags[1] & (1 << 5)) {
+				// Check for support from the operating system.
+				// A native Windows machine will pass the ==6 test
+				auto xgetbv = _xgetbv(0);
+				if ((xgetbv & 6) == 6) {
+					avx2 = true;
+				}
 			}
 		}
 	}
-
 #ifdef __AVX2__
 	if (avx2) {
 		props->cpuid.avx2 = true;
