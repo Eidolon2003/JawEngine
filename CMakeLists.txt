@@ -18,14 +18,11 @@ option(NSTATE "Disable state API" OFF)
 
 project("JawEngine")
 
-# Include sub-projects.
-add_subdirectory("jawengine")
-add_subdirectory("TestApp")
-
 # LTO
 option(ENABLE_LTO "Enable Link-Time Optimization in Release builds" ON)
 if(ENABLE_LTO)
 	if(MSVC)
+		add_compile_options()
 		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GL")
 		set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LTCG")
 		set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /LTCG")
@@ -45,3 +42,7 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	message("CMAKE_EXE_LINKER_FLAGS_DEBUG = ${CMAKE_EXE_LINKER_FLAGS_DEBUG}")
 	message("CMAKE_SHARED_LINKER_FLAGS_DEBUG = ${CMAKE_SHARED_LINKER_FLAGS_DEBUG}")
 endif()
+
+# Include sub-projects.
+add_subdirectory("jawengine")
+add_subdirectory("TestApp")
