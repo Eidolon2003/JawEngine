@@ -6,6 +6,7 @@
 #include "win32_internal_draw.h"
 #include "win32_internal_win.h"
 #include "../common/internal_asset.h"
+#include "../common/avx2.h"	//isAVX2
 
 #ifndef JAW_NSPRITE
 #include "../common/internal_sprite.h"
@@ -25,7 +26,6 @@
 
 #include <objbase.h>	//CoInitializeEx
 #include <mmsystem.h>	//timer
-#include <intrin.h>		//CPUID
 
 static bool running = true;
 static LARGE_INTEGER countsPerSecond;
@@ -105,7 +105,6 @@ static bool isWINE() {
 #include <iostream>
 static void readCPU(jaw::properties *props) {
 	bool avx2 = false;
-	int flags[4];
 
 	if (isWINE()) {
 		// This assumes that any system running WINE supports AVX2
@@ -115,22 +114,7 @@ static void readCPU(jaw::properties *props) {
 		std::cerr << "Warning: Assuming AVX2 support under WINE. This may crash on CPUs without AVX2 extensions\n";
 	}
 	else {
-		// Calling __cpuid with 0 gets the highest valid ID
-		// We need ID of at least 7 to support AVX2
-		__cpuid(flags, 0);
-
-		if (flags[0] >= 7) {
-			// Check for AVX2 support from the processor
-			__cpuid(flags, 7);
-			if (flags[1] & (1 << 5)) {
-				// Check for support from the operating system.
-				// A native Windows machine will pass the ==6 test
-				auto xgetbv = _xgetbv(0);
-				if ((xgetbv & 6) == 6) {
-					avx2 = true;
-				}
-			}
-		}
+		avx2 = isAVX2();
 	}
 #ifdef __AVX2__
 	if (avx2) {

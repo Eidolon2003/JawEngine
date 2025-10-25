@@ -3,6 +3,25 @@
 #include "avx2.h"
 #include <intrin.h>
 
+bool isAVX2() {
+	int flags[4];
+	// Calling __cpuid with 0 gets the highest valid ID
+	// We need ID of at least 7 to support AVX2
+	__cpuid(flags, 0);
+
+	if (flags[0] >= 7) {
+		// Check for AVX2 support from the processor
+		__cpuid(flags, 7);
+		if (flags[1] & (1 << 5)) {
+			// Check for support from the operating system.
+			// A native Windows machine will pass the ==6 test
+			auto xgetbv = _xgetbv(0);
+			return (xgetbv & 6) == 6;
+		}
+		else return false;
+	}
+	else return false;
+}
 
 static void multiplyAlpha_scalar(jaw::argb *dst, const jaw::argb *src, size_t n) {
 	const uint8_t *src_bytes = (const uint8_t*)src;
