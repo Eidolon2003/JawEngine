@@ -98,11 +98,16 @@ static void readCPU(jaw::properties *props) {
 	__cpuid(flags, 0);
 
 	if (flags[0] >= 7) {
-		// Check for AVX2 support
+		// Check for AVX2 support from the processor
 		__cpuid(flags, 7);
-		if (flags[1] & (1 << 5) &&
-			(_xgetbv(0) & 6) == 6) {
-			avx2 = true;
+		if (flags[1] & (1 << 5)) {
+			// Check for support from the operating system.
+			// A native Windows machine will pass the ==6 test,
+			// but also allow ==0 for WINE support because WINE doesn't correctly implement xgetbv
+			auto xgetbv = _xgetbv(0);
+			if ((xgetbv & 6) == 6 || xgetbv == 0) {
+				avx2 = true;
+			}
 		}
 	}
 
