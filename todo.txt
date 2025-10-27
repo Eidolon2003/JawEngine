@@ -4,6 +4,7 @@ Features:
 - Timers
 - Collision detection
 - Thread safety
+- Arena allocators (temp and persistent)
 
 Projects:
 - Demo Raycaster

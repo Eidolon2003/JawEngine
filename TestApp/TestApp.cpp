@@ -12,10 +12,18 @@ static void init(jaw::properties *props) {
 }
 
 static void loop(jaw::properties *props) {
+	/*
 	draw::bmp(draw::bmpOptions{
 		.bmp = bmp,
 		.src = jaw::recti(0,dim),
 		.dest = jaw::recti(0,dim)
+	}, 0);
+	*/
+
+	draw::enqueue(draw::bmp{
+		.bmp = bmp,
+		.src = jaw::recti(0, dim),
+		.dest = jaw::recti(0, dim)
 	}, 0);
 }
 

@@ -147,8 +147,8 @@ void sprite::draw(jaw::sprid id, jaw::properties *props) {
 	if (!spr || spr->bmp == jaw::INVALID_ID) return;
 
 	if (spr->animState == jaw::INVALID_ID || isStateOpen[spr->animState]) {
-		draw::bmp(
-			draw::bmpOptions{
+		draw::enqueue(
+			draw::bmp{
 				.bmp = spr->bmp,
 				.src = jaw::recti(jaw::vec2i(), spr->frameSize),
 				.dest = spr->rect(),
@@ -169,8 +169,8 @@ void sprite::draw(jaw::sprid id, jaw::properties *props) {
 	);
 	auto src = jaw::recti(tl, tl + spr->frameSize);
 
-	draw::bmp(
-		draw::bmpOptions{
+	draw::enqueue(
+		draw::bmp{
 			.bmp = spr->bmp,
 			.src = src,
 			.dest = spr->rect(),

@@ -31,8 +31,8 @@ static ID2D1SolidColorBrush *pSolidBrush = nullptr;
 static D2D1_BITMAP_INTERPOLATION_MODE interpMode;
 static D2D1_ANTIALIAS_MODE AAMode;
 
-static draw::drawCall writeQueue[draw::MAX_QUEUE_SIZE];
-static draw::drawCall renderQueue[draw::MAX_QUEUE_SIZE];
+static draw::drawCall writeQueue[draw::MAX_QUEUE_SIZE]{};
+static draw::drawCall renderQueue[draw::MAX_QUEUE_SIZE]{};
 static size_t writeQueueFront = 0;
 static size_t renderQueueFront = 0;
 
@@ -66,7 +66,7 @@ static inline float radtodeg(float a) {
 	return fmodf(deg + 360.f, 360.f);
 }
 
-void multiplyAlpha_fallback(jaw::argb *dst, const jaw::argb *src, size_t n) {
+static void multiplyAlpha_fallback(jaw::argb *dst, const jaw::argb *src, size_t n) {
 	const uint8_t *src_bytes = (const uint8_t*)src;
 	uint8_t *dst_bytes = (uint8_t*)dst;
 	for (size_t i = 0; i < n * 4; i += 4) {
@@ -163,7 +163,7 @@ void draw::init(const jaw::properties *p, HWND hwnd) {
 	}
 
 	// Create the deafault font as font zero
-	auto f = fontOptions();
+	auto f = font();
 	auto id = draw::newFont(&f);
 	assert(id == 0);
 }
@@ -229,94 +229,89 @@ void draw::prepareRender() {
 }
 
 static void inline renderLine(const draw::drawCall &c, ID2D1BitmapRenderTarget *target) {
-	draw::lineOptions *opt = (draw::lineOptions*)(c.data);
-	pSolidBrush->SetColor(tocolorf(opt->color));
+	pSolidBrush->SetColor(tocolorf(c.line.color));
 
-	auto mid = (opt->p1 + opt->p2) / 2;
-	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(opt->angle), topoint2f(mid)));
+	auto mid = (c.line.p1 + c.line.p2) / 2;
+	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(c.line.angle), topoint2f(mid)));
 
 	target->DrawLine(
-		topoint2f(opt->p1),
-		topoint2f(opt->p2),
+		topoint2f(c.line.p1),
+		topoint2f(c.line.p2),
 		pSolidBrush,
-		(float)opt->width
+		(float)c.line.width
 	);
 }
 
 static void inline renderRect(const draw::drawCall &c, ID2D1BitmapRenderTarget *target) {
-	draw::rectOptions *opt = (draw::rectOptions*)(c.data);
-	pSolidBrush->SetColor(tocolorf(opt->color));
+	pSolidBrush->SetColor(tocolorf(c.rect.color));
 
-	auto mid = (opt->rect.tl + opt->rect.br) / 2;
-	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(opt->angle), topoint2f(mid)));
+	auto mid = (c.rect.rect.tl + c.rect.rect.br) / 2;
+	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(c.rect.angle), topoint2f(mid)));
 
 	target->FillRectangle(
-		torectf(opt->rect),
+		torectf(c.rect.rect),
 		pSolidBrush
 	);
 }
 
 static void inline renderStr(const draw::drawCall &c, ID2D1BitmapRenderTarget *target) {
-	draw::strOptions *opt = (draw::strOptions*)(c.data);
-	pSolidBrush->SetColor(tocolorf(opt->color));
+	pSolidBrush->SetColor(tocolorf(c.str.color));
 
-	auto mid = (opt->rect.tl + opt->rect.br) / 2;
-	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(opt->angle), topoint2f(mid)));
+	auto mid = (c.str.rect.tl + c.str.rect.br) / 2;
+	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(c.str.angle), topoint2f(mid)));
 
-	auto len = towstrbuf(opt->str);
+	auto len = towstrbuf(c.str.str);
 	target->DrawText(
 		wstrBuffer,
 		(UINT32)len,
-		fonts[opt->font],
-		torectf(opt->rect),
+		fonts[c.str.font],
+		torectf(c.str.rect),
 		pSolidBrush
 	);
 }
 
 //TODO: Needs options for alpha and interp mode
 static void inline renderBmp(const draw::drawCall &c, ID2D1BitmapRenderTarget *target) {
-	draw::bmpOptions *opt = (draw::bmpOptions*)(c.data);
+	if (c.bmp.bmp >= numBmps) return;
 
-	if (opt->bmp >= numBmps) return;
-
-	auto mid = (opt->dest.tl + opt->dest.br) / 2;
+	auto mid = (c.bmp.dest.tl + c.bmp.dest.br) / 2;
 	auto transform = D2D1::Matrix3x2F::Identity();
-	
-	if (opt->mirrorX) {
+	auto transDest = c.bmp.dest;
+
+	if (c.bmp.mirrorX) {
 		transform = transform * D2D1::Matrix3x2F::Scale(-1.f, 1.f);
-		opt->dest.br.x = -opt->dest.br.x;
-		opt->dest.tl.x = -opt->dest.tl.x;
+		transDest.br.x = -c.bmp.dest.br.x;
+		transDest.tl.x = -c.bmp.dest.tl.x;
 	}
 
-	if (opt->mirrorY) {
+	if (c.bmp.mirrorY) {
 		transform = transform * D2D1::Matrix3x2F::Scale(1.f, -1.f);
-		opt->dest.br.y = -opt->dest.br.y;
-		opt->dest.tl.y = -opt->dest.tl.y;
+		transDest.br.y = -c.bmp.dest.br.y;
+		transDest.tl.y = -c.bmp.dest.tl.y;
 	}
 
-	transform = transform * D2D1::Matrix3x2F::Rotation(radtodeg(opt->angle), topoint2f(mid));
+	transform = transform * D2D1::Matrix3x2F::Rotation(radtodeg(c.bmp.angle), topoint2f(mid));
 	target->SetTransform(transform);
 
 	target->DrawBitmap(
-		bmps[opt->bmp],
-		torectf(opt->dest),
+		bmps[c.bmp.bmp],
+		torectf(transDest),
 		1.f,
 		D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
-		torectf(opt->src)
+		torectf(c.bmp.src)
 	);
 }
 
 static void inline renderEllipse(const draw::drawCall &c, ID2D1BitmapRenderTarget *target) {
-	draw::ellipseOptions *opt = (draw::ellipseOptions*)(c.data);
-	pSolidBrush->SetColor(tocolorf(opt->color));
+	pSolidBrush->SetColor(tocolorf(c.ellipse.color));
 
-	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(opt->angle), topoint2f(opt->ellipse.center)));
+	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(c.ellipse.angle), topoint2f(c.ellipse.ellipse.center)));
 	
 	target->FillEllipse(
 		D2D1::Ellipse(
-			topoint2f(opt->ellipse.center),
-			(float)opt->ellipse.radii.x,
-			(float)opt->ellipse.radii.y
+			topoint2f(c.ellipse.ellipse.center),
+			(float)c.ellipse.ellipse.radii.x,
+			(float)c.ellipse.ellipse.radii.y
 		),
 		pSolidBrush
 	);
@@ -342,6 +337,9 @@ static void inline renderAny(const draw::drawCall &c, ID2D1BitmapRenderTarget *t
 
 	case draw::type::ELLIPSE:
 		renderEllipse(c, target);
+		break;
+
+	case draw::type::NUM_TYPES:
 		break;
 	}
 }
@@ -411,7 +409,7 @@ void draw::setBackgroundColor(jaw::argb color) {
 	backgroundColor = tocolorf(color);
 }
 
-jaw::fontid draw::newFont(const draw::fontOptions *opt) {
+jaw::fontid draw::newFont(const draw::font *opt) {
 	if (numFonts == draw::MAX_NUM_FONTS) return jaw::INVALID_ID;
 	assert(opt != nullptr);
 
@@ -429,15 +427,15 @@ jaw::fontid draw::newFont(const draw::fontOptions *opt) {
 	);
 
 	switch (opt->align) {
-	case draw::fontOptions::LEFT:
+	case draw::font::LEFT:
 		fonts[i]->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 		break;
 
-	case draw::fontOptions::RIGHT:
+	case draw::font::RIGHT:
 		fonts[i]->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
 		break;
 
-	case draw::fontOptions::CENTER:
+	case draw::font::CENTER:
 		fonts[i]->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		break;
 	}
@@ -555,25 +553,83 @@ bool draw::writeBmp(jaw::bmpid bmp, const jaw::argb *pixels, size_t numPixels) {
 }
 #endif
 
-//TODO: see if I can do better than memcpy with wide registers or optimizing for 32 bytes, maybe?
-
-draw::drawCall draw::makeDraw(draw::type t, uint8_t z, const void *opt) {
-	if (opt == nullptr || t >= draw::NUM_TYPES) {
-		return { .t = NUM_TYPES };
-	}
-
-	draw::drawCall x = {};
-	x.t = t;
-	x.z = z;
-	memcpy(x.data, opt, draw::typeSizes[t]);
-	return x;
+template<>
+draw::drawCall draw::make<draw::line>(const draw::line &x, uint8_t z) {
+	draw::drawCall c{};
+	c.t = draw::type::LINE;
+	c.z = z;
+	c.line = x;
+	return c;
 }
 
-bool draw::enqueue(const draw::drawCall *c) {
-	assert(c != nullptr);
+template<>
+draw::drawCall draw::make<draw::rect>(const draw::rect &x, uint8_t z) {
+	draw::drawCall c{};
+	c.t = draw::type::RECT;
+	c.z = z;
+	c.rect = x;
+	return c;
+}
+
+template<>
+draw::drawCall draw::make<draw::str>(const draw::str &x, uint8_t z) {
+	draw::drawCall c{};
+	c.t = draw::type::STR;
+	c.z = z;
+	c.str = x;
+	return c;
+}
+
+template<>
+draw::drawCall draw::make<draw::bmp>(const draw::bmp &x, uint8_t z) {
+	draw::drawCall c{};
+	c.t = draw::type::BMP;
+	c.z = z;
+	c.bmp = x;
+	return c;
+}
+
+template<>
+draw::drawCall draw::make<draw::ellipse>(const draw::ellipse &x, uint8_t z) {
+	draw::drawCall c{};
+	c.t = draw::type::ELLIPSE;
+	c.z = z;
+	c.ellipse = x;
+	return c;
+}
+
+template<>
+bool draw::enqueue<draw::line>(const draw::line &x, uint8_t z) {
 	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
-	memcpy(writeQueue + writeQueueFront, c, sizeof(draw::drawCall));
-	writeQueueFront++;
+	writeQueue[writeQueueFront++] = make(x, z);
+	return true;
+}
+
+template<>
+bool draw::enqueue<draw::rect>(const draw::rect &x, uint8_t z) {
+	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
+	writeQueue[writeQueueFront++] = make(x, z);
+	return true;
+}
+
+template<>
+bool draw::enqueue<draw::str>(const draw::str &x, uint8_t z) {
+	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
+	writeQueue[writeQueueFront++] = make(x, z);
+	return true;
+}
+
+template<>
+bool draw::enqueue<draw::bmp>(const draw::bmp &x, uint8_t z) {
+	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
+	writeQueue[writeQueueFront++] = make(x, z);
+	return true;
+}
+
+template<>
+bool draw::enqueue<draw::ellipse>(const draw::ellipse &x, uint8_t z) {
+	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
+	writeQueue[writeQueueFront++] = make(x, z);
 	return true;
 }
 
@@ -585,42 +641,52 @@ bool draw::enqueueMany(const draw::drawCall *c, size_t l) {
 	return true;
 }
 
-bool draw::line(const draw::lineOptions *opt, uint8_t z) {
-	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
-	writeQueue[writeQueueFront++] = makeDraw(draw::type::LINE, z, opt);
-	return true;
-}
-
-bool draw::rect(const draw::rectOptions *opt, uint8_t z) {
-	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
-	writeQueue[writeQueueFront++] = makeDraw(draw::type::RECT, z, opt);
-	return true;
-}
-
-bool draw::str(const draw::strOptions *opt, uint8_t z) {
-	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
-	if (opt->font >= numFonts) return false;
-	writeQueue[writeQueueFront++] = makeDraw(draw::type::STR, z, opt);
-	return true;
-}
-
-bool draw::bmp(const draw::bmpOptions *opt, uint8_t z) {
-	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
-	if (opt->bmp >= numBmps) return false;
-	writeQueue[writeQueueFront++] = makeDraw(draw::type::BMP, z, opt);
-	return true;
-}
-
-bool draw::ellipse(const draw::ellipseOptions *opt, uint8_t z) {
-	if (writeQueueFront == MAX_QUEUE_SIZE) return false;
-	writeQueue[writeQueueFront++] = makeDraw(draw::type::ELLIPSE, z, opt);
-	return true;
-}
-
-bool draw::renderToBmp(const draw::drawCall &call, jaw::bmpid bmp) {
+template <>
+bool draw::tobmp<draw::line>(const draw::line &x, jaw::bmpid bmp) {
 	if (!bmpTargets[bmp]) return false;
-	bmpTargets[bmp]->BeginDraw();
-	renderAny(call, bmpTargets[bmp]);
-	bmpTargets[bmp]->EndDraw();
+	auto &target = bmpTargets[bmp];
+	target->BeginDraw();
+	renderAny(make(x, 0), target);
+	target->EndDraw();
+	return true;
+}
+
+template <>
+bool draw::tobmp<draw::rect>(const draw::rect &x, jaw::bmpid bmp) {
+	if (!bmpTargets[bmp]) return false;
+	auto &target = bmpTargets[bmp];
+	target->BeginDraw();
+	renderAny(make(x, 0), target);
+	target->EndDraw();
+	return true;
+}
+
+template <>
+bool draw::tobmp<draw::str>(const draw::str &x, jaw::bmpid bmp) {
+	if (!bmpTargets[bmp]) return false;
+	auto &target = bmpTargets[bmp];
+	target->BeginDraw();
+	renderAny(make(x, 0), target);
+	target->EndDraw();
+	return true;
+}
+
+template <>
+bool draw::tobmp<draw::bmp>(const draw::bmp &x, jaw::bmpid bmp) {
+	if (!bmpTargets[bmp]) return false;
+	auto &target = bmpTargets[bmp];
+	target->BeginDraw();
+	renderAny(make(x, 0), target);
+	target->EndDraw();
+	return true;
+}
+
+template <>
+bool draw::tobmp<draw::ellipse>(const draw::ellipse &x, jaw::bmpid bmp) {
+	if (!bmpTargets[bmp]) return false;
+	auto &target = bmpTargets[bmp];
+	target->BeginDraw();
+	renderAny(make(x, 0), target);
+	target->EndDraw();
 	return true;
 }

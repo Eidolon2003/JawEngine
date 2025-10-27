@@ -12,28 +12,24 @@ namespace draw {
 /*	-----------------------------------
 	Drawing Primitives
 */
-	struct lineOptions {
+	struct line {
 		jaw::vec2i p1, p2;
 		jaw::argb color;
 		uint32_t width;
 		float angle = 0;
 	};
-	static_assert(sizeof(lineOptions) <= MAX_DRAW_SIZE);
-	bool line(const lineOptions*, uint8_t z);
-	inline bool line(const lineOptions &o, uint8_t z) { return line(&o, z); }
+	static_assert(sizeof(line) <= MAX_DRAW_SIZE);
 
-	struct rectOptions {
+	struct rect {
 		jaw::recti rect;
 		jaw::argb color;
 		float angle = 0;
 	};
-	static_assert(sizeof(rectOptions) <= MAX_DRAW_SIZE);
-	bool rect(const rectOptions*, uint8_t z);
-	inline bool rect(const rectOptions &o, uint8_t z) { return rect(&o, z); }
+	static_assert(sizeof(rect) <= MAX_DRAW_SIZE);
 
 	#pragma pack(push, 4)
 	//Note: The string this is pointing to must exist past the end of the frame
-	struct strOptions {
+	struct str {
 		jaw::recti rect;
 		const char *str;
 		jaw::argb color;
@@ -41,11 +37,9 @@ namespace draw {
 		float angle = 0;
 	};
 	#pragma pack(pop)
-	static_assert(sizeof(strOptions) <= MAX_DRAW_SIZE);
-	bool str(const strOptions*, uint8_t z);
-	inline bool str(const strOptions &o, uint8_t z) { return str(&o, z); }
+	static_assert(sizeof(str) <= MAX_DRAW_SIZE);
 
-	struct bmpOptions {
+	struct bmp {
 		jaw::bmpid bmp;
 		jaw::recti src;
 		jaw::recti dest;
@@ -53,33 +47,80 @@ namespace draw {
 		bool mirrorX = false;
 		bool mirrorY = false;
 	};
-	static_assert(sizeof(bmpOptions) <= MAX_DRAW_SIZE);
-	bool bmp(const bmpOptions*, uint8_t z);
-	inline bool bmp(const bmpOptions &o, uint8_t z) { return bmp(&o, z); }
+	static_assert(sizeof(bmp) <= MAX_DRAW_SIZE);
 
-	struct ellipseOptions {
+	struct ellipse {
 		jaw::ellipse ellipse;
 		jaw::argb color;
 		float angle = 0;
 	};
-	static_assert(sizeof(ellipseOptions) <= MAX_DRAW_SIZE);
-	bool ellipse(const ellipseOptions*, uint8_t z);
-	inline bool ellipse(const ellipseOptions &o, uint8_t z) { return ellipse(&o, z); }
+	static_assert(sizeof(ellipse) <= MAX_DRAW_SIZE);
 
-	//TODO: more primitives?
+	enum class type : uint8_t {
+		LINE,
+		RECT,
+		STR,
+		BMP,
+		ELLIPSE,
+		NUM_TYPES
+	};
+
+	struct alignas(32) drawCall {
+		type t;
+		uint8_t z;
+		union {
+			line line;
+			rect rect;
+			str str;
+			bmp bmp;
+			ellipse ellipse;
+		};
+	};
+	static_assert(sizeof(drawCall) == 32);
+
+	// Make a draw call structrue from a primitive's options
+	template <typename T>
+	drawCall make(const T&, uint8_t z);
+	template<>
+	drawCall make<line>(const line&, uint8_t z);
+	template<>
+	drawCall make<rect>(const rect&, uint8_t z);
+	template<>
+	drawCall make<str>(const str&, uint8_t z);
+	template<>
+	drawCall make<bmp>(const bmp&, uint8_t z);
+	template<>
+	drawCall make<ellipse>(const ellipse&, uint8_t z);
+
+	// Draw a primitive to the screen
+	template <typename T>
+	bool enqueue(const T&, uint8_t);
+	template<>
+	bool enqueue<line>(const line&, uint8_t z);
+	template<>
+	bool enqueue<rect>(const rect&, uint8_t z);
+	template<>
+	bool enqueue<str>(const str&, uint8_t z);
+	template<>
+	bool enqueue<bmp>(const bmp&, uint8_t z);
+	template<>
+	bool enqueue<ellipse>(const ellipse&, uint8_t z);
+
+	// Copy an array of draw calls into the render queue
+	bool enqueueMany(const drawCall*, size_t);
 
 /*	-----------------------------------
 	Assets
 */
-	struct fontOptions {
+	struct font {
 		const char *name = "Courier New";
 		float size = 10.f;
 		bool italic = false;
 		bool bold = false;
 		enum { CENTER, LEFT, RIGHT } align = LEFT;
 	};
-	jaw::fontid newFont(const fontOptions*);
-	inline jaw::fontid newFont(const fontOptions &o) { return newFont(&o); }
+	jaw::fontid newFont(const font*);
+	inline jaw::fontid newFont(const font &o) { return newFont(&o); }
 
 	// Returns jaw::INVALID_ID on failure
 	jaw::bmpid createBmp(jaw::vec2i size);
@@ -91,41 +132,20 @@ namespace draw {
 		return writeBmp(b, pixels, (dim.x * dim.y));
 	}
 
-/*	-----------------------------------
-	Lower level API below. The functions above are recommended for general use
-*/
-	enum type : uint8_t { 
-		LINE,
-		RECT,
-		STR,
-		BMP,
-		ELLIPSE,
-		NUM_TYPES
-	};
-
-	constexpr size_t typeSizes[] = {
-		sizeof(lineOptions),
-		sizeof(rectOptions),
-		sizeof(strOptions),
-		sizeof(bmpOptions),
-		sizeof(ellipseOptions),
-	};
-	static_assert(sizeof(typeSizes) / sizeof(size_t) == type::NUM_TYPES);
-
-	struct alignas(32) drawCall {
-		uint8_t data[MAX_DRAW_SIZE];
-		type t;
-		uint8_t z;
-	};
-	static_assert(sizeof(drawCall) == 32);
-	drawCall makeDraw(type t, uint8_t z, const void *opt);
-	bool enqueue(const drawCall*);
-	inline bool enqueue(const drawCall &d) { return enqueue(&d); }
-	bool enqueueMany(const drawCall*, size_t);
-
-	// Creates a BMP in the same way as createBmp, but that is usable with renderToBmp
+	// Creates a BMP in the same way as createBmp, but that is usable with draw::tobmp
 	jaw::bmpid createRenderableBmp(jaw::vec2i size);
 
 	// Immediately render to bitmap target for later use
-	bool renderToBmp(const drawCall&, jaw::bmpid);
+	template <typename T>
+	bool tobmp(const T&, jaw::bmpid);
+	template<>
+	bool tobmp<line>(const line&, jaw::bmpid bmp);
+	template<>
+	bool tobmp<rect>(const rect&, jaw::bmpid bmp);
+	template<>
+	bool tobmp<str>(const str&, jaw::bmpid);
+	template<>
+	bool tobmp<bmp>(const bmp&, jaw::bmpid);
+	template<>
+	bool tobmp<ellipse>(const ellipse&, jaw::bmpid);
 }
