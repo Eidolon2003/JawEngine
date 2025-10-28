@@ -122,7 +122,7 @@ namespace jaw {
 											// Negative means primary, high values are capped
 		bool enableSubpixelTextRendering = false;
 		bool enablePerPrimitiveAA = false;
-		bool showCMD = false;
+
 		enum { 
 			// Drawable window size is size * scale
 			WINDOWED,
@@ -142,8 +142,17 @@ namespace jaw {
 			FULLSCREEN_STRETCHED
 		} mode = WINDOWED;
 
+#ifdef NDEBUG
+		bool showCMD = false;
+#else
+		bool showCMD = true;
+#endif
+
 		// This may be used for any sort of game data that needs to be passed around
 		void *data = nullptr;
+
+		// The size of the temporary allocator arena in bytes
+		size_t tempallocBytes = 1<<20;
 
 		//These are automatically populated by the system, read only
 		vec2i winsize = vec2i();

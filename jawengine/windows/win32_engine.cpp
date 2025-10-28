@@ -7,6 +7,7 @@
 #include "win32_internal_win.h"
 #include "../common/internal_asset.h"
 #include "../common/avx2.h"	//isAVX2
+#include "../common/internal_utils.h"
 
 #ifndef JAW_NSPRITE
 #include "../common/internal_sprite.h"
@@ -144,14 +145,24 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 	timeBeginPeriod(timerInfo.wPeriodMin);
 	auto b = QueryPerformanceFrequency(&countsPerSecond);
 
+/*
+*	Subsystem Initialization
+*/
+
 	HWND hwnd = win::init(props);
 	ValidateRect(hwnd, NULL);
 	draw::init(props, hwnd);
 	asset::init();
 
+	if (!util::init(props)) {
+		MessageBox(NULL, "malloc failed to allocate memory\nIs the system out of RAM?", "malloc failure", MB_OK | MB_ICONWARNING);
+		exit(1);
+	}
+
 #ifndef JAW_NSOUND
 	sound::init();
 #endif
+
 #ifdef JAW_NSTATE
 	if (initOnce) initOnce(props);
 	if (init) init(props);
@@ -161,9 +172,14 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 	state::push(sid);
 #endif
 
+/*
+*	Loop
+*/
+
 	startPoint = lastFrame = getTimePoint();
 	running = true;
 	do {
+		util::beginFrame();
 #ifndef JAW_NINPUT
 		input::beginFrame(props);
 #endif
@@ -194,26 +210,33 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 		limiter(props);
 	} while (running);
 
+/*
+*	Deinitialization and clean-up
+*/
+
 #ifndef JAW_NSPRITE
 	sprite::clear();
 	anim::clear();
 #endif
+
 #ifndef JAW_NINPUT
 	input::clear();
 #endif
+
 #ifndef JAW_NSTATE
 	state::deinit();
 #endif
-	asset::deinit();
+
 #ifndef JAW_NSOUND
 	sound::deinit();
 #endif
+
+	util::deinit();
+	asset::deinit();
 	draw::deinit();
 	win::deinit(hwnd);
 	timeEndPeriod(timerInfo.wPeriodMin);
 	CoUninitialize();
-
-	// Reset property variables set by the engine
 	*props = {};
 }
 

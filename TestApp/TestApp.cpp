@@ -1,35 +1,21 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include "../jawengine/JawEngine.h"
 
-jaw::bmpid bmp;
-jaw::argb *img;
-jaw::vec2i dim;
+#include <cstring>
 
-static void init(jaw::properties *props) {
-	dim = asset::bmp("F:/assets/test-animation/idle-40x70x6.png", &img);
-	bmp = draw::createBmp(dim);
-	draw::writeBmp(bmp, img, dim);
-}
-
+// Demonstrate drawing a string from tempalloc memory
 static void loop(jaw::properties *props) {
-	/*
-	draw::bmp(draw::bmpOptions{
-		.bmp = bmp,
-		.src = jaw::recti(0,dim),
-		.dest = jaw::recti(0,dim)
-	}, 0);
-	*/
+	char *str = util::tempalloc<char>(50);
+	strncpy(str, "Hello, world!", 50);
 
-	draw::enqueue(draw::bmp{
-		.bmp = bmp,
-		.src = jaw::recti(0, dim),
-		.dest = jaw::recti(0, dim)
+	draw::enqueue(draw::str{
+		.rect = jaw::recti(0, 0, 640, 480),
+		.str = str,
+		.color = jaw::color::WHITE
 	}, 0);
 }
 
 int main() {
 	jaw::properties props;
-	props.scale = 4;
-	props.showCMD = true;
-	engine::start(&props, nullptr, init, loop);
+	engine::start(&props, nullptr, nullptr, loop);
 }

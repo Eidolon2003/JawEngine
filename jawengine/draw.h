@@ -28,7 +28,8 @@ namespace draw {
 	static_assert(sizeof(rect) <= MAX_DRAW_SIZE);
 
 	#pragma pack(push, 4)
-	//Note: The string this is pointing to must exist past the end of the frame
+	// Note: The string this is pointing to must exist past the end of the frame.
+	// Memory allocated by tempalloc is safe to use here
 	struct str {
 		jaw::recti rect;
 		const char *str;

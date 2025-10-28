@@ -1,4 +1,6 @@
-﻿set(JAWENGINE_SOURCES "common/avx2.cpp")
+﻿set(JAWENGINE_SOURCES 
+	"common/avx2.cpp"
+	"common/utils.cpp")
 
 if(WIN32)
 	message("JawEngine for Windows")
