@@ -39,6 +39,8 @@ namespace jaw {
 		constexpr vec2f operator-(const vec2f rhs) const { return { x - rhs.x, y - rhs.y }; }
 		constexpr vec2f operator*(const float rhs) const { return { x * rhs, y * rhs }; }
 		constexpr vec2f operator/(const float rhs) const { return { x / rhs, y / rhs }; }
+
+		constexpr float product() const { return x*y; }
 	};
 
 	struct vec2i {
@@ -55,6 +57,8 @@ namespace jaw {
 
 		constexpr bool operator<(const vec2i rhs) const { return (x < rhs.x) && (y < rhs.y); }
 		constexpr bool operator>=(const vec2i rhs) const { return (x >= rhs.x) && (y >= rhs.y); }
+
+		constexpr int32_t product() const { return x*y; }
 	};
 	inline constexpr jaw::vec2f::vec2f(jaw::vec2i v) { x = (float)v.x; y = (float)v.y; }
 

@@ -1,9 +1,9 @@
 Features:
-- WAV loading
 - Gamepad support
 - Timers
 - Collision detection
 - Thread safety
+- Support more audio formats
 
 Projects:
 - Demo Raycaster

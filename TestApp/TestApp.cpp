@@ -1,21 +1,36 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
-#include "../jawengine/JawEngine.h"
+﻿#include "../jawengine/JawEngine.h"
 
-#include <cstring>
+jaw::bmpid bmp;
+jaw::argb *img;
+jaw::vec2i dim;
 
-// Demonstrate drawing a string from tempalloc memory
+int16_t *soundSamples;
+jaw::soundid soundID;
+
+static void init(jaw::properties *props) {
+	img = asset::bmp("F:/assets/test-animation/idle-40x70x6.png", &dim);
+	bmp = draw::createBmp(dim);
+	draw::writeBmp(bmp, img, dim);
+
+	soundID = sound::create();
+	size_t numSamples;
+	soundSamples = asset::wav("F:/assets/wav/win.wav", &numSamples);
+	sound::write(soundID, soundSamples, numSamples, false);
+
+	sound::start(soundID);
+}
+
 static void loop(jaw::properties *props) {
-	char *str = util::tempalloc<char>(50);
-	strncpy(str, "Hello, world!", 50);
-
-	draw::enqueue(draw::str{
-		.rect = jaw::recti(0, 0, 640, 480),
-		.str = str,
-		.color = jaw::color::WHITE
-	}, 0);
+	draw::enqueue(draw::bmp{
+		.bmp = bmp,
+		.src = jaw::recti(0, dim),
+		.dest = jaw::recti(0, dim)
+		}, 0);
 }
 
 int main() {
 	jaw::properties props;
-	engine::start(&props, nullptr, nullptr, loop);
+	props.scale = 4;
+	props.size = jaw::vec2i(320, 240);
+	engine::start(&props, nullptr, init, loop);
 }

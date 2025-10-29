@@ -88,7 +88,7 @@ bool sound::write(jaw::soundid id, int16_t *data, size_t size, bool loop) {
 
 	XAUDIO2_BUFFER buffer{
 		.Flags = XAUDIO2_END_OF_STREAM,
-		.AudioBytes = (UINT32)size,
+		.AudioBytes = (UINT32)size * SAMPLE_DEPTH/8,
 		.pAudioData = (const BYTE*)data,
 		.PlayBegin = 0,
 		.PlayLength = 0,

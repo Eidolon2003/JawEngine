@@ -130,7 +130,7 @@ namespace draw {
 	//This routine is slow compared to others in the API, so better to call as little as needed
 	bool writeBmp(jaw::bmpid, const jaw::argb *pixels, size_t numPixels);
 	inline bool writeBmp(jaw::bmpid b, const jaw::argb *pixels, jaw::vec2i dim) {
-		return writeBmp(b, pixels, (dim.x * dim.y));
+		return writeBmp(b, pixels, dim.product());
 	}
 
 	// Creates a BMP in the same way as createBmp, but that is usable with draw::tobmp
