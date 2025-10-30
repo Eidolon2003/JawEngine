@@ -1,6 +1,4 @@
-﻿set(JAWENGINE_SOURCES 
-	"common/avx2.cpp"
-	"common/utils.cpp")
+﻿set(JAWENGINE_SOURCES "common/avx2.cpp")
 
 if(WIN32)
 	message("JawEngine for Windows")
@@ -9,6 +7,7 @@ if(WIN32)
 		"windows/win32_engine.cpp"
 		"windows/win32_win.cpp"
 		"windows/win32_d2d.cpp"
+		"windows/win32_utils.cpp"
 	)
 
 	if(NOT NSOUND)

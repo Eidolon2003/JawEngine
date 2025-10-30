@@ -16,5 +16,15 @@ namespace util {
 		return (T*)aligned;
 	}
 
+	// Get the number of bytes remaining in the temporary allocator
 	size_t tempallocBytesRemaining();
+
+	// Attempt to map a circular buffer in virtual address space
+	// buf[0] == buf[bytes] && buf[1] == buf[bytes+1] && etc.
+	// The size of the buffer may be rounded up due to OS constraints
+	void *mapCircularBuffer(size_t *bytes);
+
+	// Unmap a circular buffer allocated with mapCircularBuffer
+	// The bytes value must be the rounded value returned from mapCircularBuffer
+	void unmapCircularBuffer(void *buffer, size_t bytes);
 }

@@ -1,36 +1,33 @@
 ﻿#include "../jawengine/JawEngine.h"
-
-jaw::bmpid bmp;
-jaw::argb *img;
-jaw::vec2i dim;
-
-int16_t *soundSamples;
-jaw::soundid soundID;
+#include <iostream>
 
 static void init(jaw::properties *props) {
-	img = asset::bmp("F:/assets/test-animation/idle-40x70x6.png", &dim);
-	bmp = draw::createBmp(dim);
-	draw::writeBmp(bmp, img, dim);
-
-	soundID = sound::create();
-	size_t numSamples;
-	soundSamples = asset::wav("F:/assets/wav/win.wav", &numSamples);
-	sound::write(soundID, soundSamples, numSamples, false);
-
-	sound::start(soundID);
+	size_t size = 1;
+	unsigned char *buf = (unsigned char*)util::mapCircularBuffer(&size);
+	buf[0] = 10;
+	if (buf[size] == 10) {
+		std::cout << "It works!";
+	}
+	else {
+		std::cout << "It doesn't work...";
+	}
+	util::unmapCircularBuffer(buf, size);
 }
 
-static void loop(jaw::properties *props) {
-	draw::enqueue(draw::bmp{
-		.bmp = bmp,
-		.src = jaw::recti(0, dim),
-		.dest = jaw::recti(0, dim)
-		}, 0);
-}
+static void loop(jaw::properties *props) {}
 
 int main() {
+	std::vector<asset::INIEntry> vec;
+	vec.emplace_back("width", "640", "Window width in pixels");
+	vec.emplace_back("height", "480", "Window height in pixels");
+	asset::ini("F:/assets/ini/test.ini", &vec);
+
 	jaw::properties props;
-	props.scale = 4;
-	props.size = jaw::vec2i(320, 240);
+	props.size = jaw::vec2i(
+		std::stoi(vec[0].value),
+		std::stoi(vec[1].value)
+	);
+
+	props.showCMD = true;
 	engine::start(&props, nullptr, init, loop);
 }

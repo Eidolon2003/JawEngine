@@ -14,6 +14,10 @@
 #include "../asset.h"
 #include "../common/internal_asset.h"
 
+#ifndef NDEBUG
+#include <iostream>
+#endif
+
 // This is for compatbility with mingw on Linux
 #ifdef __MINGW32__
 typedef BYTE *WICInProcPointer;
@@ -23,47 +27,6 @@ static wchar_t wstrBuffer[1024];
 static size_t towstrbuf(const char *str) {
 	if (str == nullptr) return static_cast<size_t>(-1);
 	return mbstowcs(wstrBuffer, str, 1024);
-}
-
-struct FileInfo {
-	size_t size = 0;
-	void *data = nullptr;
-};
-static std::unordered_map<std::string, FileInfo> fileCache;
-
-struct BmpInfo {
-	jaw::vec2i dim;
-	jaw::argb *px = nullptr;
-};
-static std::unordered_map<std::string, BmpInfo> bmpCache;
-
-struct WavInfo {
-	int16_t *samples;
-	size_t num;
-};
-static std::unordered_map<std::string, WavInfo> wavCache;
-
-static IWICImagingFactory *iwic;
-
-void asset::init() {
-	HRESULT hr = CoCreateInstance(
-		CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&iwic)
-	);
-	assert(SUCCEEDED(hr));
-}
-
-void asset::deinit() {
-	iwic->Release();
-	iwic = nullptr;
-
-	for (auto &[key, val] : fileCache) UnmapViewOfFile(val.data);
-	fileCache.clear();
-
-	for (auto &[key, val] : bmpCache) VirtualFree(val.px, 0, MEM_RELEASE);
-	bmpCache.clear();
-
-	for (auto &[key, val] : wavCache) VirtualFree(val.samples, 0, MEM_RELEASE);
-	wavCache.clear();
 }
 
 static void *mapFile(const char *filename, size_t *fileSize) {
@@ -115,6 +78,47 @@ fail1:
 fail0:
 	*fileSize = 0;
 	return nullptr;
+}
+
+struct FileInfo {
+	size_t size = 0;
+	void *data = nullptr;
+};
+static std::unordered_map<std::string, FileInfo> fileCache;
+
+struct BmpInfo {
+	jaw::vec2i dim;
+	jaw::argb *px = nullptr;
+};
+static std::unordered_map<std::string, BmpInfo> bmpCache;
+
+struct WavInfo {
+	int16_t *samples;
+	size_t num;
+};
+static std::unordered_map<std::string, WavInfo> wavCache;
+
+static IWICImagingFactory *iwic;
+
+void asset::init() {
+	HRESULT hr = CoCreateInstance(
+		CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&iwic)
+	);
+	assert(SUCCEEDED(hr));
+}
+
+void asset::deinit() {
+	iwic->Release();
+	iwic = nullptr;
+
+	for (auto &[key, val] : fileCache) UnmapViewOfFile(val.data);
+	fileCache.clear();
+
+	for (auto &[key, val] : bmpCache) VirtualFree(val.px, 0, MEM_RELEASE);
+	bmpCache.clear();
+
+	for (auto &[key, val] : wavCache) VirtualFree(val.samples, 0, MEM_RELEASE);
+	wavCache.clear();
 }
 
 const void *asset::file(const char *filename, size_t *size) {
@@ -303,4 +307,119 @@ int16_t *asset::wav(const char *filename, size_t *numSamples) {
 		.num = *numSamples
 	};
 	return samples;
+}
+
+static char *nextLine(char *p) {
+	while (*p != '\n' && *p != 0) p++;
+	return p+1;
+}
+
+static char *skipSpace(char *p) {
+	while (isspace(*p)) p++;
+	return p;
+}
+
+static char *skipSpaceReverse(char *p) {
+	// Also allow null here in cases where the file does not end in a newline character
+	while (isspace(*p) || *p == 0) p--;
+	return p;
+}
+
+static void parseLine(char *start, char *end, std::vector<asset::INIEntry> *vec) {
+	// Skip blank lines
+	if (end - start < 3) return;
+
+	// Check for comments
+	if (*skipSpace(start) == ';') return;
+
+	// Find the = delimiter
+	char *eq = start;
+	for (; eq < end; eq++) {
+		if (*eq == '=') break;
+	}
+
+	// Check for malformed line (no equal sign)
+	if (eq == end) {
+#ifndef NDEBUG
+		std::string s(start, end);
+		std::cout << "Debug: malformed ini line: " << s << '\n';
+#endif
+		return;
+	}
+
+	char *key = skipSpace(start);
+	char *keyEnd = skipSpaceReverse(eq-1)+1;
+	char *value = skipSpace(eq+1);
+	char *valueEnd = skipSpaceReverse(end-1)+1;
+
+	std::string keyString(key, keyEnd);
+	std::string valueString(value, valueEnd);
+
+	for (auto &e : *vec) {
+		if (e.key == keyString) {
+			e.value = std::move(valueString);
+		}
+	}
+}
+
+void asset::ini(const char *filename, std::vector<asset::INIEntry> *vec) {
+	// Open the file, or create one if it doesn't exist
+	HANDLE file = CreateFileA(
+		filename,
+		GENERIC_READ | GENERIC_WRITE,
+		NULL,
+		NULL,
+		OPEN_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL
+	);
+	if (file == INVALID_HANDLE_VALUE) return;
+
+	// Allocate a buffer large enough for the file, plus a little bit to make sure we have a zero terminator
+	size_t size = GetFileSize(file, NULL) + 16;
+	char *buf = (char*)VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	if (!buf) {
+		CloseHandle(file);
+		return;
+	}
+
+	// Initialize the buffer to all zeros
+	memset(buf, 0, size);
+
+	// Read the file into the buffer
+	DWORD bytesRead;
+	BOOL success = ReadFile(file, buf, (DWORD)size, &bytesRead, NULL);
+	assert(bytesRead < size);
+	if (!success) {
+		VirtualFree(buf, 0, MEM_RELEASE);
+		CloseHandle(file);
+		return;
+	}
+
+	// Process the file
+	char *read = buf;
+	while (*read != 0) {
+		char *endl = nextLine(read);
+		parseLine(read, endl, vec);
+		read = endl;
+	}
+	VirtualFree(buf, 0, MEM_RELEASE);
+
+	// At this point we've read in the entire ini file and properly populated vec
+	// Now we rewrite the file properly formatted
+	SetFilePointer(file, NULL, NULL, FILE_BEGIN);
+	for (size_t i = 0; i < vec->size(); ++i) {
+		const INIEntry &e = vec->at(i);
+		DWORD bytesWritten;
+		if (i != 0) WriteFile(file, "\n\n", 2, &bytesWritten, NULL);
+		WriteFile(file, ";", 1, &bytesWritten, NULL);
+		WriteFile(file, e.comment.c_str(), (DWORD)e.comment.size(), &bytesWritten, NULL);
+		WriteFile(file, "\n", 1, &bytesWritten, NULL);
+		WriteFile(file, e.key.c_str(), (DWORD)e.key.size(), &bytesWritten, NULL);
+		WriteFile(file, " = ", 3, &bytesWritten, NULL);
+		WriteFile(file, e.value.c_str(), (DWORD)e.value.size(), &bytesWritten, NULL);
+	}
+
+	SetEndOfFile(file);
+	CloseHandle(file);
 }
