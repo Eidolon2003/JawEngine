@@ -191,7 +191,7 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 		}
 
 #ifndef JAW_NSPRITE
-		sprite::tick(props);
+		sprite::updateAll(props);
 #endif
 
 #ifdef JAW_NSTATE
@@ -202,6 +202,11 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 			break;
 		}
 #endif
+
+#ifndef JAW_NSPRITE
+		sprite::drawAll(props);
+#endif
+
 		draw::prepareRender();
 		draw::render();
 		prelimit(props);

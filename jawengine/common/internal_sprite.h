@@ -2,5 +2,6 @@
 #include "../types.h"
 
 namespace sprite {
-	void tick(jaw::properties*);
+	void updateAll(jaw::properties*);
+	void drawAll(jaw::properties*);
 }

@@ -2,16 +2,28 @@
 #include <iostream>
 
 static void init(jaw::properties *props) {
-	size_t size = 1;
-	unsigned char *buf = (unsigned char*)util::mapCircularBuffer(&size);
-	buf[0] = 10;
-	if (buf[size] == 10) {
-		std::cout << "It works!";
-	}
-	else {
-		std::cout << "It doesn't work...";
-	}
-	util::unmapCircularBuffer(buf, size);
+	jaw::vec2i bmpSize;
+	jaw::argb *px = asset::bmp("F:/assets/test-animation/walk-40x70x12.png", &bmpSize);
+	if (!px) return;
+
+	jaw::bmpid bmp = draw::createBmp(bmpSize);
+	if (bmp == jaw::INVALID_ID) return;
+	draw::writeBmp(bmp, px, bmpSize);
+
+	jaw::animdefid animation = anim::create(
+		jaw::animation{
+			.endFrame = 11,
+			.frameInterval = jaw::millis(70)
+		}
+	);
+
+	jaw::sprid sprite = sprite::create(
+		jaw::sprite{
+			.bmp = bmp,
+			.frameSize = jaw::vec2i(40, 70),
+			.animState = anim::instanceOf(animation)
+		}
+	);
 }
 
 static void loop(jaw::properties *props) {}
@@ -24,10 +36,10 @@ int main() {
 
 	jaw::properties props;
 	props.size = jaw::vec2i(
-		std::stoi(vec[0].value),
-		std::stoi(vec[1].value)
+		std::stoi(vec[0].value) / 4,
+		std::stoi(vec[1].value) / 4
 	);
+	props.scale = 4;
 
-	props.showCMD = true;
 	engine::start(&props, nullptr, init, loop);
 }

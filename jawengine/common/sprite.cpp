@@ -181,7 +181,7 @@ void sprite::draw(jaw::sprid id, jaw::properties *props) {
 	);
 }
 
-void sprite::tick(jaw::properties *props) {
+void sprite::updateAll(jaw::properties *props) {
 	// Update animations
 	for (size_t i = 0; i < nextStateID; i++) {
 		if (isStateOpen[i]) continue;
@@ -206,7 +206,7 @@ void sprite::tick(jaw::properties *props) {
 		}
 	}
 
-	// Update and draw sprites
+	// Update sprites
 	for (jaw::sprid i = 0; i < nextSpriteID; i++) {
 		if (isSpriteOpen[i]) continue;
 
@@ -214,6 +214,13 @@ void sprite::tick(jaw::properties *props) {
 			updates[i](i, props);
 		else
 			update(i, props);
+	}
+}
+
+void sprite::drawAll(jaw::properties *props) {
+	// Draw sprites
+	for (jaw::sprid i = 0; i < nextSpriteID; i++) {
+		if (isSpriteOpen[i]) continue;
 
 		if (draws[i])
 			draws[i](i, props);
