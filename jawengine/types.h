@@ -234,6 +234,23 @@ namespace jaw {
 		jaw::statefn callback = nullptr;
 		jaw::mouseFlags condition{};
 	};
+
+	struct SonyGamepad {
+		jaw::key x, square, circle, triangle;
+		jaw::key up, down, left, right;
+		jaw::key select, start;
+		jaw::key r1, l1, r3, l3;
+		float r2, l2;
+		jaw::vec2f r, l;
+		jaw::key ps, pad;
+	};
+
+	struct gamepad {
+		enum class type { SONY, UNKNOWN } type;
+		union {
+			SonyGamepad sony;
+		};
+	};
 #endif
 
 #ifndef JAW_NSTATE

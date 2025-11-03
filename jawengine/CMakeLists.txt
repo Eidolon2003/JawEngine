@@ -15,6 +15,12 @@ if(WIN32)
 			"windows/win32_xaudio.cpp"
 		)
 	endif()
+
+	if(NOT NINPUT)
+		list(APPEND JAWENGINE_SOURCES
+			"windows/win32_dinput.cpp"
+		)
+	endif()
 endif()
 
 if(NOT NSPRITE)
@@ -44,6 +50,8 @@ if(WIN32)
 		d2d1.lib
 		windowscodecs.lib
 		dwrite.lib
+		dinput8.lib
+		dxguid.lib
 	)
 endif()
 

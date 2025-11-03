@@ -1,5 +1,5 @@
 ## My gitignore
-CMakeUserPresets.json
+CMakeUserPresets*
 
 
 ## Ignore Visual Studio temporary files, build results, and

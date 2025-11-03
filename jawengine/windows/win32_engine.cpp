@@ -19,6 +19,7 @@
 
 #ifndef JAW_NINPUT
 #include "../common/internal_input.h"
+#include "../windows/win32_internal_dinput.h"
 #endif
 
 #ifndef JAW_NSTATE
@@ -163,6 +164,10 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 	sound::init();
 #endif
 
+#ifndef JAW_NINPUT
+	input::init(hwnd);
+#endif
+
 #ifdef JAW_NSTATE
 	if (initOnce) initOnce(props);
 	if (init) init(props);
@@ -182,6 +187,7 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 		util::beginFrame();
 #ifndef JAW_NINPUT
 		input::beginFrame(props);
+		input::readGamepads();
 #endif
 		MSG msg;
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -225,7 +231,7 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 #endif
 
 #ifndef JAW_NINPUT
-	input::clear();
+	input::deinit();
 #endif
 
 #ifndef JAW_NSTATE

@@ -4,6 +4,7 @@
 namespace input {
 	constexpr size_t MAX_INPUT_STRING = 256;
 	constexpr size_t MAX_NUM_CLICKABLE = 256;
+	constexpr size_t MAX_GAMEPADS = 16;
 
 	jaw::key getKey(uint8_t code);
 
@@ -37,4 +38,13 @@ namespace input {
 
 	// Returns nullptr on invalid ID
 	jaw::clickable *idtoptr(jaw::clickableid);
+
+	// Returns the number of connected and initialized gamepads
+	unsigned numGamepads();
+
+	// Initialize newly connected gamepads
+	// returns true if a new gamepad was found
+	bool findNewGamepads();
+
+	const jaw::gamepad *getGamepad(unsigned index);
 }

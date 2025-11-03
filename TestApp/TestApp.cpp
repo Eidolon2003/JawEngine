@@ -2,31 +2,41 @@
 #include <iostream>
 
 static void init(jaw::properties *props) {
-	jaw::vec2i bmpSize;
-	jaw::argb *px = asset::bmp("F:/assets/test-animation/walk-40x70x12.png", &bmpSize);
-	if (!px) return;
 
-	jaw::bmpid bmp = draw::createBmp(bmpSize);
-	if (bmp == jaw::INVALID_ID) return;
-	draw::writeBmp(bmp, px, bmpSize);
-
-	jaw::animdefid animation = anim::create(
-		jaw::animation{
-			.endFrame = 11,
-			.frameInterval = jaw::millis(70)
-		}
-	);
-
-	jaw::sprid sprite = sprite::create(
-		jaw::sprite{
-			.bmp = bmp,
-			.frameSize = jaw::vec2i(40, 70),
-			.animState = anim::instanceOf(animation)
-		}
-	);
 }
 
-static void loop(jaw::properties *props) {}
+static void loop(jaw::properties *props) {
+	jaw::vec2i center(props->size.x / 2, props->size.y / 2);
+	int16_t scale = std::min(center.x, center.y);
+
+	auto *ctrl = input::getGamepad(0);
+	if (!ctrl) {
+		input::findNewGamepads();
+		return;
+	}
+
+	jaw::vec2f stick = ctrl->sony.l;
+	jaw::vec2i offset = center + jaw::vec2i(stick * scale);
+
+	draw::enqueue(
+		draw::rect{
+			.rect = jaw::recti(offset-1, offset+2),
+			.color = jaw::color::WHITE
+		}, 0
+	);
+
+	char *buf = util::tempalloc<char>(128);
+	snprintf(buf, 128, "%f\n%f", ctrl->sony.l2, ctrl->sony.r2);
+	draw::enqueue(
+		draw::str{
+			.rect = jaw::recti(0, props->size),
+			.str = buf,
+			.color = jaw::color::WHITE
+		}, 1
+	);
+
+	if (ctrl->sony.x.isDown) engine::stop();
+}
 
 int main() {
 	std::vector<asset::INIEntry> vec;
@@ -36,10 +46,9 @@ int main() {
 
 	jaw::properties props;
 	props.size = jaw::vec2i(
-		std::stoi(vec[0].value) / 4,
-		std::stoi(vec[1].value) / 4
+		std::stoi(vec[0].value),
+		std::stoi(vec[1].value)
 	);
-	props.scale = 4;
 
 	engine::start(&props, nullptr, init, loop);
 }
