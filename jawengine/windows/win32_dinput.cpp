@@ -31,18 +31,36 @@ void input::deinit() {
 }
 
 static void readSony(jaw::SonyGamepad &sony, DIJOYSTATE2 &joy) {
-	sony.square.isDown = joy.rgbButtons[0] >= 0x80;
-	sony.x.isDown = joy.rgbButtons[1] >= 0x80;
-	sony.circle.isDown = joy.rgbButtons[2] >= 0x80;
-	sony.triangle.isDown = joy.rgbButtons[3] >= 0x80;
-	sony.l1.isDown = joy.rgbButtons[4] >= 0x80;
-	sony.r1.isDown = joy.rgbButtons[5] >= 0x80;
-	sony.select.isDown = joy.rgbButtons[8] >= 0x80;
-	sony.start.isDown = joy.rgbButtons[9] >= 0x80;
-	sony.l3.isDown = joy.rgbButtons[10] >= 0x80;
-	sony.r3.isDown = joy.rgbButtons[11] >= 0x80;
-	sony.ps.isDown = joy.rgbButtons[12] >= 0x80;
-	sony.pad.isDown = joy.rgbButtons[13] >= 0x80;
+	auto setKey = [](jaw::key &k, bool b) {
+		k.isDown = b && !k.isHeld;
+		k.isHeld = b;
+	};
+
+	auto setIndexed = [joy, &setKey](jaw::key &k, size_t i) {
+		bool b = joy.rgbButtons[i] >= 0x80;
+		setKey(k, b);
+	};
+
+	setIndexed(sony.square,		0);
+	setIndexed(sony.x,			1);
+	setIndexed(sony.circle,		2);
+	setIndexed(sony.triangle,	3);
+	setIndexed(sony.l1,			4);
+	setIndexed(sony.r1,			5);
+	setIndexed(sony.l2,			6);
+	setIndexed(sony.r2,			7);
+	setIndexed(sony.select,		8);
+	setIndexed(sony.start,		9);
+	setIndexed(sony.l3,			10);
+	setIndexed(sony.r3,			11);
+	setIndexed(sony.ps,			12);
+	setIndexed(sony.pad,		13);
+
+	auto dpad = (signed)joy.rgdwPOV[0];
+	setKey(sony.up,		dpad > 27000 || (dpad < 9000 && dpad > -1));
+	setKey(sony.right,	dpad > 0 && dpad < 18000);
+	setKey(sony.down,	dpad > 9000 && dpad < 27000);
+	setKey(sony.left,	dpad > 18000);
 
 	sony.r = jaw::vec2f(
 		(float)(joy.lZ - 32767) / 32768.f,
@@ -53,10 +71,13 @@ static void readSony(jaw::SonyGamepad &sony, DIJOYSTATE2 &joy) {
 		(float)(joy.lY - 32767) / 32768.f
 	);
 
-	sony.l2 = joy.lRx / 65535.f;
-	sony.r2 = joy.lRy / 65535.f;
+	sony.l2a = joy.lRx / 65535.f;
+	sony.r2a = joy.lRy / 65535.f;
 }
 
+// Unfortunately because gamepads are polled only once per frame,
+// key.isDown is not true if a button is pressed and release within the same frame, unlike the kbd.
+// I believe this can be improved using DI buffered input
 void input::readGamepads() {
 	for (unsigned i = 0; i < numPlayers; i++) {
 		DIGamepad &g = internal[i];

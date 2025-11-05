@@ -1,10 +1,6 @@
 ﻿#include "../jawengine/JawEngine.h"
 #include <iostream>
 
-static void init(jaw::properties *props) {
-
-}
-
 static void loop(jaw::properties *props) {
 	jaw::vec2i center(props->size.x / 2, props->size.y / 2);
 	int16_t scale = std::min(center.x, center.y);
@@ -26,7 +22,7 @@ static void loop(jaw::properties *props) {
 	);
 
 	char *buf = util::tempalloc<char>(128);
-	snprintf(buf, 128, "%f\n%f", ctrl->sony.l2, ctrl->sony.r2);
+	snprintf(buf, 128, "%f\n%f", ctrl->sony.l2a, ctrl->sony.r2a);
 	draw::enqueue(
 		draw::str{
 			.rect = jaw::recti(0, props->size),
@@ -34,8 +30,20 @@ static void loop(jaw::properties *props) {
 			.color = jaw::color::WHITE
 		}, 1
 	);
-
+	
 	if (ctrl->sony.x.isDown) engine::stop();
+
+	if (ctrl->sony.triangle.isHeld) std::cout << "Triangle Held\n";
+	if (ctrl->sony.triangle.isDown) std::cout << "Triangle Down\n";
+
+	if (ctrl->sony.up.isHeld) std::cout << "up\n";
+	if (ctrl->sony.down.isHeld) std::cout << "down\n";
+	if (ctrl->sony.left.isHeld) std::cout << "left\n";
+	if (ctrl->sony.right.isHeld) std::cout << "right\n";
+
+	auto a = input::getKey(key::A);
+	if (a.isHeld) std::cout << "A Held\n";
+	if (a.isDown) std::cout << "A Down\n";
 }
 
 int main() {
@@ -50,5 +58,6 @@ int main() {
 		std::stoi(vec[1].value)
 	);
 
-	engine::start(&props, nullptr, init, loop);
+	props.targetFramerate = 4;
+	engine::start(&props, nullptr, nullptr, loop);
 }

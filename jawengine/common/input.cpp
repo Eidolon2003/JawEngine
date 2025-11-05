@@ -7,7 +7,6 @@
 static char inputString[input::MAX_INPUT_STRING];
 static size_t inputStringLength;
 static jaw::key keys[256];
-static bool keysReleased[256];
 static unsigned backspaceCount;
 
 static jaw::statefn keyDownBindings[256];
@@ -24,11 +23,7 @@ static size_t numOpen;
 
 void input::beginFrame(jaw::properties *props) {
 	for (int i = 0; i < 256; i++) {
-		if (keysReleased[i]) {
-			keys[i].isDown = false;
-			keysReleased[i] = false;
-		}
-		keys[i].isHeld = keys[i].isDown;
+		keys[i].isDown = false;
 	}
 
 	backspaceCount = 0;
@@ -135,28 +130,20 @@ void input::updateChar(char c) {
 	inputString[inputStringLength] = 0;
 }
 
-// This logic is to make sure the game sees isDown being true
-// even if the key was pressed and released within one frame
+// isHeld tracks if the key is being held or not 
+// isDown is true for one frame when the key is pressed (rising edge trigger)
+
+// This logic (along with resetting isDown to false at the beginning of each frame),
+// maintains that isDown is true even if the key was pressed and released on the same frame.
+// isHeld will not be true if the key was pressed and release in the same frame.
 void input::updateKey(uint8_t code, bool isDown, jaw::properties *props) {
 	if (isDown) {
 		keys[code].isDown = true;
-		keysReleased[code] = false;
-		assert(keys[code].isHeld == false);
-
+		keys[code].isHeld = true;
 		if (keyDownBindings[code]) keyDownBindings[code](props);
 	}
 	else {
-		if (keys[code].isHeld) {
-			keys[code].isDown = false;
-			keys[code].isHeld = false;
-			assert(keysReleased[code] == false);
-		}
-		else {
-			keysReleased[code] = true;	// Pressed and released in the same frame
-			//assert(keys[code].isDown == true);	//This doesn't hold when ctrl and shift get involved?
-			assert(keys[code].isHeld == false);
-		}
-
+		keys[code].isHeld = false;
 		if (keyUpBindings[code]) keyUpBindings[code](props);
 	}
 }
