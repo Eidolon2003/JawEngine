@@ -88,11 +88,8 @@ void input::readGamepads() {
 		if (FAILED(hr)) {
 			hr = g.dev->Acquire();
 			if (FAILED(hr)) {
-				switch (hr) {
-				case DIERR_INPUTLOST:
-					continue;
-
-				case DIERR_UNPLUGGED:
+				if (hr == DIERR_INPUTLOST) continue;
+				else if (hr == DIERR_UNPLUGGED) {
 					g.dev->Release();
 					g = {};
 					continue;
