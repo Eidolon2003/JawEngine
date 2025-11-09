@@ -200,6 +200,8 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 		sprite::updateAll(props);
 #endif
 
+		util::updateTimers(props);
+
 #ifdef JAW_NSTATE
 		loop(props);
 #else

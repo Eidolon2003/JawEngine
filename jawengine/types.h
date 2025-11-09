@@ -37,6 +37,7 @@ namespace jaw {
 		constexpr vec2f operator+(const vec2f rhs) const { return { x + rhs.x, y + rhs.y }; }
 		constexpr vec2f operator+(const float rhs) const { return { x + rhs, y + rhs }; }
 		constexpr vec2f operator-(const vec2f rhs) const { return { x - rhs.x, y - rhs.y }; }
+		constexpr vec2f operator-(const float rhs) const { return { x - rhs, y - rhs }; }
 		constexpr vec2f operator*(const float rhs) const { return { x * rhs, y * rhs }; }
 		constexpr vec2f operator/(const float rhs) const { return { x / rhs, y / rhs }; }
 
@@ -51,6 +52,7 @@ namespace jaw {
 		constexpr vec2i operator+(const vec2i rhs) const { return { (int16_t)(x + rhs.x), (int16_t)(y + rhs.y) }; }
 		constexpr vec2i operator+(const int16_t rhs) const { return { (int16_t)(x + rhs), (int16_t)(y + rhs) }; }
 		constexpr vec2i operator-(const vec2i rhs) const { return { (int16_t)(x - rhs.x), (int16_t)(y - rhs.y) }; }
+		constexpr vec2i operator-(const int16_t rhs) const { return { (int16_t)(x - rhs), (int16_t)(y - rhs) }; }
 		constexpr vec2i operator*(const int16_t rhs) const { return { (int16_t)(x * rhs), (int16_t)(y * rhs) }; }
 		constexpr vec2i operator*(const float rhs) const { return { (int16_t)(x * rhs), (int16_t)(y * rhs) }; }
 		constexpr vec2i operator/(const float rhs) const { return { (int16_t)(x / rhs), (int16_t)(y / rhs) }; }

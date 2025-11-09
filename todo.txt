@@ -1,9 +1,8 @@
 Features:
-- Gamepad support
-- Timers
 - Collision detection
 - Thread safety
 - Support more audio formats
+- Support more gamepads
 
 Projects:
 - Demo Raycaster

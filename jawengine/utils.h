@@ -27,4 +27,7 @@ namespace util {
 	// Unmap a circular buffer allocated with mapCircularBuffer
 	// The bytes value must be the rounded value returned from mapCircularBuffer
 	void unmapCircularBuffer(void *buffer, size_t bytes);
+
+	// The engine will automatically call the callback after the given time has passed
+	void setTimer(const jaw::properties *props, jaw::nanoseconds time, jaw::statefn callback);
 }

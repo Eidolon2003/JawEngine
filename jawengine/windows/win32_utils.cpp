@@ -6,12 +6,20 @@
 #include <windows.h>
 #include <cstdlib>
 #include <cassert>
+#include <list>
 #include "../common/internal_utils.h"
 #include "../utils.h"
 
 static char *arena;
 static char *head;
 static char *end;
+
+struct timer {
+	jaw::nanoseconds endTime;
+	jaw::statefn callback;
+};
+static std::list<timer> timerList;
+
 
 #ifndef NDEBUG
 #include <iostream>
@@ -23,6 +31,7 @@ bool util::init(jaw::properties *props) {
 	if (!arena) return false;
 	head = arena;
 	end = arena + props->tempallocBytes;
+	timerList.clear();
 	return true;
 }
 
@@ -32,6 +41,7 @@ void util::deinit() {
 #ifndef NDEBUG
 	std::cout << "Debug: tempalloc used a maximum of " << maxBytes << " bytes.\n";
 #endif
+	timerList.clear();
 }
 
 void util::beginFrame() {
@@ -110,4 +120,22 @@ fail:
 void util::unmapCircularBuffer(void *buffer, size_t bytes) {
 	UnmapViewOfFile(buffer);
 	UnmapViewOfFile((LPBYTE)buffer + bytes);
+}
+
+void util::setTimer(const jaw::properties *props, jaw::nanoseconds time, jaw::statefn callback) {
+	timerList.emplace_back(props->uptime + time, callback);
+}
+
+void util::updateTimers(jaw::properties *props) {
+	auto it = timerList.begin();
+	while (it != timerList.end()) {
+		if (props->uptime >= it->endTime) {
+			// Time is up
+			it->callback(props);
+			timerList.erase(it++);
+		}
+		else {
+			it++;
+		}
+	}
 }
