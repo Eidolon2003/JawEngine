@@ -1,8 +1,8 @@
 Features:
-- Collision detection
 - Thread safety
 - Support more audio formats
 - Support more gamepads
+- Physics system
 
 Projects:
 - Demo Raycaster

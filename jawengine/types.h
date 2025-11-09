@@ -41,6 +41,9 @@ namespace jaw {
 		constexpr vec2f operator*(const float rhs) const { return { x * rhs, y * rhs }; }
 		constexpr vec2f operator/(const float rhs) const { return { x / rhs, y / rhs }; }
 
+		constexpr bool operator<(const vec2f rhs) const { return (x < rhs.x) && (y < rhs.y); }
+		constexpr bool operator>=(const vec2f rhs) const { return (x >= rhs.x) && (y >= rhs.y); }
+
 		constexpr float product() const { return x*y; }
 	};
 
@@ -70,6 +73,14 @@ namespace jaw {
 			tl.x = tlx; tl.y = tly; br.x = brx; br.y = bry;
 		}
 		constexpr rectf(vec2f tl, vec2f br) { this->tl = tl; this->br = br; }
+
+		constexpr bool contains(const jaw::vec2f pt) const { return tl < pt && br >= pt; }
+		constexpr bool collides(const jaw::rectf r) const {
+			return r.contains(tl) ||
+				r.contains(br) ||
+				r.contains(jaw::vec2f(br.x, tl.y)) ||
+				r.contains(jaw::vec2f(tl.x, br.y));
+		}
 	};
 
 	struct recti {
@@ -78,6 +89,14 @@ namespace jaw {
 			tl.x = tlx; tl.y = tly; br.x = brx; br.y = bry;
 		}
 		constexpr recti(vec2i tl, vec2i br) { this->tl = tl; this->br = br; }
+
+		constexpr bool contains(const jaw::vec2i pt) const { return tl < pt && br >= pt; }
+		constexpr bool collides(const jaw::recti r) const {
+			return r.contains(tl) ||
+				r.contains(br) ||
+				r.contains(jaw::vec2i(br.x, tl.y)) ||
+				r.contains(jaw::vec2i(tl.x, br.y));
+		}
 	};
 
 	struct ellipse {
