@@ -45,6 +45,10 @@ namespace anim {
 	// Returns jaw::INVALID_ID if out of space
 	jaw::animdefid create(const jaw::animation&);
 
+	// Destroys an animation state returned by instanceOf
+	// Does NOT destroy an animation definition, those live forever.
+	void destroy(jaw::animstateid);
+
 	// Convert IDs to pointers
 	// Returns nullptr for invalid ID
 	jaw::animation *idtoptr(jaw::animdefid);
@@ -52,10 +56,6 @@ namespace anim {
 	// Create an instance of an animation type to tie to one or more sprites
 	// Returns jaw::INVALID_ID if out of space
 	jaw::animstateid instanceOf(jaw::animdefid);
-
-	// Destroys an animation state returned by instanceOf
-	// Does NOT destroy an animation definition, those live forever.
-	void destroy(jaw::animstateid);
 
 	// Returns whether or not a non-looped animation has finished
 	// Returns false on invalid ID on looped animations

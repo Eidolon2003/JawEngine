@@ -19,9 +19,10 @@ jaw::stateid state::create(jaw::properties *props, jaw::statefn initOnce, jaw::s
 	) {
 		return jaw::INVALID_ID;
 	}
-	states[numStates] = { init, loop };
+	jaw::stateid s = (jaw::stateid)numStates++;
+	states[s] = { init, loop };
 	if (initOnce) initOnce(props);
-	return (jaw::stateid)numStates++;
+	return s;
 }
 
 bool state::push(jaw::stateid id) {
@@ -40,6 +41,11 @@ bool state::pop() {
 	newStateFlag = true;
 	stackTop--;
 	return true;
+}
+
+jaw::stateid state::top() {
+	if (stackTop == 0) return jaw::INVALID_ID;
+	else return stack[stackTop-1];
 }
 
 bool state::loop(jaw::properties *props) {

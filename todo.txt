@@ -1,8 +1,5 @@
 Features:
-- Thread safety
 - Support more audio formats
 - Support more gamepads
 - Physics system
-
-Projects:
-- Demo Raycaster
+- Thread safety
