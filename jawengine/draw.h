@@ -16,16 +16,20 @@ namespace draw {
 		jaw::vec2i p1, p2;
 		jaw::argb color;
 		uint32_t width;
-		float angle = 0;
+		float angle;
 	};
 	static_assert(sizeof(line) <= MAX_DRAW_SIZE);
+	static_assert(std::is_trivial_v<line>);
+	static_assert(std::is_standard_layout_v<line>);
 
 	struct rect {
 		jaw::recti rect;
 		jaw::argb color;
-		float angle = 0;
+		float angle;
 	};
 	static_assert(sizeof(rect) <= MAX_DRAW_SIZE);
+	static_assert(std::is_trivial_v<rect>);
+	static_assert(std::is_standard_layout_v<rect>);
 
 	#pragma pack(push, 4)
 	// Note: The string this is pointing to must exist past the end of the frame.
@@ -34,28 +38,34 @@ namespace draw {
 		jaw::recti rect;
 		const char *str;
 		jaw::argb color;
-		jaw::fontid font = 0;
-		float angle = 0;
+		jaw::fontid font;
+		float angle;
 	};
 	#pragma pack(pop)
 	static_assert(sizeof(str) <= MAX_DRAW_SIZE);
+	static_assert(std::is_trivial_v<str>);
+	static_assert(std::is_standard_layout_v<str>);
 
 	struct bmp {
 		jaw::bmpid bmp;
 		jaw::recti src;
 		jaw::recti dest;
-		float angle = 0;
-		bool mirrorX = false;
-		bool mirrorY = false;
+		float angle;
+		bool mirrorX;
+		bool mirrorY;
 	};
 	static_assert(sizeof(bmp) <= MAX_DRAW_SIZE);
-
+	static_assert(std::is_trivial_v<bmp>);
+	static_assert(std::is_standard_layout_v<bmp>);
+	
 	struct ellipse {
 		jaw::ellipse ellipse;
 		jaw::argb color;
-		float angle = 0;
+		float angle;
 	};
 	static_assert(sizeof(ellipse) <= MAX_DRAW_SIZE);
+	static_assert(std::is_trivial_v<ellipse>);
+	static_assert(std::is_standard_layout_v<ellipse>);
 
 	enum class type : uint8_t {
 		LINE,
@@ -78,6 +88,8 @@ namespace draw {
 		};
 	};
 	static_assert(sizeof(drawCall) == 32);
+	static_assert(std::is_trivial_v<drawCall>);
+	static_assert(std::is_standard_layout_v<drawCall>);
 
 	// Make a draw call structrue from a primitive's options
 	template <typename T>
@@ -114,13 +126,15 @@ namespace draw {
 	Assets
 */
 	struct font {
-		const char *name = "Courier New";
-		float size = 10.f;
-		bool italic = false;
-		bool bold = false;
-		enum { CENTER, LEFT, RIGHT } align = LEFT;
+		const char *name;
+		float size;
+		bool italic;
+		bool bold;
+		enum { LEFT, CENTER, RIGHT } align;
 	};
-	jaw::fontid newFont(const font*);
+	static_assert(std::is_trivial_v<font>);
+
+	jaw::fontid newFont(const font*);	// Default font 0 is "Courier New" size 10
 	inline jaw::fontid newFont(const font &o) { return newFont(&o); }
 
 	// Returns jaw::INVALID_ID on failure

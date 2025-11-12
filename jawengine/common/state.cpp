@@ -4,12 +4,13 @@
 struct functions {
 	jaw::statefn init, loop;
 };
+static_assert(std::is_trivial_v<functions>);
 
 static functions states[state::MAX_NUM_STATES];
-static size_t numStates = 0;
+static size_t numStates;
 
 static jaw::stateid stack[state::MAX_STACK_SIZE];
-static size_t stackTop = 0;
+static size_t stackTop;
 
 static bool newStateFlag;
 

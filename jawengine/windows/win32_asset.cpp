@@ -81,14 +81,14 @@ fail0:
 }
 
 struct FileInfo {
-	size_t size = 0;
-	void *data = nullptr;
+	size_t size;
+	void *data;
 };
 static std::unordered_map<std::string, FileInfo> fileCache;
 
 struct BmpInfo {
 	jaw::vec2i dim;
-	jaw::argb *px = nullptr;
+	jaw::argb *px;
 };
 static std::unordered_map<std::string, BmpInfo> bmpCache;
 

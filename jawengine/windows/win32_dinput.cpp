@@ -9,8 +9,9 @@ struct DIGamepad {
 	DIJOYSTATE2 state;
 	WORD vid, pid;
 };
+static_assert(std::is_trivial_v<DIGamepad>);
 
-static jaw::gamepad external[input::MAX_GAMEPADS]{};
+static jaw::gamepad external[input::MAX_GAMEPADS];
 static DIGamepad internal[input::MAX_GAMEPADS];
 static unsigned numPlayers;
 

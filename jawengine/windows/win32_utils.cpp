@@ -18,6 +18,7 @@ struct timer {
 	jaw::nanoseconds endTime;
 	jaw::statefn callback;
 };
+static_assert(std::is_trivial_v<timer>);
 static std::list<timer> timerList;
 
 

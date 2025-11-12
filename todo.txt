@@ -1,6 +1,5 @@
 todo before 0.2.0:
 - Fix DirectInput failing to initialize on some machines
-- Figure out why either sound or sprites makes the binary 6MB larger
 
 Future Features:
 - Support more audio formats

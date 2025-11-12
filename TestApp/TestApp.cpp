@@ -108,7 +108,7 @@ static void title_init(jaw::properties *props) {
 static void title_loop(jaw::properties *props) {
 	// Draw the title text
 	draw::enqueue(draw::str{
-		.rect = jaw::recti(0, props->size),
+		.rect = jaw::recti(jaw::vec2i(), props->size),
 		.str = "JawEngine\nSnake",
 		.color = jaw::color::WHITE,
 		.font = titleFont
@@ -408,7 +408,7 @@ static void game_loop(jaw::properties *props) {
 	// Draw the play area bitmap
 	draw::enqueue(draw::bmp{
 		.bmp = playAreaBmp,
-		.src = jaw::recti(0, playAreaSize),
+		.src = jaw::recti(jaw::vec2i(), playAreaSize),
 		.dest = playAreaRect
 	}, 1);
 
@@ -419,7 +419,7 @@ static void game_loop(jaw::properties *props) {
 	char *buf = util::tempalloc<char>(64);
 	snprintf(buf, 64, "\n  Score: %zu", snake.size());
 	draw::enqueue(draw::str{
-		.rect = jaw::recti(0, props->size),
+		.rect = jaw::recti(jaw::vec2i(), props->size),
 		.str = buf,
 		.color = jaw::color::WHITE,
 		.font = scoreFont

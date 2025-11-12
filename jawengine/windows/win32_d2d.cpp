@@ -21,27 +21,27 @@
 static const jaw::properties *props;
 static D2D1_COLOR_F backgroundColor = D2D1::ColorF(0);
 
-static ID2D1Factory *pD2DFactory = nullptr;
-static ID2D1HwndRenderTarget *pRenderTarget = nullptr;
-static ID2D1BitmapRenderTarget *pBitmapTarget = nullptr;
-static ID2D1Bitmap *pBitmapTargetBMP = nullptr;
-static IDWriteFactory *pDWFactory = nullptr;
-static IDWriteRenderingParams *pParams = nullptr;
-static ID2D1SolidColorBrush *pSolidBrush = nullptr;
+static ID2D1Factory *pD2DFactory;
+static ID2D1HwndRenderTarget *pRenderTarget;
+static ID2D1BitmapRenderTarget *pBitmapTarget;
+static ID2D1Bitmap *pBitmapTargetBMP;
+static IDWriteFactory *pDWFactory;
+static IDWriteRenderingParams *pParams;
+static ID2D1SolidColorBrush *pSolidBrush;
 static D2D1_BITMAP_INTERPOLATION_MODE interpMode;
 static D2D1_ANTIALIAS_MODE AAMode;
 
-static draw::drawCall writeQueue[draw::MAX_QUEUE_SIZE]{};
-static draw::drawCall renderQueue[draw::MAX_QUEUE_SIZE]{};
-static size_t writeQueueFront = 0;
-static size_t renderQueueFront = 0;
+static draw::drawCall writeQueue[draw::MAX_QUEUE_SIZE];
+static draw::drawCall renderQueue[draw::MAX_QUEUE_SIZE];
+static size_t writeQueueFront;
+static size_t renderQueueFront;
 
 static IDWriteTextFormat *fonts[draw::MAX_NUM_FONTS];
-static size_t numFonts = 0;
+static size_t numFonts;
 
 static ID2D1Bitmap *bmps[draw::MAX_NUM_BMPS];
 static ID2D1BitmapRenderTarget *bmpTargets[draw::MAX_NUM_BMPS];
-static size_t numBmps = 0;
+static size_t numBmps;
 
 static wchar_t wstrBuffer[1024];
 static size_t towstrbuf(const char *str) {
@@ -163,7 +163,7 @@ void draw::init(const jaw::properties *p, HWND hwnd) {
 	}
 
 	// Create the deafault font as font zero
-	auto f = font();
+	font f = { .name = "Courier New", .size = 10.f };
 	auto id = draw::newFont(&f);
 	assert(id == 0);
 }

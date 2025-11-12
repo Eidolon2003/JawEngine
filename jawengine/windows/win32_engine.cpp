@@ -29,7 +29,7 @@
 #include <objbase.h>	//CoInitializeEx
 #include <mmsystem.h>	//timer
 
-static bool running = true;
+static bool running;
 static LARGE_INTEGER countsPerSecond;
 static TIMECAPS timerInfo;
 static jaw::nanoseconds startPoint, lastFrame, thisFrame;

@@ -5,11 +5,12 @@
 #include <cstring>	//memcpy
 
 struct animState {
-	jaw::animdefid animation = jaw::INVALID_ID;
-	uint32_t frame = 0;
-	jaw::nanoseconds animTimer = 0;
-	bool finished = false;
+	jaw::animdefid animation;
+	uint32_t frame;
+	jaw::nanoseconds animTimer;
+	bool finished;
 };
+static_assert(std::is_trivial_v<animState>);
 
 /*
 	ANIMATION

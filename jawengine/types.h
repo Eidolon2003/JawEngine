@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <type_traits>
 
 constexpr float PI32 = 3.14159265f;
 
@@ -42,7 +43,8 @@ namespace jaw {
 	struct vec2i;
 	struct vec2f {
 		float x, y;
-		constexpr vec2f(float x = 0, float y = 0) { this->x = x; this->y = y; }
+		vec2f() = default;
+		constexpr vec2f(float x, float y) { this->x = x; this->y = y; }
 		constexpr vec2f(jaw::vec2i);
 
 		constexpr vec2f operator+(const vec2f rhs) const { return { x + rhs.x, y + rhs.y }; }
@@ -59,10 +61,12 @@ namespace jaw {
 
 		constexpr float product() const { return x*y; }
 	};
+	static_assert(std::is_trivial_v<vec2f>);
 
 	struct vec2i {
 		int16_t x, y;
-		constexpr vec2i(int16_t x = 0, int16_t y = 0) { this->x = x; this->y = y; }
+		vec2i() = default;
+		constexpr vec2i(int16_t x, int16_t y) { this->x = x; this->y = y; }
 		constexpr vec2i(jaw::vec2f v) { x = (uint16_t)v.x; y = (uint16_t)v.y; }
 
 		constexpr vec2i operator+(const vec2i rhs) const { return { (int16_t)(x + rhs.x), (int16_t)(y + rhs.y) }; }
@@ -81,10 +85,12 @@ namespace jaw {
 		constexpr int32_t product() const { return x*y; }
 	};
 	inline constexpr jaw::vec2f::vec2f(jaw::vec2i v) { x = (float)v.x; y = (float)v.y; }
+	static_assert(std::is_trivial_v<vec2i>);
 
 	struct rectf {
 		vec2f tl, br;
-		constexpr rectf(float tlx = 0, float tly = 0, float brx = 0, float bry = 0) {
+		rectf() = default;
+		constexpr rectf(float tlx, float tly, float brx, float bry) {
 			tl.x = tlx; tl.y = tly; br.x = brx; br.y = bry;
 		}
 		constexpr rectf(vec2f tl, vec2f br) { this->tl = tl; this->br = br; }
@@ -102,10 +108,12 @@ namespace jaw {
 				r.contains(bl());
 		}
 	};
+	static_assert(std::is_trivial_v<rectf>);
 
 	struct recti {
 		vec2i tl, br;
-		constexpr recti(int16_t tlx = 0, int16_t tly = 0, int16_t brx = 0, int16_t bry = 0) {
+		recti() = default;
+		constexpr recti(int16_t tlx, int16_t tly, int16_t brx, int16_t bry) {
 			tl.x = tlx; tl.y = tly; br.x = brx; br.y = bry;
 		}
 		constexpr recti(vec2i tl, vec2i br) { this->tl = tl; this->br = br; }
@@ -123,18 +131,21 @@ namespace jaw {
 				r.contains(bl());
 		}
 	};
+	static_assert(std::is_trivial_v<recti>);
 
 	struct ellipse {
 		vec2i center;
 		vec2i radii;
-		constexpr ellipse(vec2i c = vec2i(), vec2i r = vec2i()) {
+		ellipse() = default;
+		constexpr ellipse(vec2i c, vec2i r) {
 			center = c; radii = r;
 		}
 	};
+	static_assert(std::is_trivial_v<ellipse>);
 
 #ifndef JAW_NINPUT
 	union mouseFlags {
-		uint8_t all {};
+		uint8_t all;
 		struct {
 			char lmb : 1;
 			char rmb : 1;
@@ -145,23 +156,27 @@ namespace jaw {
 			char xmb2 : 1;
 		};
 	};
+	static_assert(std::is_trivial_v<mouseFlags>);
 
 	struct mouse {
 		jaw::vec2i pos;
-		int32_t wheelDelta {};
-		jaw::mouseFlags flags {};
-		jaw::mouseFlags prevFlags {};
+		int32_t wheelDelta;
+		jaw::mouseFlags flags;
+		jaw::mouseFlags prevFlags;
 	};
+	static_assert(std::is_trivial_v<mouse>);
 
 	struct key {
 		bool isDown;
 		bool isHeld;
 	};
+	static_assert(std::is_trivial_v<key>);
 #endif
 
 	struct cpuflags {
-		bool avx2 = false;
+		bool avx2;
 	};
+	static_assert(std::is_trivial_v<cpuflags>);
 	
 	struct properties {
 		const char *title = " ";
@@ -232,12 +247,13 @@ namespace jaw {
 	typedef uint32_t animdefid;
 
 	struct animation {
-		unsigned startFrame = 0;
-		unsigned endFrame = 0;
-		unsigned row = 0;
-		jaw::nanoseconds frameInterval = jaw::millis(100);
-		bool loop = true;
+		unsigned startFrame;
+		unsigned endFrame;
+		unsigned row;
+		jaw::nanoseconds frameInterval;
+		bool loop;
 	};
+	static_assert(std::is_trivial_v<animation>);
 
 	// The engine will automatically handle the following:
 	// - Update pos using vel
@@ -245,27 +261,28 @@ namespace jaw {
 	// - Handle animation
 	struct sprite {
 		// Pixel coordinate and velocity in pixels per second
-		jaw::vec2f pos{}, vel{};
-		uint8_t z = 0;
-		bool mirrorX = false;
-		bool mirrorY = false;
+		jaw::vec2f pos, vel;
+		uint8_t z;
+		bool mirrorX;
+		bool mirrorY;
 
 		// The id of this sprite's bitmap
-		jaw::bmpid bmp = INVALID_ID;
+		jaw::bmpid bmp;
 
 		// The size in pixels of a single animation frame,
 		// or the sprite itself if not animated
-		jaw::vec2i frameSize{};
+		jaw::vec2i frameSize;
 
 		// Age is updated by the system
-		jaw::nanoseconds age = 0;
+		jaw::nanoseconds age;
 
 		// Optional: if the sprite is animated
-		jaw::animstateid animState = INVALID_ID;
+		jaw::animstateid animState;
 
 		//Convenience functions
 		constexpr jaw::recti rect() const { return jaw::recti(pos, jaw::vec2i(pos) + frameSize); }
 	};
+	static_assert(std::is_trivial_v<sprite>);
 
 	typedef void (*sprfn)(jaw::sprid, jaw::properties*);
 #endif
@@ -276,10 +293,11 @@ namespace jaw {
 #ifndef JAW_NINPUT
 	typedef uint32_t clickableid;
 	struct clickable {
-		jaw::rectfn getRect = nullptr;
-		jaw::statefn callback = nullptr;
-		jaw::mouseFlags condition{};
+		jaw::rectfn getRect;
+		jaw::statefn callback;
+		jaw::mouseFlags condition;
 	};
+	static_assert(std::is_trivial_v<clickable>);
 
 	struct SonyGamepad {
 		jaw::key x, square, circle, triangle;
@@ -290,6 +308,7 @@ namespace jaw {
 		jaw::vec2f r, l;
 		jaw::key ps, pad;
 	};
+	static_assert(std::is_trivial_v<SonyGamepad>);
 
 	struct gamepad {
 		enum class type { SONY, UNKNOWN } type;
@@ -297,6 +316,7 @@ namespace jaw {
 			SonyGamepad sony;
 		};
 	};
+	static_assert(std::is_trivial_v<gamepad>);
 #endif
 
 #ifndef JAW_NSTATE
