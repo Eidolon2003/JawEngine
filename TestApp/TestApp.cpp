@@ -159,13 +159,11 @@ constexpr jaw::argb snakeColor = jaw::color::GREEN;
 constexpr jaw::argb appleColor = jaw::color::RED;
 
 static jaw::fontid scoreFont = jaw::INVALID_ID;
-static jaw::recti playArea;
+static jaw::vec2i playAreaSize;
+static jaw::recti playAreaRect;
+static jaw::bmpid playAreaBmp;
 static int16_t tileSize;
 constexpr auto tiles = jaw::vec2i(25,25);
-
-// An array of draw calls to draw each tile
-// These can be quickly moved into the draw queue in one batch
-static draw::drawCall tileDraws[tiles.x][tiles.y]{};
 
 enum class move {
 	up, left, down, right, none
@@ -179,6 +177,16 @@ static auto disty = std::uniform_int_distribution(0, tiles.y-1);
 static std::list<jaw::vec2i> snake;
 static jaw::vec2i apple;
 
+static void drawTile(jaw::vec2i tile, jaw::argb color) {
+	draw::tobmp(draw::rect{
+		.rect = jaw::recti(
+			tile*tileSize + 2,
+			(tile+1)*tileSize - 2
+		),
+		.color = color
+	}, playAreaBmp);
+}
+
 static void randomizeApple() {
 	// Place the apple somewhere the snake isn't
 retry:
@@ -187,7 +195,7 @@ retry:
 		if (apple == x) goto retry;
 	}
 
-	tileDraws[apple.x][apple.y].rect.color = appleColor;
+	drawTile(apple, appleColor);
 }
 
 static void processMove(jaw::properties* props) {
@@ -225,22 +233,22 @@ static void processMove(jaw::properties* props) {
 	switch (dir) {
 	case move::up:
 		snake.push_front(snake.front() + jaw::vec2i(0, -1));
-		tileDraws[snake.front().x][snake.front().y].rect.color = snakeColor;
+		drawTile(snake.front(), snakeColor);
 		break;
 
 	case move::left:
 		snake.push_front(snake.front() + jaw::vec2i(-1, 0));
-		tileDraws[snake.front().x][snake.front().y].rect.color = snakeColor;
+		drawTile(snake.front(), snakeColor);
 		break;
 
 	case move::down:
 		snake.push_front(snake.front() + jaw::vec2i(0, 1));
-		tileDraws[snake.front().x][snake.front().y].rect.color = snakeColor;
+		drawTile(snake.front(), snakeColor);
 		break;
 
 	case move::right:
 		snake.push_front(snake.front() + jaw::vec2i(1, 0));
-		tileDraws[snake.front().x][snake.front().y].rect.color = snakeColor;
+		drawTile(snake.front(), snakeColor);
 		break;
 
 	case move::none:
@@ -256,7 +264,7 @@ static void processMove(jaw::properties* props) {
 		else {
 			jaw::vec2i back = snake.back();
 			snake.pop_back();
-			if (back != snake.front()) tileDraws[back.x][back.y].rect.color = emptyColor;
+			if (back != snake.front()) drawTile(back, emptyColor);
 		}
 
 		// Check for out of bounds
@@ -295,23 +303,13 @@ static void game_initOnce(jaw::properties *props) {
 	tileSize = (std::min(props->size.x, props->size.y) / std::max(tiles.x, tiles.y)) - 1;
 	assert(tileSize >= 1);
 
-	jaw::vec2i playAreaSize = tiles * tileSize;
-	playArea = jaw::recti(center - playAreaSize/2, center + playAreaSize/2);
+	playAreaSize = tiles * tileSize;
+	playAreaRect = jaw::recti(center - playAreaSize/2, center + playAreaSize/2);
 
-	// Set up draw calls for tiles
-	for (int x = 0; x < tiles.x; x++) {
-		for (int y = 0; y < tiles.y; y++) {
-			tileDraws[x][y] = draw::make<draw::rect>(draw::rect{
-				.rect = jaw::recti(
-					playArea.tl.x + (x*tileSize) + 2,
-					playArea.tl.y + (y*tileSize) + 2,
-					playArea.tl.x + ((x+1)*tileSize) - 2,
-					playArea.tl.y + ((y+1)*tileSize) - 2
-				),
-				.color = emptyColor
-			}, 2);
-		}
-	}
+	// Create play area bitmap
+	// A renderable bitmap can be drawn on directly by the draw API
+	// This allows you to composite a complex image once, then redraw it cheaply
+	playAreaBmp = draw::createRenderableBmp(playAreaSize);
 
 	scoreFont = draw::newFont(draw::font{
 		.name = "Arial",
@@ -325,7 +323,7 @@ static void game_init(jaw::properties *props) {
 	// Clear tile colors to empty
 	for (int x = 0; x < tiles.x; x++) {
 		for (int y = 0; y < tiles.y; y++) {
-			tileDraws[x][y].rect.color = emptyColor;
+			drawTile(jaw::vec2i(x, y), emptyColor);
 		}
 	}
 
@@ -337,8 +335,9 @@ static void game_init(jaw::properties *props) {
 	moveQueue.clear();
 	snake.clear();
 	dir = move::none;
-	snake.push_back(jaw::vec2i(tiles.x/2, tiles.y/2));
-	tileDraws[tiles.x/2][tiles.y/2].rect.color = snakeColor;
+	auto snakeStart = jaw::vec2i(tiles.x/2, tiles.y/2);
+	snake.push_back(snakeStart);
+	drawTile(snakeStart, snakeColor);
 	randomizeApple();
 
 	processMove(props);
@@ -401,12 +400,16 @@ static void game_loop(jaw::properties *props) {
 
 	// Draw black play area on top of the dark blue background
 	draw::enqueue(draw::rect{
-		.rect = playArea,
+		.rect = playAreaRect,
 		.color = jaw::color::BLACK
 	}, 0);
 
-	// memcpy the contiguous array of tile draw calls into the draw queue
-	draw::enqueueMany((draw::drawCall*)tileDraws, tiles.product());
+	// Draw the play area bitmap
+	draw::enqueue(draw::bmp{
+		.bmp = playAreaBmp,
+		.src = jaw::recti(0, playAreaSize),
+		.dest = playAreaRect
+	}, 1);
 
 	// Draw the score
 	// util::tempalloc is a fast bump allocator that allocates from a fixed temporary buffer

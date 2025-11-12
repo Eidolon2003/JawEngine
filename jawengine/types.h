@@ -55,6 +55,7 @@ namespace jaw {
 		constexpr bool operator<(const vec2f rhs) const { return (x < rhs.x) && (y < rhs.y); }
 		constexpr bool operator>=(const vec2f rhs) const { return (x >= rhs.x) && (y >= rhs.y); }
 		constexpr bool operator==(const vec2f rhs) const { return (x == rhs.x) && (y == rhs.y); }
+		constexpr bool operator!=(const vec2f rhs) const { return !operator==(rhs); }
 
 		constexpr float product() const { return x*y; }
 	};
@@ -75,6 +76,7 @@ namespace jaw {
 		constexpr bool operator<(const vec2i rhs) const { return (x < rhs.x) && (y < rhs.y); }
 		constexpr bool operator>=(const vec2i rhs) const { return (x >= rhs.x) && (y >= rhs.y); }
 		constexpr bool operator==(const vec2i rhs) const { return (x == rhs.x) && (y == rhs.y); }
+		constexpr bool operator!=(const vec2i rhs) const { return !operator==(rhs); }
 
 		constexpr int32_t product() const { return x*y; }
 	};
@@ -87,12 +89,17 @@ namespace jaw {
 		}
 		constexpr rectf(vec2f tl, vec2f br) { this->tl = tl; this->br = br; }
 
+		constexpr float width() const { return br.x - tl.x; }
+		constexpr float height() const { return br.y - tl.y; }
+		constexpr vec2f tr() const { return vec2f(br.x, tl.y); }
+		constexpr vec2f bl() const { return vec2f(tl.x, br.y); }
+
 		constexpr bool contains(const jaw::vec2f pt) const { return tl < pt && br >= pt; }
 		constexpr bool collides(const jaw::rectf r) const {
 			return r.contains(tl) ||
 				r.contains(br) ||
-				r.contains(jaw::vec2f(br.x, tl.y)) ||
-				r.contains(jaw::vec2f(tl.x, br.y));
+				r.contains(tr()) ||
+				r.contains(bl());
 		}
 	};
 
@@ -103,12 +110,17 @@ namespace jaw {
 		}
 		constexpr recti(vec2i tl, vec2i br) { this->tl = tl; this->br = br; }
 
+		constexpr int16_t width() const { return br.x - tl.x; }
+		constexpr int16_t height() const { return br.y - tl.y; }
+		constexpr vec2i tr() const { return vec2i(br.x, tl.y); }
+		constexpr vec2i bl() const { return vec2i(tl.x, br.y); }
+
 		constexpr bool contains(const jaw::vec2i pt) const { return tl < pt && br >= pt; }
 		constexpr bool collides(const jaw::recti r) const {
 			return r.contains(tl) ||
 				r.contains(br) ||
-				r.contains(jaw::vec2i(br.x, tl.y)) ||
-				r.contains(jaw::vec2i(tl.x, br.y));
+				r.contains(tr()) ||
+				r.contains(bl());
 		}
 	};
 
