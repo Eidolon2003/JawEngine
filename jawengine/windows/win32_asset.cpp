@@ -367,7 +367,7 @@ void asset::ini(const char *filename, std::vector<asset::INIEntry> *vec) {
 	HANDLE file = CreateFileA(
 		filename,
 		GENERIC_READ | GENERIC_WRITE,
-		NULL,
+		0,
 		NULL,
 		OPEN_ALWAYS,
 		FILE_ATTRIBUTE_NORMAL,
@@ -407,7 +407,7 @@ void asset::ini(const char *filename, std::vector<asset::INIEntry> *vec) {
 
 	// At this point we've read in the entire ini file and properly populated vec
 	// Now we rewrite the file properly formatted
-	SetFilePointer(file, NULL, NULL, FILE_BEGIN);
+	SetFilePointer(file, 0, NULL, FILE_BEGIN);
 	for (size_t i = 0; i < vec->size(); ++i) {
 		const INIEntry &e = vec->at(i);
 		DWORD bytesWritten;

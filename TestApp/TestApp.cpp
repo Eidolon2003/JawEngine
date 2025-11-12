@@ -7,6 +7,10 @@
 #define JAW_NSOUND
 #include "../jawengine/JawEngine.h"
 
+#include <ctime>
+#include <list>
+#include <random>
+
 /*
 *	FORWARD DECLARE STATE FUNCTIONS
 */
@@ -151,9 +155,6 @@ static void title_loop(jaw::properties *props) {
 /*
 *	GAME STATE
 */
-#include <list>
-#include <random>
-
 constexpr jaw::argb emptyColor = jaw::color::DARK_GRAY;
 constexpr jaw::argb snakeColor = jaw::color::GREEN;
 constexpr jaw::argb appleColor = jaw::color::RED;
@@ -353,7 +354,7 @@ static void kbdInput() {
 	else if (input::getKey(key::S).isDown || input::getKey(key::DOWN).isDown) {
 		moveQueue.push_back(move::down);
 	}
-	else if (input::getKey(key::D).isDown || input::getKey(key::LEFT).isDown) {
+	else if (input::getKey(key::D).isDown || input::getKey(key::RIGHT).isDown) {
 		moveQueue.push_back(move::right);
 	}
 }
