@@ -3,6 +3,10 @@
 
 #include <dinput.h>
 
+#ifndef NDEBUG
+#include <iostream>
+#endif
+
 struct DIGamepad {
 	IDirectInputDevice8A *dev;
 	GUID guid;
@@ -18,11 +22,20 @@ static unsigned numPlayers;
 static IDirectInput8A *di;
 
 void input::init(HWND hwnd) {
+#ifndef NDEBUG
+	std::cout << "Debug: DirectInput8 init ";
+#endif
+
 	clear();
 	numPlayers = 0;
 
 	HINSTANCE inst = GetModuleHandleA(NULL);
-	DirectInput8Create(inst, DIRECTINPUT_VERSION, IID_IDirectInput8A, (LPVOID*)&di, NULL);
+	HRESULT hr = DirectInput8Create(inst, DIRECTINPUT_VERSION, IID_IDirectInput8A, (LPVOID*)&di, NULL);
+
+#ifndef NDEBUG
+	std::cout << (SUCCEEDED(hr) ? "succeeded\n" : "failed\n");
+#endif
+
 	findNewGamepads();
 }
 
@@ -91,6 +104,9 @@ void input::readGamepads() {
 			if (FAILED(hr)) {
 				if (hr == DIERR_INPUTLOST) continue;
 				else if (hr == DIERR_UNPLUGGED) {
+#ifndef NDEBUG
+					std::cout << "Debug: Controller slot " << i << " unplugged\n";
+#endif
 					g.dev->Release();
 					g = {};
 					continue;
@@ -130,6 +146,10 @@ static BOOL EnumCallback(LPCDIDEVICEINSTANCEA lpddi, LPVOID ptr) {
 	}
 
 	// Once here this is a new controller
+#ifndef NDEBUG
+	std::cout << "Debug: New controller found: " << lpddi->tszProductName << std::endl;
+#endif
+
 	unsigned index = 0;
 	for (; index < numPlayers; index++) {
 		if (internal[index].dev == nullptr) break;
@@ -170,8 +190,17 @@ fail:
 	return DIENUM_CONTINUE;
 }
 bool input::findNewGamepads() {
+#ifndef NDEBUG
+	std::cout << "Debug: input::findNewGamepads()\n";
+#endif
+
 	bool newFound;
-	di->EnumDevices(DI8DEVCLASS_GAMECTRL, EnumCallback, (LPVOID)&newFound, DIEDFL_ATTACHEDONLY);
+	HRESULT hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, EnumCallback, (LPVOID)&newFound, DIEDFL_ATTACHEDONLY);
+
+#ifndef NDEBUG
+	std::cout << "Debug: DIEnumDevices " << (SUCCEEDED(hr) ? "succeeded\n" : "failed\n");
+#endif
+
 	if (newFound) readGamepads();
 	return newFound;
 }

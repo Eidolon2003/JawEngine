@@ -100,7 +100,7 @@ namespace jaw {
 		constexpr vec2f tr() const { return vec2f(br.x, tl.y); }
 		constexpr vec2f bl() const { return vec2f(tl.x, br.y); }
 
-		constexpr bool contains(const jaw::vec2f pt) const { return tl < pt && br >= pt; }
+		constexpr bool contains(const jaw::vec2f pt) const { return pt >= tl && pt < br; }
 		constexpr bool collides(const jaw::rectf r) const {
 			return r.contains(tl) ||
 				r.contains(br) ||
@@ -123,7 +123,7 @@ namespace jaw {
 		constexpr vec2i tr() const { return vec2i(br.x, tl.y); }
 		constexpr vec2i bl() const { return vec2i(tl.x, br.y); }
 
-		constexpr bool contains(const jaw::vec2i pt) const { return tl < pt && br >= pt; }
+		constexpr bool contains(const jaw::vec2i pt) const { return pt >= tl && pt < br; }
 		constexpr bool collides(const jaw::recti r) const {
 			return r.contains(tl) ||
 				r.contains(br) ||

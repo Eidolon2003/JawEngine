@@ -63,7 +63,7 @@ void input::updateMouse(const jaw::mouse *m, jaw::properties *props) {
 		jaw::recti rect = c->getRect(props);
 
 		// Check the click falls within the rect
-		if (!(m->pos < rect.br && m->pos >= rect.tl)) continue;
+		if (!rect.contains(m->pos)) continue;
 
 		if (c->callback) {
 			c->callback(props);

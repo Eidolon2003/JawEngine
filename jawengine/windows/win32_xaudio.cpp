@@ -113,3 +113,7 @@ void sound::stop(jaw::soundid id) {
 	if (id >= nextID) return;
 	sounds[id]->Stop();
 }
+
+void sound::stopAll() {
+	for (size_t i = 0; i < nextID; i++) sounds[i]->Stop();
+}

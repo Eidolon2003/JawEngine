@@ -59,7 +59,7 @@ static void handleMouse(WPARAM wparam, LPARAM lparam, jaw::properties *props) {
 	}
 
 	//The computed mouse coordinate must fall inside the window
-	assert(mouse.pos >= 0 && mouse.pos < props->size);
+	assert(jaw::recti({0,0}, props->size).contains(mouse.pos));
 
 	input::updateMouse(&mouse, props);
 }

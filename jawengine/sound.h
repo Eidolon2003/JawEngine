@@ -16,4 +16,7 @@ namespace sound {
 
 	// Stop playing a sound
 	void stop(jaw::soundid);
+
+	// Stop playing all sounds
+	void stopAll();
 }
