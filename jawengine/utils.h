@@ -30,4 +30,7 @@ namespace util {
 
 	// The engine will automatically call the callback after the given time has passed
 	void setTimer(const jaw::properties *props, jaw::nanoseconds time, jaw::statefn callback);
+
+	// Remove all active timers 
+	void clearTimers();
 }

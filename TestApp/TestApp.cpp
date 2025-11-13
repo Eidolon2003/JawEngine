@@ -92,6 +92,9 @@ static void title_init(jaw::properties *props) {
 	input::clear();
 	input::bindKeyDown(key::ESC, [](jaw::properties*) { engine::stop(); });
 
+	// Clear timers, important if we're coming back here from the game state
+	util::clearTimers();
+
 	// Set up the play button clickable
 	input::createClickable(jaw::clickable{
 		// A function that returns the rect of the button
@@ -293,9 +296,7 @@ static void processMove(jaw::properties* props) {
 	}
 
 	// Continue processing moves while the game is running every 100ms regardless of framerate
-	if (state::top() == gameState) {
-		util::setTimer(props, jaw::millis(100), processMove);
-	}
+	util::setTimer(props, jaw::millis(100), processMove);
 }
 
 static void game_initOnce(jaw::properties *props) {
@@ -311,6 +312,10 @@ static void game_initOnce(jaw::properties *props) {
 	// A renderable bitmap can be drawn on directly by the draw API
 	// This allows you to composite a complex image once, then redraw it cheaply
 	playAreaBmp = draw::createRenderableBmp(playAreaSize);
+	draw::tobmp(draw::rect{
+		.rect = jaw::recti(jaw::vec2i(), playAreaSize),
+		.color = jaw::color::BLACK
+	}, playAreaBmp);
 
 	scoreFont = draw::newFont(draw::font{
 		.name = "Arial",
@@ -398,12 +403,6 @@ static void game_loop(jaw::properties *props) {
 	else {
 		kbdInput();
 	}
-
-	// Draw black play area on top of the dark blue background
-	draw::enqueue(draw::rect{
-		.rect = playAreaRect,
-		.color = jaw::color::BLACK
-	}, 0);
 
 	// Draw the play area bitmap
 	draw::enqueue(draw::bmp{

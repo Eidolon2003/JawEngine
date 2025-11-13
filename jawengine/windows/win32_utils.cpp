@@ -127,6 +127,10 @@ void util::setTimer(const jaw::properties *props, jaw::nanoseconds time, jaw::st
 	timerList.emplace_back(props->uptime + time, callback);
 }
 
+void util::clearTimers() {
+	timerList.clear();
+}
+
 void util::updateTimers(jaw::properties *props) {
 	auto it = timerList.begin();
 	while (it != timerList.end()) {
