@@ -1,4 +1,4 @@
-Future Features:
+Potential Future Features:
 - Support more audio formats
 - Support more gamepads
 - Software rendering

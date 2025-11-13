@@ -1,0 +1,5 @@
+JawEngine 0.2.0
+Copyright (c) 2025 Julian Williams
+Licensed under the Mozilla Public License 2.0 (MPL 2.0)
+
+Website / repository: https://github.com/Eidolon2003/JawEngine
