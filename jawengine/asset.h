@@ -49,5 +49,8 @@ namespace asset {
 	// Pass a vector of entries with keys you're interested in, default values, and comments
 	// The function will read the ini file, update values you're interested in, and rewrite the file
 	// This function is not backed by a cache like the others
-	void ini(const char *filename, std::vector<INIEntry> *vec);
+	void readINI(const char *filename, std::vector<INIEntry> *vec);
+
+	// Overwrite INI file with the contents of the vector
+	void writeINI(const char *filename, std::vector<INIEntry> *vec);
 }

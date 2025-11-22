@@ -21,6 +21,7 @@
 #include <cassert>
 #include <string>
 #include <unordered_map>
+#include <sstream>
 
 #include "../asset.h"
 #include "../common/internal_asset.h"
@@ -373,7 +374,7 @@ static void parseLine(char *start, char *end, std::vector<asset::INIEntry> *vec)
 	}
 }
 
-void asset::ini(const char *filename, std::vector<asset::INIEntry> *vec) {
+void asset::readINI(const char *filename, std::vector<asset::INIEntry> *vec) {
 	// Open the file, or create one if it doesn't exist
 	HANDLE file = CreateFileA(
 		filename,
@@ -415,22 +416,44 @@ void asset::ini(const char *filename, std::vector<asset::INIEntry> *vec) {
 		read = endl;
 	}
 	VirtualFree(buf, 0, MEM_RELEASE);
+	CloseHandle(file);
 
 	// At this point we've read in the entire ini file and properly populated vec
 	// Now we rewrite the file properly formatted
+	writeINI(filename, vec);
+}
+
+void asset::writeINI(const char *filename, std::vector<INIEntry> *vec) {
+	// Open the file, or create one if it doesn't exist
+	HANDLE file = CreateFileA(
+		filename,
+		GENERIC_READ | GENERIC_WRITE,
+		0,
+		NULL,
+		OPEN_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL
+	);
+	if (file == INVALID_HANDLE_VALUE) return;
+
+	// Start at the beginning of the file
 	SetFilePointer(file, 0, NULL, FILE_BEGIN);
+
+	std::stringstream out;
+
 	for (size_t i = 0; i < vec->size(); ++i) {
 		const INIEntry &e = vec->at(i);
+
+		out.str(std::string());
+		if (i != 0) out << '\n';
+		out << "; " << e.comment << '\n'
+			<< e.key << " = " << e.value << '\n';
+
 		DWORD bytesWritten;
-		if (i != 0) WriteFile(file, "\n\n", 2, &bytesWritten, NULL);
-		WriteFile(file, ";", 1, &bytesWritten, NULL);
-		WriteFile(file, e.comment.c_str(), (DWORD)e.comment.size(), &bytesWritten, NULL);
-		WriteFile(file, "\n", 1, &bytesWritten, NULL);
-		WriteFile(file, e.key.c_str(), (DWORD)e.key.size(), &bytesWritten, NULL);
-		WriteFile(file, " = ", 3, &bytesWritten, NULL);
-		WriteFile(file, e.value.c_str(), (DWORD)e.value.size(), &bytesWritten, NULL);
+		WriteFile(file, out.str().c_str(), (DWORD)out.str().size(), &bytesWritten, NULL);
 	}
 
+	// Set the end of the file to be after what we just wrote
 	SetEndOfFile(file);
 	CloseHandle(file);
 }
