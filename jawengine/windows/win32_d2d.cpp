@@ -437,7 +437,7 @@ jaw::fontid draw::newFont(const draw::font *opt) {
 		fonts + i
 	);
 
-	switch (opt->align) {
+	switch (opt->alignx) {
 	case draw::font::LEFT:
 		fonts[i]->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
 		break;
@@ -446,10 +446,25 @@ jaw::fontid draw::newFont(const draw::font *opt) {
 		fonts[i]->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_TRAILING);
 		break;
 
-	case draw::font::CENTER:
+	case draw::font::CENTERX:
 		fonts[i]->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 		break;
 	}
+
+	switch (opt->aligny) {
+	case draw::font::TOP:
+		fonts[i]->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+		break;
+
+	case draw::font::BOTTOM:
+		fonts[i]->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_FAR);
+		break;
+
+	case draw::font::CENTERY:
+		fonts[i]->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		break;
+	}
+
 	return (jaw::fontid)i;
 }
 

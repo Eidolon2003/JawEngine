@@ -141,7 +141,8 @@ namespace draw {
 		float size;
 		bool italic;
 		bool bold;
-		enum { LEFT, CENTER, RIGHT } align;
+		enum { LEFT, CENTERX, RIGHT } alignx;
+		enum { TOP, CENTERY, BOTTOM } aligny;
 	};
 	static_assert(std::is_trivial_v<font>);
 

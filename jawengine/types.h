@@ -290,6 +290,9 @@ namespace jaw {
 		// Optional: if the sprite is animated
 		jaw::animstateid animState;
 
+		// Optional: custom data
+		void *data;
+
 		//Convenience functions
 		constexpr jaw::recti rect() const { return jaw::recti(pos, jaw::vec2i(pos) + frameSize); }
 	};
