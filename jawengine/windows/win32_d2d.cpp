@@ -202,6 +202,7 @@ void draw::deinit() {
 
 	for (size_t i = 0; i < numBmps; i++) {
 		bmps[i]->Release();
+		bmpTargets[i]->Release();
 	}
 	numBmps = 0;
 
@@ -364,6 +365,7 @@ void draw::render() {
 	pBitmapTarget->EndDraw();
 
 	pRenderTarget->BeginDraw();
+	pRenderTarget->Clear();
 	switch (props->mode) {
 	case jaw::properties::WINDOWED:
 	case jaw::properties::FULLSCREEN_STRETCHED: {
