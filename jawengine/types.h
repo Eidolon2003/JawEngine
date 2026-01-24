@@ -306,10 +306,12 @@ namespace jaw {
 
 #ifndef JAW_NINPUT
 	typedef uint32_t clickableid;
+	typedef void (*clickfn)(jaw::clickableid, jaw::properties*);
 	struct clickable {
 		jaw::rectfn getRect;
-		jaw::statefn callback;
+		jaw::clickfn callback;
 		jaw::mouseFlags condition;
+		void *data;
 	};
 	static_assert(std::is_trivial_v<clickable>);
 

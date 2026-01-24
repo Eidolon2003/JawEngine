@@ -77,7 +77,7 @@ void input::updateMouse(const jaw::mouse *m, jaw::properties *props) {
 		if (!rect.contains(m->pos)) continue;
 
 		if (c->callback) {
-			c->callback(props);
+			c->callback((jaw::clickableid)i, props);
 			return;
 		}
 	}
