@@ -25,11 +25,8 @@ static jaw::statefn keyUpBindings[256];
 static jaw::statefn lmbDown, lmbUp, rmbDown, rmbUp, mmbDown,
 					mmbUp, xmb1Down, xmb1Up, xmb2Down, xmb2Up;
 
-static jaw::clickable clickables[input::MAX_NUM_CLICKABLE];
-static jaw::clickableid openSlots[input::MAX_NUM_CLICKABLE];
-static bool isOpen[input::MAX_NUM_CLICKABLE];
-static size_t nextID;
-static size_t numOpen;
+#include "slots.h"
+static IDSlots<jaw::clickableid, jaw::clickable, input::MAX_NUM_CLICKABLE> slots;
 
 
 void input::beginFrame(jaw::properties *props) {
@@ -54,10 +51,9 @@ void input::updateMouse(const jaw::mouse *m, jaw::properties *props) {
 	if (changed.all == 0) return;
 
 	// First check clickables
-	for (size_t i = 0; i < nextID; i++) {
-		if (isOpen[i]) continue;
-
-		jaw::clickable *c = clickables + i;
+	for (size_t i = 0; i < slots.nextSlot; i++) {
+		if (slots.isOpen[i] == true) continue;
+		jaw::clickable *c = slots.items + i;
 
 		// Check if modifier keys match condition
 		if (c->condition.shift != m->flags.shift ||
@@ -198,38 +194,17 @@ void input::bindXMB2Down(jaw::statefn fn) { xmb2Down = fn; }
 void input::bindXMB2Up(jaw::statefn fn) { xmb2Up = fn; }
 
 void input::clear() {
-	memset(keyDownBindings, 0, sizeof(keyDownBindings));
-	memset(keyUpBindings, 0, sizeof(keyUpBindings));
-	lmbDown = lmbUp = rmbDown = rmbUp = mmbDown = mmbUp = xmb1Down = xmb1Up = xmb2Down = xmb2Up = nullptr;
-
-	nextID = 0;
-	numOpen = 0;
-	memset(isOpen, 0, sizeof(isOpen));
+	slots.clear();
 }
 
 jaw::clickableid input::createClickable(const jaw::clickable &c) {
-	if (nextID == input::MAX_NUM_CLICKABLE && numOpen == 0) return jaw::INVALID_ID;
-
-	jaw::clickableid newID;
-	if (numOpen > 0) {
-		newID = openSlots[--numOpen];
-		isOpen[newID] = false;
-	}
-	else {
-		newID = (jaw::clickableid)nextID++;
-	}
-
-	memcpy(clickables + newID, &c, sizeof(jaw::clickable));
-	return newID;
+	return slots.create(&c);
 }
 
 void input::destroy(jaw::clickableid id) {
-	if (id >= nextID || isOpen[id]) return;
-	isOpen[id] = true;
-	openSlots[numOpen++] = id;
+	slots.destroy(id);
 }
 
 jaw::clickable *input::idtoptr(jaw::clickableid id) {
-	if (id >= nextID || isOpen[id]) return nullptr;
-	return clickables + id;
+	return slots.idtoptr(id);
 }

@@ -30,17 +30,12 @@ static_assert(std::is_trivial_v<animState>);
 static jaw::animation animDefs[anim::MAX_NUM_ANIM];
 static size_t numAnimDef;
 
-static animState animStates[anim::MAX_NUM_ANIM];
-static jaw::animstateid openStates[anim::MAX_NUM_ANIM];
-static bool isStateOpen[anim::MAX_NUM_ANIM];
-static size_t nextStateID;
-static size_t numStatesOpen;
+#include "slots.h"
+static IDSlots<jaw::animstateid, animState, anim::MAX_NUM_ANIM> animStates;
 
 void anim::clear() {
 	numAnimDef = 0;
-	nextStateID = 0;
-	numStatesOpen = 0;
-	memset(isStateOpen, 0, sizeof(isStateOpen));
+	animStates.clear();
 }
 
 jaw::animdefid anim::create(const jaw::animation &ad) {
@@ -50,9 +45,7 @@ jaw::animdefid anim::create(const jaw::animation &ad) {
 }
 
 void anim::destroy(jaw::animstateid stateID) {
-	if (stateID >= nextStateID || isStateOpen[stateID]) return;
-	openStates[numStatesOpen++] = stateID;
-	isStateOpen[stateID] = true;
+	animStates.destroy(stateID);
 }
 
 jaw::animation *anim::idtoptr(jaw::animdefid defID) {
@@ -61,29 +54,26 @@ jaw::animation *anim::idtoptr(jaw::animdefid defID) {
 }
 
 jaw::animstateid anim::instanceOf(jaw::animdefid defID) {
-	if (nextStateID == anim::MAX_NUM_ANIM && numStatesOpen == 0) return jaw::INVALID_ID;
+	if (defID >= numAnimDef) return jaw::INVALID_ID;
 
-	jaw::animstateid newStateID;
-	if (numStatesOpen > 0) {
-		newStateID = openStates[--numStatesOpen];
-		isStateOpen[newStateID] = false;
-	}
-	else {
-		newStateID = (jaw::animstateid)nextStateID++;
-	}
+	animState data{
+		.animation = defID,
+		.frame = animDefs[defID].startFrame
+	};
 
-	animStates[newStateID] = { .animation = defID, .frame = animDefs[defID].startFrame };
-	return newStateID;
+	return animStates.create(&data);
 }
 
 bool anim::finished(jaw::animstateid stateID) {
-	if (stateID >= nextStateID || isStateOpen[stateID]) return false;
-	return animStates[stateID].finished;
+	animState *state = animStates.idtoptr(stateID);
+	if (state == nullptr) return false;
+	else return state->finished;
 }
 
 uint32_t anim::getFrame(jaw::animstateid stateID) {
-	if (stateID >= nextStateID || isStateOpen[stateID]) return UINT32_MAX;
-	return animStates[stateID].frame;
+	animState *state = animStates.idtoptr(stateID);
+	if (state == nullptr) return UINT32_MAX;
+	else return state->frame;
 }
 
 
@@ -91,74 +81,54 @@ uint32_t anim::getFrame(jaw::animstateid stateID) {
 	SPRITES
 */
 
-static jaw::sprite sprites[sprite::MAX_NUM_SPR];
-static jaw::sprid openSprites[sprite::MAX_NUM_SPR];
-static bool isSpriteOpen[sprite::MAX_NUM_SPR];
-static size_t nextSpriteID;
-static size_t numSpritesOpen;
-
+static IDSlots<jaw::sprid, jaw::sprite, sprite::MAX_NUM_SPR> sprites;
 static jaw::sprfn updates[sprite::MAX_NUM_SPR];
 static jaw::sprfn draws[sprite::MAX_NUM_SPR];
 
 void sprite::clear() {
-	nextSpriteID = 0;
-	numSpritesOpen = 0;
-	memset(isSpriteOpen, 0, sizeof(isSpriteOpen));
+	sprites.clear();
 	memset(updates, 0, sizeof(updates));
 	memset(draws, 0, sizeof(draws));
 }
 
 jaw::sprid sprite::create(const jaw::sprite &spr) {
-	if (nextSpriteID == sprite::MAX_NUM_SPR && numSpritesOpen == 0) return jaw::INVALID_ID;
-
-	jaw::sprid id;
-	if (numSpritesOpen > 0) {
-		id = openSprites[--numSpritesOpen];
-		isSpriteOpen[id] = false;
-	}
-	else {
-		id = (jaw::sprid)nextSpriteID++;
-	}
-
-	memcpy(sprites + id, &spr, sizeof(jaw::sprite));
-	return id;
+	return sprites.create(&spr);
 }
 
 void sprite::destroy(jaw::sprid id) {
-	if (id >= nextSpriteID || isSpriteOpen[id]) return;
-	openSprites[numSpritesOpen++] = id;
-	updates[id] = nullptr;
-	draws[id] = nullptr;
-	isSpriteOpen[id] = true;
+	if (sprites.destroy(id)) {
+		updates[id%sprite::MAX_NUM_SPR] = nullptr;
+		draws[id%sprite::MAX_NUM_SPR] = nullptr;
+	}
 }
 
 jaw::sprite *sprite::idtoptr(jaw::sprid id) {
-	if (id >= nextSpriteID || isSpriteOpen[id]) return nullptr;
-	return sprites + id;
+	return sprites.idtoptr(id);
 }
 
 void sprite::customUpdate(jaw::sprid id, jaw::sprfn fn) {
-	if (id >= nextSpriteID || isSpriteOpen[id]) return;
-	updates[id] = fn;
+	if (sprites.idtoptr(id) == nullptr) return;
+	updates[id%sprite::MAX_NUM_SPR] = fn;
 }
 
 void sprite::customDraw(jaw::sprid id, jaw::sprfn fn) {
-	if (id >= nextSpriteID || isSpriteOpen[id]) return;
-	draws[id] = fn;
+	if (sprites.idtoptr(id) == nullptr) return;
+	draws[id%sprite::MAX_NUM_SPR] = fn;
 }
 
 void sprite::update(jaw::sprid id, jaw::properties *props) {
-	auto spr = idtoptr(id);
+	auto spr = sprites.idtoptr(id);
 	assert(spr);
 	spr->age += props->totalFrametime;
 	spr->pos = spr->pos + (spr->vel * jaw::to_seconds(props->totalFrametime));
 }
 
 void sprite::draw(jaw::sprid id, jaw::properties *props) {
-	auto spr = idtoptr(id);
+	auto spr = sprites.idtoptr(id);
 	if (!spr || spr->bmp == jaw::INVALID_ID) return;
 
-	if (spr->animState == jaw::INVALID_ID || isStateOpen[spr->animState]) {
+	auto state = animStates.idtoptr(spr->animState);
+	if (spr->animState == jaw::INVALID_ID || state == nullptr) {
 		draw::enqueue(
 			draw::bmp{
 				.bmp = spr->bmp,
@@ -172,11 +142,10 @@ void sprite::draw(jaw::sprid id, jaw::properties *props) {
 		return;
 	}
 
-	const auto &state = animStates[spr->animState];
-	assert(state.animation < numAnimDef);
-	const auto &def = animDefs[state.animation];
+	assert(state->animation < numAnimDef);
+	const auto &def = animDefs[state->animation];
 	auto tl = jaw::vec2i(
-		spr->frameSize.x * state.frame,
+		spr->frameSize.x * state->frame,
 		spr->frameSize.y * def.row
 	);
 	auto src = jaw::recti(tl, tl + spr->frameSize);
@@ -195,23 +164,23 @@ void sprite::draw(jaw::sprid id, jaw::properties *props) {
 
 void sprite::updateAll(jaw::properties *props) {
 	// Update animations
-	for (size_t i = 0; i < nextStateID; i++) {
-		if (isStateOpen[i]) continue;
+	for (size_t i = 0; i < animStates.nextSlot; i++) {
+		if (animStates.isOpen[i]) continue;
 
-		auto &state = animStates[i];
-		assert(state.animation < numAnimDef);
-		const auto &def = animDefs[state.animation];
+		auto state = animStates.items + i;
+		assert(state->animation < numAnimDef);
+		const auto &def = animDefs[state->animation];
 
-		state.animTimer += props->totalFrametime;
-		if (state.animTimer >= def.frameInterval) {
-			state.animTimer = 0;
-			if (++state.frame > def.endFrame) {
+		state->animTimer += props->totalFrametime;
+		if (state->animTimer >= def.frameInterval) {
+			state->animTimer = 0;
+			if (++state->frame > def.endFrame) {
 				if (def.loop) {
-					state.frame = def.startFrame;
+					state->frame = def.startFrame;
 				}
 				else {
-					state.frame = def.endFrame;
-					state.finished = true;
+					state->frame = def.endFrame;
+					state->finished = true;
 				}
 				
 			}
@@ -219,24 +188,24 @@ void sprite::updateAll(jaw::properties *props) {
 	}
 
 	// Update sprites
-	for (jaw::sprid i = 0; i < nextSpriteID; i++) {
-		if (isSpriteOpen[i]) continue;
+	for (jaw::sprid i = 0; i < sprites.nextSlot; i++) {
+		if (sprites.isOpen[i]) continue;
 
 		if (updates[i])
-			updates[i](i, props);
+			updates[i](i + sprites.gens[i], props);
 		else
-			update(i, props);
+			update(i + sprites.gens[i], props);
 	}
 }
 
 void sprite::drawAll(jaw::properties *props) {
 	// Draw sprites
-	for (jaw::sprid i = 0; i < nextSpriteID; i++) {
-		if (isSpriteOpen[i]) continue;
+	for (jaw::sprid i = 0; i < sprites.nextSlot; i++) {
+		if (sprites.isOpen[i]) continue;
 
 		if (draws[i])
-			draws[i](i, props);
+			draws[i](i + sprites.gens[i], props);
 		else
-			draw(i, props);
+			draw(i + sprites.gens[i], props);
 	}
 }

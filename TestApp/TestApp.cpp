@@ -11,16 +11,27 @@
 
 #include "../jawengine/JawEngine.h"
 
+// Test sprite ID system
+// Should count up sequentially far past the maximum number of slots
+
 void loop(jaw::properties *p) {
-	draw::enqueue(draw::rect{
-		.rect = jaw::recti(p->mouse.pos, p->mouse.pos + 50),
-		.color = 0xAAFFFFFF
+	jaw::sprite spr{};
+	jaw::sprid id = sprite::create(spr);
+	sprite::destroy(id);
+	char *buf = util::tempalloc<char>(16);
+	snprintf(buf, 16, "%ul", (uint32_t)id);
+	draw::enqueue(draw::str{
+		.rect = jaw::recti(0, 0, 160, 120),
+		.str = buf,
+		.color = jaw::color::WHITE
 	}, 0);
 }
 
 int main() {
-	for (;;) {
-		jaw::properties props;
-		engine::start(&props, nullptr, nullptr, loop);
-	}
+	jaw::properties props;
+	props.targetFramerate = 1000;
+	props.scale = 4;
+	props.size.x = 160;
+	props.size.y = 120;
+	engine::start(&props, nullptr, nullptr, loop);
 }
