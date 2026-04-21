@@ -65,12 +65,8 @@ void input::updateMouse(const jaw::mouse *m, jaw::properties *props) {
 		buttonMask.ctrl = buttonMask.shift = 0;
 		if ((buttonMask.all & c->condition.all) == 0) continue;
 
-		// Get the clickable's rectangle
-		if (!c->getRect) continue;
-		jaw::recti rect = c->getRect(props);
-
 		// Check the click falls within the rect
-		if (!rect.contains(m->pos)) continue;
+		if (!c->rect->contains(m->pos)) continue;
 
 		if (c->callback) {
 			c->callback((jaw::clickableid)i, props);

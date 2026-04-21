@@ -306,13 +306,12 @@ namespace jaw {
 #endif
 
 	typedef void (*statefn)(jaw::properties*);
-	typedef jaw::recti(*rectfn)(jaw::properties*);
 
 #ifndef JAW_NINPUT
 	typedef uint32_t clickableid;
 	typedef void (*clickfn)(jaw::clickableid, jaw::properties*);
 	struct clickable {
-		jaw::rectfn getRect;
+		jaw::recti *rect;
 		jaw::clickfn callback;
 		jaw::mouseFlags condition;
 		void *data;

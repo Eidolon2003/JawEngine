@@ -11,20 +11,23 @@
 
 #include "../jawengine/JawEngine.h"
 
-// Test sprite ID system
-// Should count up sequentially far past the maximum number of slots
+#include <iostream>
+
+static jaw::recti rect;
+static jaw::clickableid id;
+
+void init(jaw::properties *p) {
+	rect = jaw::recti(0, 0, 80, 80);
+	id = input::createClickable(jaw::clickable{
+		.rect = &rect,
+		.callback = [](jaw::clickableid, jaw::properties*) { std::cout << "CLICK"; },
+		.condition = {.lmb = true},
+		.data = nullptr
+	});
+}
 
 void loop(jaw::properties *p) {
-	jaw::sprite spr{};
-	jaw::sprid id = sprite::create(spr);
-	sprite::destroy(id);
-	char *buf = util::tempalloc<char>(16);
-	snprintf(buf, 16, "%ul", (uint32_t)id);
-	draw::enqueue(draw::str{
-		.rect = jaw::recti(0, 0, 160, 120),
-		.str = buf,
-		.color = jaw::color::WHITE
-	}, 0);
+
 }
 
 int main() {
@@ -33,5 +36,5 @@ int main() {
 	props.scale = 4;
 	props.size.x = 160;
 	props.size.y = 120;
-	engine::start(&props, nullptr, nullptr, loop);
+	engine::start(&props, nullptr, init, loop);
 }
