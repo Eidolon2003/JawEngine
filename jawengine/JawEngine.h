@@ -42,7 +42,7 @@
 #include "state.h"
 #endif
 
-namespace engine {
+namespace jaw {
 	void start(jaw::properties*, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop);
 	void stop();
 }

@@ -1,5 +1,4 @@
-﻿set(JAWENGINE_SOURCES "common/avx2.cpp")
-
+﻿# Put together the list of source files for this build (excluding avx2.cpp and noavx2.cpp)
 if(WIN32)
 	message("JawEngine for Windows")
 	list(APPEND JAWENGINE_SOURCES
@@ -21,6 +20,8 @@ if(WIN32)
 			"windows/win32_dinput.cpp"
 		)
 	endif()
+else()
+	message(FATAL_ERROR "Only Windows is supported at this time")
 endif()
 
 if(NOT NSPRITE)
@@ -41,9 +42,28 @@ if(NOT NSTATE)
 	)
 endif()
 
-add_library(jawengine STATIC ${JAWENGINE_SOURCES})
+# Always compile avx2.cpp with AVX2 enabled
+if(MSVC)
+	set_source_files_properties("common/avx2.cpp" PROPERTIES COMPILE_FLAGS /arch:AVX2)
+else()
+	set_source_files_properties("common/avx2.cpp" PROPERTIES COMPILE_FLAGS -mavx2)
+endif()
+
+# If REQUIRE_AVX2 is on, compile everything but noavx2.cpp with AVX2 enabled
+if(REQUIRE_AVX2)
+	message("JawEngine REQUIRE_AVX2 ON")
+	if(MSVC)
+		set_source_files_properties(${JAWENGINE_SOURCES} PROPERTIES COMPILE_FLAGS /arch:AVX2)
+	else()
+		set_source_files_properties(${JAWENGINE_SOURCES} PROPERTIES COMPILE_FLAGS -mavx2)
+	endif()
+endif()
+
+# Main compilation
+add_library(jawengine STATIC ${JAWENGINE_SOURCES} "common/avx2.cpp" "common/noavx2.cpp")
 set_property(TARGET jawengine PROPERTY CXX_STANDARD 20)
 
+# Link required windows libraries
 if(WIN32)
 	target_link_libraries(jawengine
 		winmm.lib
@@ -55,21 +75,7 @@ if(WIN32)
 	)
 endif()
 
-if(REQUIRE_AVX2)
-	message("JawEngine REQUIRE_AVX2 ON")
-	if(MSVC)
-		target_compile_options(jawengine PRIVATE /arch:AVX2)
-	else()
-		target_compile_options(jawengine PRIVATE -mavx2)
-	endif()
-else()
-	if(MSVC)
-		set_source_files_properties("common/avx2.cpp" PROPERTIES COMPILE_FLAGS /arch:AVX2)
-	else()
-		set_source_files_properties("common/avx2.cpp" PROPERTIES COMPILE_FLAGS -mavx2)
-	endif()
-endif()
-
+# Set environment variables for disabled systems
 if(NSPRITE)
 	message("JawEngine NSPRITE ON")
 	if(MSVC)

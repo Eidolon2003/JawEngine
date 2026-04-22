@@ -16,8 +16,8 @@
 #include "../JawEngine.h"
 #include "win32_internal_draw.h"
 #include "win32_internal_win.h"
+#include "../common/internal_engine.h"
 #include "../common/internal_asset.h"
-#include "../common/avx2.h"	//isAVX2
 #include "../common/internal_utils.h"
 
 #ifndef JAW_NSPRITE
@@ -102,54 +102,8 @@ end:
 	return;
 }
 
-static bool isWINE() {
-	static bool cached = false;
-	static bool wine = false;
-
-	if (!cached) {
-		HMODULE ntdll = GetModuleHandleA("ntdll.dll");
-		wine = ntdll && GetProcAddress(ntdll, "wine_get_version");
-		cached = true;
-	}
-	return wine;
-}
-
-// TODO: update this routine to probe for AVX2 support by trying to execute an instruction
-#include <iostream>
-static void readCPU(jaw::properties *props) {
-	bool avx2 = false;
-
-	if (isWINE()) {
-		// This assumes that any system running WINE supports AVX2
-		// This will NOT always be the case, and will crash on systems that don't
-		// WINE does not correctly support the CPUID flag and xgetbv checks that I do for Windows below
-		avx2 = true;
-		std::cerr << "Warning: Assuming AVX2 support under WINE. This may crash on CPUs without AVX2 extensions\n";
-	}
-	else {
-		avx2 = isAVX2();
-	}
-#ifdef __AVX2__
-	if (avx2) {
-		props->cpuid.avx2 = true;
-		return;
-	}
-	else {
-		MessageBox(NULL, "Your CPU does not support AVX2", "Instruction Set Not Supported", MB_OK | MB_ICONWARNING);
-		exit(1);
-	}
-#else
-	props->cpuid.avx2 = avx2;
-#endif
-}
-
 //TODO: run the renderer and game loop on two separate threads
 void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop) {
-	assert(props != nullptr);
-
-	// Read CPU flags for instruction set extensions
-	readCPU(props);
-
 	// This is for single-threaded only
 	auto hr_ = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_SPEED_OVER_MEMORY);
 
@@ -217,7 +171,7 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 		loop(props);
 #else
 		if (!state::loop(props)) {
-			engine::stop();
+			jaw::stop();
 			break;
 		}
 #endif
@@ -264,6 +218,6 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 	*props = {};
 }
 
-void engine::stop() {
+void jaw::stop() {
 	running = false;
 }

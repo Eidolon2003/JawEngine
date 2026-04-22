@@ -11,30 +11,23 @@
 
 #include "../jawengine/JawEngine.h"
 
-#include <iostream>
-
-static jaw::recti rect;
-static jaw::clickableid id;
-
-void init(jaw::properties *p) {
-	rect = jaw::recti(0, 0, 80, 80);
-	id = input::createClickable(jaw::clickable{
-		.rect = &rect,
-		.callback = [](jaw::clickableid, jaw::properties*) { std::cout << "CLICK"; },
-		.condition = {.lmb = true},
-		.data = nullptr
-	});
-}
+char yes[] = "This CPU supports AVX2";
+char no[] = "This CPU does not support AVX2";
 
 void loop(jaw::properties *p) {
-
+	draw::enqueue(draw::str{
+		.rect = jaw::recti(0,0,240,180),
+		.str = p->cpuid.avx2 ? yes : no,
+		.color = jaw::color::WHITE
+	}, 0);
 }
 
 int main() {
 	jaw::properties props;
 	props.targetFramerate = 1000;
-	props.scale = 4;
-	props.size.x = 160;
-	props.size.y = 120;
-	engine::start(&props, nullptr, init, loop);
+	props.scale = 3;
+	props.size.x = 240;
+	props.size.y = 180;
+	props.title = "AVX2 Test";
+	jaw::start(&props, nullptr, nullptr, loop);
 }
