@@ -87,7 +87,7 @@ void jaw::start(jaw::properties* props, jaw::statefn initOnce, jaw::statefn init
 	else {
 		avx2 = isAVX2();
 	}
-#ifdef __AVX2__
+#ifdef JAW_REQUIRE_AVX2
 	if (avx2) {
 		props->cpuid.avx2 = true;
 		return;
