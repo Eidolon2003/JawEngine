@@ -206,7 +206,7 @@ bool input::findNewGamepads() {
 #endif
 
 	bool newFound;
-	HRESULT hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, EnumCallback, (LPVOID)&newFound, DIEDFL_ATTACHEDONLY);
+	HRESULT hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, (LPDIENUMDEVICESCALLBACKA)EnumCallback, (LPVOID)&newFound, DIEDFL_ATTACHEDONLY);
 
 #ifndef NDEBUG
 	std::cout << "Debug: DIEnumDevices " << (SUCCEEDED(hr) ? "succeeded\n" : "failed\n");
