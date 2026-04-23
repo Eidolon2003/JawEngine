@@ -9,4 +9,3 @@ Potential Future Features:
 
 Known Issues:
 - DirectInput EnumDevices hangs on some systems. If "joy.cpl" also hangs, this is the issue
-- Instruction set error does not correctly appear for REQUIRE_AVX2 on non-AVX2 processors

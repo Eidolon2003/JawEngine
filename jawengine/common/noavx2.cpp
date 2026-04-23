@@ -91,7 +91,12 @@ extern "C" void __cdecl jaw_entry() {
 #ifdef JAW_REQUIRE_AVX2
 	if (!jaw::sysinfo.avx2) {
 #if (defined _WIN32 || defined _WIN64)
-		MessageBox(NULL, "Your CPU does not support AVX2", "Instruction Set Not Supported", MB_OK | MB_ICONWARNING);
+		MessageBox(
+			NULL,
+			"This application requires the AVX2 instruction set.\nYour CPU does not support AVX2.",
+			"Instruction Set Not Supported",
+			MB_OK | MB_ICONWARNING
+		);
 		exit(1);
 #endif
 	}
