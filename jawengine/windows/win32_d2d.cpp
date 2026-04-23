@@ -77,19 +77,7 @@ static inline float radtodeg(float a) {
 	return fmodf(deg + 360.f, 360.f);
 }
 
-static void multiplyAlpha_fallback(jaw::argb *dst, const jaw::argb *src, size_t n) {
-	const uint8_t *src_bytes = (const uint8_t*)src;
-	uint8_t *dst_bytes = (uint8_t*)dst;
-	for (size_t i = 0; i < n * 4; i += 4) {
-		// ideally we'd round(x / 255)
-		// (x + 128) >> 8 is pretty close and a lot faster
-		dst_bytes[i+0] = (src_bytes[i+0] * src_bytes[i+3] + 128) >> 8;
-		dst_bytes[i+1] = (src_bytes[i+1] * src_bytes[i+3] + 128) >> 8;
-		dst_bytes[i+2] = (src_bytes[i+2] * src_bytes[i+3] + 128) >> 8;
-		dst_bytes[i+3] = src_bytes[i+3];
-	}
-}
-static auto multiplyAlpha = multiplyAlpha_fallback;
+static auto multiplyAlpha = multiplyAlpha_scalar;
 
 void draw::init(const jaw::properties *p, HWND hwnd) {
 	setlocale(LC_ALL, "en_US.UTF-8");	//Needed for wchar_t conversion

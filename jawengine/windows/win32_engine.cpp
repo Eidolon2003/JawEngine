@@ -18,6 +18,7 @@
 #include "win32_internal_win.h"
 #include "../common/internal_asset.h"
 #include "../common/internal_utils.h"
+#include "../utils.h"
 
 #ifndef JAW_NSPRITE
 #include "../common/internal_sprite.h"
@@ -37,39 +38,18 @@
 #endif
 
 #include <objbase.h>	//CoInitializeEx
-#include <mmsystem.h>	//timer
 
 static bool running;
-static LARGE_INTEGER countsPerSecond;
-static TIMECAPS timerInfo;
 static jaw::nanoseconds startPoint, lastFrame, thisFrame;
-
-static jaw::nanoseconds getTimePoint() {
-	LARGE_INTEGER timePoint;
-	auto _ = QueryPerformanceCounter(&timePoint);
-	return timePoint.QuadPart * (1'000'000'000ULL / countsPerSecond.QuadPart);
-}
-
-static jaw::nanoseconds accurateSleep(jaw::nanoseconds time, jaw::nanoseconds startPoint) {
-	int msTimerAccuracy = timerInfo.wPeriodMin;
-	int msSleepTime = (int)(((time / 1'000'000LL) / msTimerAccuracy) - 1) * msTimerAccuracy;
-	if (msSleepTime > 0) Sleep((DWORD)msSleepTime);
-	// time remaining to wait is less than 2x the timer accuracy
-	// tried going for 1x timer accuracy, but it made frame pacing less consistent
-	assert((time - (getTimePoint() - startPoint)) < (timerInfo.wPeriodMin * 2'000'000));
-	jaw::nanoseconds retTime;
-	while ((retTime = getTimePoint()) - startPoint < time);
-	return retTime;
-}
 
 static void prelimit(jaw::properties *props) {
 	// Record how long the frame took to process before any kind of limiting
-	props->logicFrametime = getTimePoint() - lastFrame;
+	props->logicFrametime = util::getTimePoint() - lastFrame;
 }
 
 static void limiter(jaw::properties *props) {
 	props->framecount++;
-	thisFrame = getTimePoint();
+	thisFrame = util::getTimePoint();
 	assert(thisFrame > lastFrame);
 
 	jaw::nanoseconds thisFrametime = thisFrame - lastFrame;
@@ -90,7 +70,7 @@ static void limiter(jaw::properties *props) {
 	}
 
 	// Here we know we need to sleep for some time to hit the target framerate
-	thisFrame = accurateSleep(targetFrametime - thisFrametime, thisFrame);
+	thisFrame = util::accurateSleep(targetFrametime - thisFrametime, thisFrame);
 	thisFrametime = thisFrame - lastFrame;
 	assert(thisFrametime >= targetFrametime);
 
@@ -107,10 +87,6 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 
 	// This is for single-threaded only
 	auto hr_ = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_SPEED_OVER_MEMORY);
-
-	timeGetDevCaps(&timerInfo, sizeof(timerInfo));
-	timeBeginPeriod(timerInfo.wPeriodMin);
-	auto b = QueryPerformanceFrequency(&countsPerSecond);
 
 /*
 *	Subsystem Initialization
@@ -147,7 +123,7 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 *	Loop
 */
 
-	startPoint = lastFrame = getTimePoint();
+	startPoint = lastFrame = util::getTimePoint();
 	running = true;
 	do {
 		util::beginFrame();
@@ -214,7 +190,6 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 	asset::deinit();
 	draw::deinit();
 	win::deinit(hwnd);
-	timeEndPeriod(timerInfo.wPeriodMin);
 	CoUninitialize();
 	*props = {};
 }

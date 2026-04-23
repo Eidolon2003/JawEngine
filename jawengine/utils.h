@@ -44,4 +44,10 @@ namespace util {
 
 	// Remove all active timers 
 	void clearTimers();
+
+	// Wrapper for QueryPerformanceCounter on Windows
+	jaw::nanoseconds getTimePoint();
+
+	// Sleep as close to the target as possible then spin for the remaining time
+	jaw::nanoseconds accurateSleep(jaw::nanoseconds time, jaw::nanoseconds startPoint);
 }

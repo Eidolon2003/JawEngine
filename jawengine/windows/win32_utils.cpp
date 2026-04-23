@@ -15,6 +15,7 @@
 #endif
 
 #include <windows.h>
+#include <mmsystem.h>	//timer
 #include <cstdlib>
 #include <cassert>
 #include <list>
@@ -24,6 +25,9 @@
 static char *arena;
 static char *head;
 static char *end;
+
+static LARGE_INTEGER countsPerSecond;
+static TIMECAPS timerInfo;
 
 struct timer {
 	jaw::nanoseconds endTime;
@@ -44,6 +48,9 @@ bool util::init(jaw::properties *props) {
 	head = arena;
 	end = arena + props->tempallocBytes;
 	timerList.clear();
+	timeGetDevCaps(&timerInfo, sizeof(timerInfo));
+	timeBeginPeriod(timerInfo.wPeriodMin);
+	auto b = QueryPerformanceFrequency(&countsPerSecond);
 	return true;
 }
 
@@ -54,6 +61,7 @@ void util::deinit() {
 	std::cout << "Debug: tempalloc used a maximum of " << maxBytes << " bytes.\n";
 #endif
 	timerList.clear();
+	timeEndPeriod(timerInfo.wPeriodMin);
 }
 
 void util::beginFrame() {
@@ -154,4 +162,22 @@ void util::updateTimers(jaw::properties *props) {
 			it++;
 		}
 	}
+}
+
+jaw::nanoseconds util::getTimePoint() {
+	LARGE_INTEGER timePoint;
+	auto _ = QueryPerformanceCounter(&timePoint);
+	return timePoint.QuadPart * (1'000'000'000ULL / countsPerSecond.QuadPart);
+}
+
+jaw::nanoseconds util::accurateSleep(jaw::nanoseconds time, jaw::nanoseconds startPoint) {
+	int msTimerAccuracy = timerInfo.wPeriodMin;
+	int msSleepTime = (int)(((time / 1'000'000LL) / msTimerAccuracy) - 1) * msTimerAccuracy;
+	if (msSleepTime > 0) Sleep((DWORD)msSleepTime);
+	// time remaining to wait is less than 2x the timer accuracy
+	// tried going for 1x timer accuracy, but it made frame pacing less consistent
+	assert((time - (getTimePoint() - startPoint)) < (timerInfo.wPeriodMin * 2'000'000));
+	jaw::nanoseconds retTime;
+	while ((retTime = getTimePoint()) - startPoint < time);
+	return retTime;
 }
