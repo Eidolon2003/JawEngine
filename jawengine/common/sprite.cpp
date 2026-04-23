@@ -13,7 +13,6 @@
 #include "internal_sprite.h"
 #include "../draw.h"
 #include <cassert>
-#include <cstring>	//memcpy
 
 struct animState {
 	jaw::animdefid animation;

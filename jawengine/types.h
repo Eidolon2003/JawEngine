@@ -16,6 +16,14 @@
 constexpr float PI32 = 3.14159265f;
 
 namespace jaw {
+	struct Sysinfo {
+		bool wine;
+		bool avx2;
+	};
+	// The one and only global
+	// Set before main is called by the engine's entry point
+	extern Sysinfo sysinfo;
+
 	typedef int64_t nanoseconds;
 
 	constexpr jaw::nanoseconds millis(float m) { return (jaw::nanoseconds)(m * 1'000'000); }
@@ -187,11 +195,6 @@ namespace jaw {
 	};
 	static_assert(std::is_trivial_v<key>);
 #endif
-
-	struct cpuflags {
-		bool avx2;
-	};
-	static_assert(std::is_trivial_v<cpuflags>);
 	
 	struct properties {
 		const char *title = " ";
@@ -240,7 +243,6 @@ namespace jaw {
 		jaw::nanoseconds totalFrametime = 0;
 		jaw::nanoseconds logicFrametime = 0;
 		jaw::nanoseconds uptime = 0;
-		jaw::cpuflags cpuid{};
 
 #ifndef JAW_NINPUT
 		jaw::mouse mouse{};

@@ -16,7 +16,6 @@
 #include "../JawEngine.h"
 #include "win32_internal_draw.h"
 #include "win32_internal_win.h"
-#include "../common/internal_engine.h"
 #include "../common/internal_asset.h"
 #include "../common/internal_utils.h"
 
@@ -104,6 +103,8 @@ end:
 
 //TODO: run the renderer and game loop on two separate threads
 void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop) {
+	if (props == nullptr) return;
+
 	// This is for single-threaded only
 	auto hr_ = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_SPEED_OVER_MEMORY);
 
@@ -171,7 +172,7 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 		loop(props);
 #else
 		if (!state::loop(props)) {
-			jaw::stop();
+			running = false;
 			break;
 		}
 #endif
@@ -218,6 +219,6 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 	*props = {};
 }
 
-void jaw::stop() {
+void engine::stop() {
 	running = false;
 }

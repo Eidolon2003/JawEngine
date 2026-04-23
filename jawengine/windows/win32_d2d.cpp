@@ -95,7 +95,7 @@ void draw::init(const jaw::properties *p, HWND hwnd) {
 	setlocale(LC_ALL, "en_US.UTF-8");	//Needed for wchar_t conversion
 	props = p;
 
-	if (props->cpuid.avx2) {
+	if (jaw::sysinfo.avx2) {
 		multiplyAlpha = multiplyAlpha_avx2;
 	}
 

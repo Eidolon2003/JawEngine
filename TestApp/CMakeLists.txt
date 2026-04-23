@@ -3,17 +3,21 @@
 target_link_libraries(TestApp jawengine)
 set_property(TARGET TestApp PROPERTY CXX_STANDARD 20)
 
-# Do not compile the translation unit containing the main() function with AVX2 enabled
-# in-case we're running on a non-AVX2 system
-# main() is executed before the engine checks for compat
-#if(REQUIRE_AVX2)
-#	message("TestApp REQUIRE_AVX2 ON")
-#	if(MSVC)
-#		target_compile_options(TestApp PRIVATE /arch:AVX2)
-#	else()
-#		target_compile_options(TestApp PRIVATE -mavx2)
-#	endif()
-#endif()
+# Set the entry point to the custom engine entry which checks for AVX2 compat
+if(MSVC)
+    target_link_options(TestApp PRIVATE "/ENTRY:jaw_entry")
+else()
+    target_link_options(TestApp PRIVATE "-Wl,-e,jaw_entry")
+endif()
+
+if(REQUIRE_AVX2)
+	message("TestApp REQUIRE_AVX2 ON")
+	if(MSVC)
+		target_compile_options(TestApp PRIVATE /arch:AVX2)
+	else()
+		target_compile_options(TestApp PRIVATE -mavx2)
+	endif()
+endif()
 
 if(NSPRITE)
 	message("TestApp NSPRITE ON")

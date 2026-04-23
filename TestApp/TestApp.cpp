@@ -14,10 +14,10 @@
 char yes[] = "This CPU supports AVX2";
 char no[] = "This CPU does not support AVX2";
 
-void loop(jaw::properties *p) {
+static void loop(jaw::properties *p) {
 	draw::enqueue(draw::str{
 		.rect = jaw::recti(0,0,240,180),
-		.str = p->cpuid.avx2 ? yes : no,
+		.str = jaw::sysinfo.avx2 ? yes : no,
 		.color = jaw::color::WHITE
 	}, 0);
 }
@@ -29,5 +29,5 @@ int main() {
 	props.size.x = 240;
 	props.size.y = 180;
 	props.title = "AVX2 Test";
-	jaw::start(&props, nullptr, nullptr, loop);
+	engine::start(&props, nullptr, nullptr, loop);
 }
