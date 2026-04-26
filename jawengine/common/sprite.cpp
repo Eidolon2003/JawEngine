@@ -12,6 +12,7 @@
 #include "../sprite.h"
 #include "internal_sprite.h"
 #include "../draw.h"
+#include "../utils.h"
 #include <cassert>
 
 struct animState {
@@ -29,8 +30,7 @@ static_assert(std::is_trivial_v<animState>);
 static jaw::animation animDefs[anim::MAX_NUM_ANIM];
 static size_t numAnimDef;
 
-#include "slots.h"
-static IDSlots<jaw::animstateid, animState, anim::MAX_NUM_ANIM> animStates;
+static util::slotAllocator<jaw::animstateid, animState, anim::MAX_NUM_ANIM> animStates;
 
 void anim::clear() {
 	numAnimDef = 0;
@@ -80,7 +80,7 @@ uint32_t anim::getFrame(jaw::animstateid stateID) {
 	SPRITES
 */
 
-static IDSlots<jaw::sprid, jaw::sprite, sprite::MAX_NUM_SPR> sprites;
+static util::slotAllocator<jaw::sprid, jaw::sprite, sprite::MAX_NUM_SPR> sprites;
 static jaw::sprfn updates[sprite::MAX_NUM_SPR];
 static jaw::sprfn draws[sprite::MAX_NUM_SPR];
 

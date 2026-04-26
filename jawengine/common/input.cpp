@@ -11,6 +11,7 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 #include "../input.h"
+#include "../utils.h"
 #include "internal_input.h"
 #include <cstring>	//strlen, strncat
 #include <cassert>
@@ -25,8 +26,7 @@ static jaw::statefn keyUpBindings[256];
 static jaw::statefn lmbDown, lmbUp, rmbDown, rmbUp, mmbDown,
 					mmbUp, xmb1Down, xmb1Up, xmb2Down, xmb2Up;
 
-#include "slots.h"
-static IDSlots<jaw::clickableid, jaw::clickable, input::MAX_NUM_CLICKABLE> slots;
+static util::slotAllocator<jaw::clickableid, jaw::clickable, input::MAX_NUM_CLICKABLE> slots;
 
 
 void input::beginFrame(jaw::properties *props) {

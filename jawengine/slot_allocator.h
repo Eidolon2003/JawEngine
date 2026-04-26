@@ -1,9 +1,10 @@
 #pragma once
-#include "../types.h"
 #include <cstring> //memcpy
+#include <cassert>
+#include <type_traits>
 
 template <typename IDT, typename T, size_t MAX_NUM>
-struct IDSlots {
+struct slotAllocator {
 	static_assert(std::is_same_v<IDT, uint32_t>, "IDT must be uint32_t");
 	static_assert(std::is_trivially_copyable_v<T>);
 	static_assert(MAX_NUM > 0 && (MAX_NUM & (MAX_NUM - 1)) == 0, "MAX_NUM must be a power of 2");
@@ -23,6 +24,7 @@ struct IDSlots {
 		openSlotsWriter = openSlotsReader = 0;
 		numOpen = 0;
 	}
+	slotAllocator() { clear(); }
 
 	IDT create(const T *data) {
 		if (nextSlot == MAX_NUM && numOpen == 0) return jaw::INVALID_ID;
@@ -37,13 +39,15 @@ struct IDSlots {
 			isOpen[newSlot] = false;
 		}
 
-		memcpy(items + newSlot, data, sizeof(T));
-		return newSlot + gens[newSlot];
+		if (data != nullptr) memcpy(items + newSlot, data, sizeof(T));
+		else memset(items + newSlot, 0, sizeof(T));
+
+		return (newSlot | gens[newSlot]);
 	}
 
 	bool destroy(IDT id) {
 		IDT slot = id & (MAX_NUM-1);
-		if (slot >= nextSlot || isOpen[slot] || id != slot + gens[slot]) return false;
+		if (slot >= nextSlot || isOpen[slot] || id != (slot | gens[slot])) return false;
 
 		openSlots[openSlotsWriter] = slot;
 		openSlotsWriter = (openSlotsWriter + 1) & (MAX_NUM-1);
@@ -56,7 +60,7 @@ struct IDSlots {
 
 	T *idtoptr(IDT id) {
 		IDT slot = id & (MAX_NUM-1);
-		if (slot >= nextSlot || isOpen[slot] || id != slot + gens[slot]) return nullptr;
+		if (slot >= nextSlot || isOpen[slot] || id != (slot | gens[slot])) return nullptr;
 		
 		return items + slot;
 	}

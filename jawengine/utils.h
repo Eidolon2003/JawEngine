@@ -30,6 +30,9 @@ namespace util {
 	// Get the number of bytes remaining in the temporary allocator
 	size_t tempallocBytesRemaining();
 
+	// util::slotAllocator
+#include "slot_allocator.h"
+
 	// Attempt to map a circular buffer in virtual address space
 	// buf[0] == buf[bytes] && buf[1] == buf[bytes+1] && etc.
 	// The size of the buffer may be rounded up due to OS constraints
