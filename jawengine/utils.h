@@ -12,6 +12,11 @@
 #pragma once
 #include "types.h"
 
+// Includes for slot_allocator.h
+#include <cstring>	// memcpy, memset
+#include <cassert>
+#include <type_traits>
+
 namespace util {
 	// returns an unaligned pointer to n bytes
 	void *tempalloc(size_t n);
