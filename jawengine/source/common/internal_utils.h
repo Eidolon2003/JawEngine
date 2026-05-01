@@ -10,9 +10,11 @@
  */
 
 #pragma once
-#include "../types.h"
+#include "../../headers/types.h"
 
-namespace sprite {
-	void updateAll(jaw::properties*);
-	void drawAll(jaw::properties*);
+namespace util {
+	bool init(jaw::properties*);
+	void deinit();
+	void beginFrame();
+	void updateTimers(jaw::properties*);
 }

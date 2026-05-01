@@ -9,7 +9,7 @@
  * https://github.com/Eidolon2003/JawEngine
  */
 
-#include "../state.h"
+#include "../../headers/state.h"
 #include "internal_state.h"
 
 struct functions {

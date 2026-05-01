@@ -23,7 +23,7 @@
 #include <unordered_map>
 #include <sstream>
 
-#include "../asset.h"
+#include "../../headers/asset.h"
 #include "../common/internal_asset.h"
 
 #ifndef NDEBUG

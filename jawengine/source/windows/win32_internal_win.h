@@ -16,12 +16,9 @@
 #endif
 
 #include <windows.h>	// HWND
-#include "../types.h"	// jaw::properties	
+#include "../../headers/types.h"	// jaw::properties
 
-namespace draw {
-	void init(const jaw::properties*, HWND);
-	void deinit();
-	void prepareRender();
-	void render();
-	void present();
+namespace win {
+	HWND init(jaw::properties*);
+	void deinit(HWND hwnd);
 }

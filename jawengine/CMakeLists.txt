@@ -2,22 +2,22 @@
 if(WIN32)
 	message("JawEngine for Windows")
 	list(APPEND JAWENGINE_SOURCES
-		"windows/win32_asset.cpp"
-		"windows/win32_engine.cpp"
-		"windows/win32_win.cpp"
-		"windows/win32_d2d.cpp"
-		"windows/win32_utils.cpp"
+		"source/windows/win32_asset.cpp"
+		"source/windows/win32_engine.cpp"
+		"source/windows/win32_win.cpp"
+		"source/windows/win32_d2d.cpp"
+		"source/windows/win32_utils.cpp"
 	)
 
 	if(NOT NSOUND)
 		list(APPEND JAWENGINE_SOURCES
-			"windows/win32_xaudio.cpp"
+			"source/windows/win32_xaudio.cpp"
 		)
 	endif()
 
 	if(NOT NINPUT)
 		list(APPEND JAWENGINE_SOURCES
-			"windows/win32_dinput.cpp"
+			"source/windows/win32_dinput.cpp"
 		)
 	endif()
 else()
@@ -26,27 +26,27 @@ endif()
 
 if(NOT NSPRITE)
 	list(APPEND JAWENGINE_SOURCES
-		"common/sprite.cpp"
+		"source/common/sprite.cpp"
 	)
 endif()
 
 if(NOT NINPUT)
 	list(APPEND JAWENGINE_SOURCES
-		"common/input.cpp"
+		"source/common/input.cpp"
 	)
 endif()
 
 if(NOT NSTATE)
 	list(APPEND JAWENGINE_SOURCES
-		"common/state.cpp"
+		"source/common/state.cpp"
 	)
 endif()
 
 # Always compile avx2.cpp with AVX2 enabled
 if(MSVC)
-	set_source_files_properties("common/avx2.cpp" PROPERTIES COMPILE_FLAGS /arch:AVX2)
+	set_source_files_properties("source/common/avx2.cpp" PROPERTIES COMPILE_FLAGS /arch:AVX2)
 else()
-	set_source_files_properties("common/avx2.cpp" PROPERTIES COMPILE_FLAGS -mavx2)
+	set_source_files_properties("source/common/avx2.cpp" PROPERTIES COMPILE_FLAGS -mavx2)
 endif()
 
 # If REQUIRE_AVX2 is on, compile everything but noavx2.cpp with AVX2 enabled
@@ -59,7 +59,7 @@ if(REQUIRE_AVX2)
 endif()
 
 # Main compilation
-add_library(jawengine STATIC ${JAWENGINE_SOURCES} "common/avx2.cpp" "common/noavx2.cpp")
+add_library(jawengine STATIC ${JAWENGINE_SOURCES} "source/common/avx2.cpp" "source/common/noavx2.cpp")
 set_property(TARGET jawengine PROPERTY CXX_STANDARD 20)
 
 # Link required windows libraries

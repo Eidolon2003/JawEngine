@@ -13,12 +13,12 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-#include "../JawEngine.h"
+#include "../../JawEngine.h"
 #include "win32_internal_draw.h"
 #include "win32_internal_win.h"
 #include "../common/internal_asset.h"
 #include "../common/internal_utils.h"
-#include "../utils.h"
+#include "../../headers/utils.h"
 
 #ifndef JAW_NSPRITE
 #include "../common/internal_sprite.h"

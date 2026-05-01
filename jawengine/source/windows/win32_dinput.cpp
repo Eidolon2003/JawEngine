@@ -9,10 +9,11 @@
  * https://github.com/Eidolon2003/JawEngine
  */
 
-#include "../JawEngine.h"
+#include "../../JawEngine.h"
 #include "win32_internal_dinput.h"
 
 #include <dinput.h>
+#include <type_traits>
 
 #ifndef NDEBUG
 #include <iostream>

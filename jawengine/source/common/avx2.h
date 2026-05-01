@@ -10,11 +10,7 @@
  */
 
 #pragma once
-#include "../types.h"
+#include "../../headers/types.h"
 
-namespace util {
-	bool init(jaw::properties*);
-	void deinit();
-	void beginFrame();
-	void updateTimers(jaw::properties*);
-}
+void multiplyAlpha_avx2(jaw::argb *dst, const jaw::argb *src, size_t n);
+void multiplyAlpha_scalar(jaw::argb *dst, const jaw::argb *src, size_t n);

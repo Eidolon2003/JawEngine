@@ -9,10 +9,10 @@
  * https://github.com/Eidolon2003/JawEngine
  */
 
-#include "../sprite.h"
+#include "../../headers/sprite.h"
 #include "internal_sprite.h"
-#include "../draw.h"
-#include "../utils.h"
+#include "../../headers/draw.h"
+#include "../../headers/utils.h"
 #include <cassert>
 
 struct animState {

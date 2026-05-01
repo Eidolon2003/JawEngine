@@ -24,7 +24,7 @@
 #include <cmath>	//ceilf
 #include <cassert>	//assert
 #include <malloc.h> //alloca
-#include "../draw.h"
+#include "../../headers/draw.h"
 #include "win32_internal_draw.h"
 
 #include "../common/avx2.h"	// multiplyAlpha_avx2

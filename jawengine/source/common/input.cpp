@@ -10,8 +10,8 @@
  */
 
 #define _CRT_SECURE_NO_WARNINGS
-#include "../input.h"
-#include "../utils.h"
+#include "../../headers/input.h"
+#include "../../headers/utils.h"
 #include "internal_input.h"
 #include <cstring>	//strlen, strncat
 #include <cassert>

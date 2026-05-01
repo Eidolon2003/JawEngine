@@ -1,4 +1,4 @@
-#include "../JawEngine.h"
+#include "../../JawEngine.h"
 #include "avx2.h"
 
 #if (defined _WIN32 || defined _WIN64)

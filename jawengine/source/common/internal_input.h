@@ -10,7 +10,7 @@
  */
 
 #pragma once
-#include "../types.h"
+#include "../../headers/types.h"
 
 namespace input {
 	void beginFrame(jaw::properties*);

@@ -10,7 +10,18 @@
  */
 
 #pragma once
-#include "../types.h"
 
-void multiplyAlpha_avx2(jaw::argb *dst, const jaw::argb *src, size_t n);
-void multiplyAlpha_scalar(jaw::argb *dst, const jaw::argb *src, size_t n);
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
+#include <windows.h>	// HWND
+#include "../../headers/types.h"	// jaw::properties	
+
+namespace draw {
+	void init(const jaw::properties*, HWND);
+	void deinit();
+	void prepareRender();
+	void render();
+	void present();
+}

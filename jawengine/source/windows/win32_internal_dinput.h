@@ -10,9 +10,10 @@
  */
 
 #pragma once
-#include "../types.h"
+#include <windows.h>
 
-namespace state {
-	bool loop(jaw::properties*);
+namespace input {
+	void init(HWND hwnd);
 	void deinit();
+	void readGamepads();
 }

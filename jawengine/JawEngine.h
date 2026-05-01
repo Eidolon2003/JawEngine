@@ -14,32 +14,32 @@
 #include <cassert>
 
 #if (defined _WIN32 || defined _WIN64)
-#include "winvkc.h"
+#include "headers/winvkc.h"
 #elif (defined LINUX || defined __linux__)
 #error "Linux support forthcoming"
 #else
 #error "unsupported platform"
 #endif
 
-#include "types.h"
-#include "utils.h"
-#include "asset.h"
-#include "draw.h"
+#include "headers/types.h"
+#include "headers/utils.h"
+#include "headers/asset.h"
+#include "headers/draw.h"
 
 #ifndef JAW_NSPRITE
-#include "sprite.h"
+#include "headers/sprite.h"
 #endif
 
 #ifndef JAW_NSOUND
-#include "sound.h"
+#include "headers/sound.h"
 #endif
 
 #ifndef JAW_NINPUT
-#include "input.h"
+#include "headers/input.h"
 #endif
 
 #ifndef JAW_NSTATE
-#include "state.h"
+#include "headers/state.h"
 #endif
 
 namespace engine {
