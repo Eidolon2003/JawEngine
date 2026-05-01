@@ -1,7 +1,4 @@
 #pragma once
-#include <cstring> //memcpy
-#include <cassert>
-#include <type_traits>
 
 template <typename IDT, typename T, size_t MAX_NUM>
 struct slotAllocator {

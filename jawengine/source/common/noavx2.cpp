@@ -82,7 +82,6 @@ extern "C" void __cdecl jaw_entry() {
 		// This will NOT always be the case, and will crash on systems that don't
 		// WINE does not correctly support the CPUID flag and xgetbv checks that I do for Windows below
 		jaw::sysinfo.avx2 = true;
-		std::cerr << "Warning: Assuming AVX2 support under WINE. This may crash on CPUs without AVX2 extensions\n";
 	}
 	else {
 		jaw::sysinfo.avx2 = isAVX2();

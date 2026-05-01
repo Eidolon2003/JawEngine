@@ -9,3 +9,5 @@ Potential Future Features:
 
 Known Issues:
 - DirectInput EnumDevices hangs on some systems. If "joy.cpl" also hangs, this is the issue
+- AVX2 detection does not work correctly under WINE, support is assumed.
+  if running an application compiled with REQUIRE_AVX2 under WINE on a system without AVX2 support, expect a crash
