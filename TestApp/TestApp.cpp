@@ -10,16 +10,24 @@
  */
 
 #include "../jawengine/JawEngine.h"
+#include "../jawengine/libs/ui.h"
 
-char yes[] = "This CPU supports AVX2";
-char no[] = "This CPU does not support AVX2";
+ui::id box;
+
+static void init(jaw::properties *p) {
+	box = ui::makeTextDisplayBox(
+		jaw::recti(10, 10, 100, 30),
+		" HELLO",
+		0,
+		0,
+		jaw::color::DARK_RED,
+		jaw::color::BLUE,
+		jaw::color::WHITE
+	);
+}
 
 static void loop(jaw::properties *p) {
-	draw::enqueue(draw::str{
-		.rect = jaw::recti(0,0,240,180),
-		.str = jaw::sysinfo.avx2 ? yes : no,
-		.color = jaw::color::WHITE
-	}, 0);
+
 }
 
 int main() {
@@ -28,6 +36,6 @@ int main() {
 	props.scale = 3;
 	props.size.x = 240;
 	props.size.y = 180;
-	props.title = "AVX2 Test";
-	engine::start(&props, nullptr, nullptr, loop);
+	props.title = "UI Demo";
+	engine::start(&props, nullptr, init, loop);
 }
