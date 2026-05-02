@@ -1,6 +1,7 @@
 #pragma once
 #include "../JawEngine.h"
 #include <string>
+#include <bit>
 
 namespace ui {
 	constexpr size_t MAX_NUM = 128;
@@ -38,7 +39,7 @@ namespace ui {
 
 		jaw::sprid spr = sprite::create(jaw::sprite{
 			.z = z,
-			.data = (void*)x
+			.data = (void*)(uintptr_t)x
 		});
 		if (spr == jaw::INVALID_ID) return jaw::INVALID_ID;
 
@@ -46,7 +47,7 @@ namespace ui {
 			jaw::sprite *spr = sprite::idtoptr(sprid);
 			if (!spr) return;
 
-			ui::id id = (ui::id)spr->data;
+			ui::id id = (ui::id)(uintptr_t)spr->data;
 			UIElement *p = slots.idtoptr(id);
 			if (!p) return;
 
@@ -65,6 +66,7 @@ namespace ui {
 				.font = p->font
 			}, spr->z);
 		});
+		sprite::customUpdate(spr, [](jaw::sprid, jaw::properties*) {});
 
 		return x;
 	}
