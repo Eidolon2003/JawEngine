@@ -12,6 +12,7 @@
 #include "../../JawEngine.h"
 #include "win32_internal_dinput.h"
 
+#define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include <type_traits>
 
