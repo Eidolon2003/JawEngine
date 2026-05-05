@@ -114,9 +114,9 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 	if (initOnce) initOnce(props);
 	if (init) init(props);
 #else
+	state::push(0);
 	auto sid = state::create(props, initOnce, init, loop);
 	assert(sid == 0);
-	state::push(sid);
 #endif
 
 /*

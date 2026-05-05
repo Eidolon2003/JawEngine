@@ -10,55 +10,38 @@
  */
 
 #include "../jawengine/JawEngine.h"
-
-#define JAWUI_TEXT_DISPLAY_BORDER_WIDTH 1
 #include "../jawengine/libs/ui.h"
 
-ui::id box;
-ui::id in;
+static ui::id box;
+static float a;
 
 static void init(jaw::properties *p) {
-	jaw::fontid font = draw::newFont(draw::font{
-		.name = "Courier New",
-		.size = 12.f,
-		.alignx = draw::font::CENTERX,
-		.aligny = draw::font::CENTERY
-	});
-
-	box = ui::createTextDisplay(ui::UIElement{
-		.text = "HELLO",
-		.rect = jaw::recti(10,10,100,30),
-		.font = font,
-	}, 0);
-
-	in = ui::createTextInput(ui::UIElement{
-		.text = "",
-		.rect = jaw::recti(10, 50, 100, 70),
-		.font = font,
-		.select = [](ui::id, jaw::properties*) {
-			ui::UIElement *a = ui::idtoptr(in);
-			if (a == nullptr) return;
-			else a->text[0] = 0;
-		},
-		.deselect = [](ui::id, jaw::properties*) {
-			ui::UIElement *a = ui::idtoptr(box);
-			ui::UIElement *b = ui::idtoptr(in);
-			if (a == nullptr || b == nullptr) return;
-			else strncpy(a->text, b->text, JAWUI_TEXT_CAPACITY);
-		}
+	box = ui::createCheckbox(ui::UIElement{
+		.rect = jaw::recti(10,10,30,30),
+		.borderColor = jaw::color::RED,
+		.textColor = jaw::color::GREEN
 	}, 0);
 }
 
 static void loop(jaw::properties *p) {
+	if (input::getKey(key::Q).isHeld) a -= jaw::to_seconds(p->totalFrametime);
+	else if (input::getKey(key::E).isHeld) a += jaw::to_seconds(p->totalFrametime);
 
+	draw::enqueue(draw::line{
+		.p1 = jaw::vec2i(50, 50),
+		.p2 = jaw::vec2i(100, 100),
+		.color = jaw::color::WHITE,
+		.width = 2,
+		.angle = a
+	}, 0);
 }
 
 int main() {
 	jaw::properties props;
-	props.targetFramerate = 1000;
+	props.targetFramerate = 500;
 	props.scale = 3;
 	props.size.x = 240;
 	props.size.y = 180;
 	props.title = "UI Demo";
-	engine::start(&props, nullptr, init, loop);
+	engine::start(&props, nullptr, init, loop); 
 }
