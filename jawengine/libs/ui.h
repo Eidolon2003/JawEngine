@@ -360,5 +360,7 @@ namespace ui {
 			};
 			draw::enqueueMany(calls, 2 + p->selected);
 		});
+
+		return x;
 	}
 }
