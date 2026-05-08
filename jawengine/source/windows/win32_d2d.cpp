@@ -248,10 +248,25 @@ static void inline renderRect(const draw::drawCall &c, ID2D1BitmapRenderTarget *
 	auto mid = (c.rect.rect.tl + c.rect.rect.br) / 2;
 	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(c.rect.angle), topoint2f(mid)));
 
-	target->FillRectangle(
-		torectf(c.rect.rect),
-		pSolidBrush
-	);
+	if (c.rect.width <= 0) {
+		target->FillRectangle(
+			torectf(c.rect.rect),
+			pSolidBrush
+		);
+	}
+	else {
+		// Direct2D has the stroke width go out on both sides of the line,
+		// Compensate such that the outer edge of the shape is the same whether it's hollow or not
+		jaw::recti rect = c.rect.rect;
+		rect.tl = rect.tl + c.rect.width/2;
+		rect.br = rect.br - c.rect.width/2;
+
+		target->DrawRectangle(
+			torectf(rect),
+			pSolidBrush,
+			(FLOAT)c.rect.width
+		);
+	}
 }
 
 static void inline renderStr(const draw::drawCall &c, ID2D1BitmapRenderTarget *target) {
@@ -307,14 +322,29 @@ static void inline renderEllipse(const draw::drawCall &c, ID2D1BitmapRenderTarge
 
 	target->SetTransform(D2D1::Matrix3x2F::Rotation(radtodeg(c.ellipse.angle), topoint2f(c.ellipse.ellipse.center)));
 	
-	target->FillEllipse(
-		D2D1::Ellipse(
-			topoint2f(c.ellipse.ellipse.center),
-			(float)c.ellipse.ellipse.radii.x,
-			(float)c.ellipse.ellipse.radii.y
-		),
-		pSolidBrush
-	);
+	if (c.ellipse.width <= 0) {
+		target->FillEllipse(
+			D2D1::Ellipse(
+				topoint2f(c.ellipse.ellipse.center),
+				(float)c.ellipse.ellipse.radii.x,
+				(float)c.ellipse.ellipse.radii.y
+			),
+			pSolidBrush
+		);
+	}
+	else {
+		// Direct2D has the stroke width go out on both sides of the line,
+		// Compensate such that the outer edge of the shape is the same whether it's hollow or not
+		target->DrawEllipse(
+			D2D1::Ellipse(
+				topoint2f(c.ellipse.ellipse.center),
+				(FLOAT)(c.ellipse.ellipse.radii.x - c.ellipse.width/2),
+				(FLOAT)(c.ellipse.ellipse.radii.y - c.ellipse.width/2)
+			),
+			pSolidBrush,
+			(FLOAT)c.ellipse.width
+		);
+	}
 }
 
 static void inline renderAny(const draw::drawCall &c, ID2D1BitmapRenderTarget *target) {

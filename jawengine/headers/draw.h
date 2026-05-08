@@ -36,6 +36,7 @@ namespace draw {
 	struct rect {
 		jaw::recti rect;
 		jaw::argb color;
+		uint32_t width;
 		float angle;
 	};
 	static_assert(sizeof(rect) <= MAX_DRAW_SIZE);
@@ -72,6 +73,7 @@ namespace draw {
 	struct ellipse {
 		jaw::ellipse ellipse;
 		jaw::argb color;
+		uint32_t width;
 		float angle;
 	};
 	static_assert(sizeof(ellipse) <= MAX_DRAW_SIZE);
