@@ -14,4 +14,7 @@
 namespace sound {
 	void init();
 	void deinit();
+
+	// Called by deinit above
+	void deinitSynth();
 }

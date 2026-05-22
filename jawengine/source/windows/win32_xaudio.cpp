@@ -84,6 +84,8 @@ void sound::deinit() {
 	FreeLibrary(dll);
 	dll = NULL;
 	pXAudio2Create = nullptr;
+
+	sound::deinitSynth();
 }
 
 jaw::soundid sound::create() {

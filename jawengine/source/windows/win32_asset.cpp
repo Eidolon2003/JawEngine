@@ -23,12 +23,8 @@
 #include <unordered_map>
 #include <sstream>
 
-#include "../../headers/asset.h"
+#include "../../JawEngine.h"	//asset.h & JAW_DBGPRINT
 #include "../common/internal_asset.h"
-
-#ifndef NDEBUG
-#include <iostream>
-#endif
 
 // This is for compatbility with mingw on Linux
 #ifdef __MINGW32__
@@ -41,7 +37,18 @@ static size_t towstrbuf(const char *str) {
 	return mbstowcs(wstrBuffer, str, 1024);
 }
 
-static void *mapFile(const char *filename, size_t *fileSize) {
+
+/*
+	RAW FILE
+*/
+
+struct FileInfo {
+	size_t size;
+	const void *data;
+};
+static std::unordered_map<std::string, FileInfo> fileCache;
+
+static const void *mapFile(const char *filename, size_t *fileSize) {
 	HANDLE file{};
 	ULARGE_INTEGER size{};
 	HANDLE mapping{};
@@ -92,47 +99,6 @@ fail0:
 	return nullptr;
 }
 
-struct FileInfo {
-	size_t size;
-	void *data;
-};
-static std::unordered_map<std::string, FileInfo> fileCache;
-
-struct BmpInfo {
-	jaw::vec2i dim;
-	jaw::argb *px;
-};
-static std::unordered_map<std::string, BmpInfo> bmpCache;
-
-struct WavInfo {
-	int16_t *samples;
-	size_t num;
-};
-static std::unordered_map<std::string, WavInfo> wavCache;
-
-static IWICImagingFactory *iwic;
-
-void asset::init() {
-	HRESULT hr = CoCreateInstance(
-		CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&iwic)
-	);
-	assert(SUCCEEDED(hr));
-}
-
-void asset::deinit() {
-	iwic->Release();
-	iwic = nullptr;
-
-	for (auto &[key, val] : fileCache) UnmapViewOfFile(val.data);
-	fileCache.clear();
-
-	for (auto &[key, val] : bmpCache) VirtualFree(val.px, 0, MEM_RELEASE);
-	bmpCache.clear();
-
-	for (auto &[key, val] : wavCache) VirtualFree(val.samples, 0, MEM_RELEASE);
-	wavCache.clear();
-}
-
 const void *asset::file(const char *filename, size_t *size) {
 	if (fileCache.contains(filename)) {
 		auto &cache = fileCache[filename];
@@ -140,7 +106,7 @@ const void *asset::file(const char *filename, size_t *size) {
 		return cache.data;
 	}
 
-	void *data = mapFile(filename, size);
+	const void *data = mapFile(filename, size);
 	if (!data) return nullptr;
 
 	fileCache[filename] = { 
@@ -150,6 +116,19 @@ const void *asset::file(const char *filename, size_t *size) {
 
 	return data;
 }
+
+
+/*
+	BITMAP FILE
+*/
+
+struct BmpInfo {
+	jaw::vec2i dim;
+	jaw::argb *px;
+};
+static std::unordered_map<std::string, BmpInfo> bmpCache;
+
+static IWICImagingFactory *iwic;
 
 jaw::argb *asset::bmp(const char *filename, jaw::vec2i *dim) {
 	if (bmpCache.contains(filename)) {
@@ -234,6 +213,17 @@ fail0:
 	return nullptr;
 }
 
+
+/*
+	WAV AUDIO FILE
+*/
+
+struct WavInfo {
+	int16_t *samples;
+	size_t num;
+};
+static std::unordered_map<std::string, WavInfo> wavCache;
+
 // This is a super bad wav parser
 // It doesn't properly handle different RIFF chunks, instead assuming only fmt and data
 // We also probably want to support other audio formats in the future
@@ -258,7 +248,7 @@ static int16_t *parseWav(const char *filename, size_t *numSamples) {
 #pragma pack(pop)
 
 	size_t fileBytes;
-	void *fileData = mapFile(filename, &fileBytes);
+	const void *fileData = mapFile(filename, &fileBytes);
 	if (!fileData) goto fail0;
 
 	WaveHeader *header; 
@@ -321,6 +311,11 @@ int16_t *asset::wav(const char *filename, size_t *numSamples) {
 	return samples;
 }
 
+
+/*
+	INI FILE
+*/
+
 static char *nextLine(char *p) {
 	while (*p != '\n' && *p != 0) p++;
 	return p+1;
@@ -352,10 +347,8 @@ static void parseLine(char *start, char *end, std::vector<asset::INIEntry> *vec)
 
 	// Check for malformed line (no equal sign)
 	if (eq == end) {
-#ifndef NDEBUG
 		std::string s(start, end);
-		std::cout << "Debug: malformed ini line: " << s << '\n';
-#endif
+		JAW_DBGPRINT("malformed ini line: " << s);
 		return;
 	}
 
@@ -456,4 +449,25 @@ void asset::writeINI(const char *filename, std::vector<INIEntry> *vec) {
 	// Set the end of the file to be after what we just wrote
 	SetEndOfFile(file);
 	CloseHandle(file);
+}
+
+void asset::init() {
+	HRESULT hr = CoCreateInstance(
+		CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&iwic)
+	);
+	assert(SUCCEEDED(hr));
+}
+
+void asset::deinit() {
+	iwic->Release();
+	iwic = nullptr;
+
+	for (auto &[key, val] : fileCache) UnmapViewOfFile(val.data);
+	fileCache.clear();
+
+	for (auto &[key, val] : bmpCache) VirtualFree(val.px, 0, MEM_RELEASE);
+	bmpCache.clear();
+
+	for (auto &[key, val] : wavCache) VirtualFree(val.samples, 0, MEM_RELEASE);
+	wavCache.clear();
 }

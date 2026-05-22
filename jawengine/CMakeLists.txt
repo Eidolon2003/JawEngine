@@ -24,6 +24,12 @@ else()
 	message(FATAL_ERROR "Only Windows is supported at this time")
 endif()
 
+if(NOT NSOUND)
+	list(APPEND JAWENGINE_SOURCES
+		"source/common/synth.cpp"
+	)
+endif()
+
 if(NOT NSPRITE)
 	list(APPEND JAWENGINE_SOURCES
 		"source/common/sprite.cpp"

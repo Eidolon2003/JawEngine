@@ -20,7 +20,7 @@
 #include <cassert>
 #include <list>
 #include "../common/internal_utils.h"
-#include "../../headers/utils.h"
+#include "../../JawEngine.h"	// JAW_DBGPRINTF & utils.h
 
 static char *arena;
 static char *head;
@@ -36,9 +36,7 @@ struct timer {
 static_assert(std::is_trivial_v<timer>);
 static std::list<timer> timerList;
 
-
 #ifndef NDEBUG
-#include <iostream>
 static size_t maxBytes = 0;
 #endif
 
@@ -57,9 +55,7 @@ bool util::init(jaw::properties *props) {
 void util::deinit() {
 	VirtualFree(arena, 0, MEM_RELEASE);
 	arena = head = end = nullptr;
-#ifndef NDEBUG
-	std::cout << "Debug: tempalloc used a maximum of " << maxBytes << " bytes.\n";
-#endif
+	JAW_DBGPRINT("tempalloc used a maximum of " << maxBytes << " bytes");
 	timerList.clear();
 	timeEndPeriod(timerInfo.wPeriodMin);
 }

@@ -16,10 +16,6 @@
 #include <dinput.h>
 #include <type_traits>
 
-#ifndef NDEBUG
-#include <iostream>
-#endif
-
 struct DIGamepad {
 	IDirectInputDevice8A *dev;
 	GUID guid;
@@ -35,9 +31,7 @@ static unsigned numPlayers;
 static IDirectInput8A *di;
 
 void input::init(HWND hwnd) {
-#ifndef NDEBUG
-	std::cout << "Debug: DirectInput8 init ";
-#endif
+	JAW_DBGPRINT("DirectInput8 init");
 
 	clear();
 	numPlayers = 0;
@@ -45,9 +39,7 @@ void input::init(HWND hwnd) {
 	HINSTANCE inst = GetModuleHandleA(NULL);
 	HRESULT hr = DirectInput8Create(inst, DIRECTINPUT_VERSION, IID_IDirectInput8A, (LPVOID*)&di, NULL);
 
-#ifndef NDEBUG
-	std::cout << (SUCCEEDED(hr) ? "succeeded\n" : "failed\n");
-#endif
+	JAW_DBGPRINT("DirectInput8 init " << (SUCCEEDED(hr) ? "succeeded" : "failed"));
 
 	findNewGamepads();
 }
@@ -117,9 +109,7 @@ void input::readGamepads() {
 			if (FAILED(hr)) {
 				if (hr == DIERR_INPUTLOST) continue;
 				else if (hr == DIERR_UNPLUGGED) {
-#ifndef NDEBUG
-					std::cout << "Debug: Controller slot " << i << " unplugged\n";
-#endif
+					JAW_DBGPRINT("Controller slot" << i << " unplugged");
 					g.dev->Release();
 					g = {};
 					continue;
@@ -159,9 +149,7 @@ static BOOL EnumCallback(LPCDIDEVICEINSTANCEA lpddi, LPVOID ptr) {
 	}
 
 	// Once here this is a new controller
-#ifndef NDEBUG
-	std::cout << "Debug: New controller found: " << lpddi->tszProductName << std::endl;
-#endif
+	JAW_DBGPRINT("New controller found: " << lpddi->tszProductName);
 
 	unsigned index = 0;
 	for (; index < numPlayers; index++) {
@@ -203,16 +191,12 @@ fail:
 	return DIENUM_CONTINUE;
 }
 bool input::findNewGamepads() {
-#ifndef NDEBUG
-	std::cout << "Debug: input::findNewGamepads()\n";
-#endif
+	JAW_DBGPRINT("input::findNewGamepads()");
 
 	bool newFound;
 	HRESULT hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, (LPDIENUMDEVICESCALLBACKA)EnumCallback, (LPVOID)&newFound, DIEDFL_ATTACHEDONLY);
 
-#ifndef NDEBUG
-	std::cout << "Debug: DIEnumDevices " << (SUCCEEDED(hr) ? "succeeded\n" : "failed\n");
-#endif
+	JAW_DBGPRINT("DIEnumDevices " << (SUCCEEDED(hr) ? "succeeded" : "failed"));
 
 	if (newFound) readGamepads();
 	return newFound;

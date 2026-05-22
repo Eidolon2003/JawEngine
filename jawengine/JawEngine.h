@@ -16,6 +16,28 @@
 #include <cstdint>
 #include <cassert>
 
+// The engine uses JAW_DBGPRINT for printing in debug mode, and you can too
+#ifndef NDEBUG
+#include <iostream>
+inline constexpr const char *_JAW_FILENAME(const char *file) {
+	// For engine source files, give the name with jawengine as the root
+	// for other files, simply return the full path
+	constexpr auto strcmp9 = [](const char *a, const char *b) -> bool {
+		for (size_t i = 0; i < 9; i++) {
+			if (a[i] != b[i]) return false;
+		}
+		return true;
+	};
+	for (const char *p = file; *p; p++) {
+		if (strcmp9(p, "jawengine")) return p;
+	}
+	return file;
+}
+#define JAW_DBGPRINT(x) std::cerr << "jaw-dbg: \"" << x << "\"\n" << _JAW_FILENAME(__FILE__) << ", " << __LINE__ << "\n\n";
+#else
+#define JAW_DBGPRINT(x)
+#endif
+
 #if (defined _WIN32 || defined _WIN64)
 #include "headers/winvkc.h"
 #elif (defined LINUX || defined __linux__)

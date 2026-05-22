@@ -30,4 +30,32 @@ namespace sound {
 
 	// Stop playing all sounds
 	void stopAll();
+
+
+	// Defaults to standard A=440Hz, equal temperament
+	struct ABCOptions {
+		union {
+			float freqs[12] = {
+				261.63f, 277.18f, 293.66f, 311.13f, 329.63f, 349.23f,
+				369.99f, 392.00f, 415.30f, 440.00f, 466.16f, 493.88f
+			};
+			struct {
+				float c, db, d, eb, e, f, gb, g, ab, a, bb, b;
+			};
+		};
+
+		bool loop = true;
+
+		// Between 0 and 1
+		// Lower values = more aggressive low pass filter
+		// Higher values = rawer, brighter sound
+		float lowpass = 0.33f;
+
+		// Multiplication factor applied at the very end
+		// Beware of clipping!
+		float masterGain = 1.f;
+	};
+
+	// Parses ABC and synthesizes audio data!
+	jaw::soundid abc(const char *abcData, const ABCOptions &opt);
 }
