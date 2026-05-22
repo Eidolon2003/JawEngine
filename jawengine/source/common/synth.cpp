@@ -359,7 +359,7 @@ static void parseV(std::string &s) {
 		std::string option = s.substr(eq+1, end-eq-1);
 
 		if (eq >= 12 && s.compare(eq-12, 12, "jaw-waveform") == 0) {
-			if (option == "sine") voice.waveform = sin;
+			if (option == "sine") voice.waveform = sinf;
 			else if (option == "square") voice.waveform = square;
 			else if (option == "triangle") voice.waveform = triangle;
 			else if (option == "sawtooth") voice.waveform = sawtooth;
