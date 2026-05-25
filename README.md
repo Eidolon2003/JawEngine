@@ -1,7 +1,7 @@
-# JawEngine 0.2.0
+# JawEngine 0.2.1
 JawEngine is a game engine for building 2D games in C++. It is designed to be minimal, explicit, and simple, while still providing the core features needed to create games. See the Snake demo example at `TestApp/TestApp.cpp`
 
-Version 0.2.0 is a complete rewrite of 0.1.0; old code will not work! This project is a work-in-progress. For now, only Windows is supported via DirectX (Direct2D, XAudio, and DirectInput), but cross-platform support is planned. For now, programs built with JawEngine run on WINE with minimal issues.
+This project is a work-in-progress. For now, only Windows is supported via DirectX (Direct2D, XAudio, and DirectInput), but cross-platform support is planned. For now, programs built with JawEngine run on WINE with minimal issues.
 
 Important: Only Sony controllers are currently supported; tested working on DS4 and DualSense controllers
 
@@ -11,7 +11,7 @@ Important: Only Sony controllers are currently supported; tested working on DS4 
 Current APIs include: 
 - `state` - Maintains a stack-based state system
 - `draw` - 2D rendering; immediate mode rendering with retained resources
-- `sound` - 44.1K, 16b, stereo WAV playback
+- `sound` - 44.1K, 16b, stereo WAV playback, ABC-based sound synthesis
 - `asset` - Loads and parses asset files (bmp, wav, and ini)
 - `input` - Handles keyboard, mouse, and controller input; supports automated bindings and callbacks
 - `sprite` - Supports automatically moving, drawing, and self-destructing sprites
@@ -27,7 +27,7 @@ static void loop(jaw::properties *p) {
         .rect = jaw::recti({0,0}, p->size),
         .str = "Hello, world!",
         .color = jaw::color::WHITE
-        }, 0);
+    }, 0);
 }
 
 int main() {
@@ -58,6 +58,6 @@ The engine is centered around a stack-based state system. It's important to note
 Resources created by the `asset`, `sound`, and `draw` APIs live for the entire runtime of the engine and are automatically cleaned up at the end. There is no need (or indeed ability) to manually free them.
 
 ## License
-JawEngine 0.2.0 is licensed under the Mozilla Public License 2.0 (MPL 2.0)
+JawEngine 0.2.1 is licensed under the Mozilla Public License 2.0 (MPL 2.0)
 
 This license encourages the open development of JawEngine while also allowing developers to use it freely, including in closed source projects. 

@@ -1,3 +1,14 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * Copyright (c) 2026 Julian Williams
+ *
+ * JawEngine 0.2.1
+ * https://github.com/Eidolon2003/JawEngine
+ */
+
 // ABC parser and digital synthesizer
 // https://abcnotation.com/wiki/abc:standard:v2.1
 
@@ -136,9 +147,9 @@ static int16_t *mix(ABCVoice *voices, size_t numVoices, size_t *numSamples, floa
 	// Allocate enough to fit the longest
 	*numSamples = longest * 2;	// mono to stereo
 	void *ptr = malloc(*numSamples * sizeof(int16_t));
+	if (!ptr) return nullptr;
 	allocations.push_back(ptr);
 	int16_t *ret = (int16_t*)ptr;
-	if (!ret) return nullptr;
 
 	// Using a low-pass filter to smooth out the sound of these harsh samples
 	// https://kiritchatterjee.wordpress.com/2014/11/10/a-simple-digital-low-pass-filter-in-c/

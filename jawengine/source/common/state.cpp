@@ -3,9 +3,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
- * Copyright (c) 2025 Julian Williams
+ * Copyright (c) 2025-2026 Julian Williams
  *
- * JawEngine 0.2.0
+ * JawEngine 0.2.1
  * https://github.com/Eidolon2003/JawEngine
  */
 
