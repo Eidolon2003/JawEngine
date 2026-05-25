@@ -128,6 +128,9 @@ static void loop(jaw::properties *p) {
 		.str = buf,
 		.color = jaw::color::WHITE
 	}, 0);
+
+	float v = (float)p->mouse.pos.x / p->size.x;
+	sound::masterVolume(v);
 }
 
 int main() {
@@ -137,5 +140,5 @@ int main() {
 	props.size.x = 40;
 	props.size.y = 30;
 	props.title = "ABC";
-	engine::start(&props, nullptr, init, loop); 
+	engine::start(&props, nullptr, init, loop);
 }

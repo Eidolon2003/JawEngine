@@ -2,10 +2,9 @@ Potential Future Features:
 - Support more audio formats
 - Support more gamepads
 - Software rendering
-- Sound sample generator
 - Physics system
 - Thread safety
-- Better profiling tools
+- ABC parser improvements
 
 Known Issues:
 - DirectInput EnumDevices hangs on some systems. If "joy.cpl" also hangs, this is the issue

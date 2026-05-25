@@ -31,6 +31,13 @@ namespace sound {
 	// Stop playing all sounds
 	void stopAll();
 
+	// Set the master volume
+	// Volume defaults to 1.0 (no gain) at startup
+	void masterVolume(float);
+
+	// Set the volume on a particular sound
+	// Volume defaults to 1.0 (no gain)
+	void soundVolume(jaw::soundid, float);
 
 	// Defaults to standard A=440Hz, equal temperament
 	struct ABCOptions {

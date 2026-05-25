@@ -69,6 +69,8 @@ void sound::init() {
 		FreeLibrary(dll);
 		return;
 	}
+
+	master->SetVolume(1.f);
 }
 
 void sound::deinit() {
@@ -129,4 +131,13 @@ void sound::stop(jaw::soundid id) {
 
 void sound::stopAll() {
 	for (size_t i = 0; i < nextID; i++) sounds[i]->Stop();
+}
+
+void sound::masterVolume(float vol) {
+	master->SetVolume(vol);
+}
+
+void sound::soundVolume(jaw::soundid id, float vol) {
+	if (id >= nextID) return;
+	else sounds[id]->SetVolume(vol);
 }
