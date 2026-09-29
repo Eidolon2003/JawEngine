@@ -81,6 +81,15 @@ static LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lpa
 
 	switch (umsg) {
 #ifndef JAW_NINPUT
+	case WM_MOUSEWHEEL:
+		// MOUSEWHEEL reports coordinates in screenspace rather than clientspace like the others
+		// handleMouse expects clientspace, so we'll transform it here
+		{
+		POINT p { .x = GET_X_LPARAM(lparam), .y = GET_Y_LPARAM(lparam) };
+		ScreenToClient(hwnd, &p);
+		lparam = MAKELPARAM(p.x, p.y);
+		}
+		[[fallthrough]];
 	case WM_LBUTTONDOWN:
 	case WM_RBUTTONDOWN:
 	case WM_MBUTTONDOWN:
@@ -90,7 +99,6 @@ static LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lpa
 	case WM_MBUTTONUP:
 	case WM_XBUTTONUP:
 	case WM_MOUSEMOVE:
-	case WM_MOUSEWHEEL:
 		handleMouse(wparam, lparam, props);
 		return 0;
 

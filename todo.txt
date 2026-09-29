@@ -1,3 +1,18 @@
+Short-term for 0.2.3:
+- Move ABC parser to asset module, because it's just another way to get raw data from a file after all
+- add a state deinit function that's called after a state is popped, for clean up instead of cleaning up at beginning of init
+- add "cameras" that allow rendering through a transform (sprites own a camera id and automatically use it if set?)
+- convenient #define that defines jaw::statefn functions that automatically grab a pointer to the custom context
+	for example
+	JAW_DEFINE_STATEFN(game, game_init, game_context) {}
+	corresponds with
+	void game_init(jaw::context *context) { game_context *game = (game_context *)context->data; }
+	or something to that effect
+
+- rename props to context ^^
+- logging library?
+
+
 Potential Future Features:
 - Support more audio formats
 - Support more gamepads

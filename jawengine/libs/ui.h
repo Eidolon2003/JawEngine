@@ -52,6 +52,14 @@ namespace ui {
 		return jaw::recti(tl, br);
 	}
 
+	// Same as relrect, but forces the rect to be square
+	inline jaw::recti relsqr(jaw::vec2i screenSize, jaw::vec2f reltl, float reldim) {
+		auto tl = jaw::vec2i(jaw::vec2f(screenSize) * reltl);
+		float dim = std::min(screenSize.x, screenSize.y) * reldim;
+		auto br = tl + jaw::vec2i(jaw::vec2f(dim, dim));
+		return jaw::recti(tl, br);
+	}
+
 	constexpr size_t MAX_NUM = 128;
 	typedef uint32_t id;
 	typedef void (*uifn)(ui::id, jaw::properties*);
@@ -67,6 +75,7 @@ namespace ui {
 		jaw::clickableid click = jaw::INVALID_ID;
 		ui::uifn select = nullptr, deselect = nullptr;
 		bool selected = false;
+		void *data = nullptr;
 	};
 	
 	inline util::slotAllocator<id, UIElement, MAX_NUM> slots;

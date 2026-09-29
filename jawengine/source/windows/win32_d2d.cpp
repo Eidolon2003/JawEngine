@@ -190,7 +190,7 @@ void draw::deinit() {
 
 	for (size_t i = 0; i < numBmps; i++) {
 		bmps[i]->Release();
-		bmpTargets[i]->Release();
+		if (bmpTargets[i]) bmpTargets[i]->Release();
 	}
 	numBmps = 0;
 
@@ -509,6 +509,9 @@ jaw::bmpid draw::createBmp(jaw::vec2i size) {
 	if (!SUCCEEDED(hr)) {
 		return jaw::INVALID_ID;
 	}
+	
+	// This bmp does not have a corresponding target
+	bmpTargets[numBmps] = nullptr;
 
 	return (jaw::bmpid)numBmps++;
 }

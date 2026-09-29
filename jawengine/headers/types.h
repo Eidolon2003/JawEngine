@@ -46,16 +46,18 @@ namespace jaw {
 		constexpr argb MAGENTA = 0xFFFF00FF;
 		constexpr argb YELLOW = 0xFFFFFF00;
 
-		constexpr argb DARK_RED = 0xFF770000;
-		constexpr argb DARK_GREEN = 0xFF007700;
-		constexpr argb DARK_BLUE = 0xFF000077;
-		constexpr argb GRAY = 0xFF777777;
+		constexpr argb dark(argb c) { return (c & 0xFF000000) | ((c & 0x00FEFEFE) >> 1); }
+
+		constexpr argb DARK_RED = dark(RED);
+		constexpr argb DARK_GREEN = dark(GREEN);
+		constexpr argb DARK_BLUE = dark(BLUE);
+		constexpr argb GRAY = dark(WHITE);
 		constexpr argb GREY = GRAY;
-		constexpr argb DARK_GRAY = 0xFF333333;
+		constexpr argb DARK_GRAY = dark(GRAY);
 		constexpr argb DARK_GREY = DARK_GRAY;
-		constexpr argb DARK_CYAN = 0xFF007777;
-		constexpr argb DARK_MAGENTA = 0xFF770077;
-		constexpr argb DARK_YELLOW = 0xFF777700;
+		constexpr argb DARK_CYAN = dark(CYAN);
+		constexpr argb DARK_MAGENTA = dark(MAGENTA);
+		constexpr argb DARK_YELLOW = dark(YELLOW);
 	};
 
 	//TODO: more convenient op overloads for these structs
