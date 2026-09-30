@@ -12,68 +12,93 @@
 #include "../../headers/state.h"
 #include "internal_state.h"
 
-struct functions {
-	jaw::statefn init, loop;
-};
-static_assert(std::is_trivial_v<functions>);
-
-static functions states[state::MAX_NUM_STATES];
+static jaw::stateFns states[state::MAX_NUM_STATES];
 static size_t numStates;
 
 static jaw::stateid stack[state::MAX_STACK_SIZE];
 static size_t stackTop;
 
 static bool newStateFlag;
+static jaw::stateid prevState = jaw::INVALID_ID;
 
-jaw::stateid state::create(jaw::properties *props, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop) {
-	if (numStates == state::MAX_NUM_STATES
-		|| loop == nullptr
-	) {
+jaw::stateid state::create(jaw::properties *props, const jaw::stateFns &fns) {
+	if (numStates == state::MAX_NUM_STATES ||
+		fns.loop == nullptr)
+	{
 		return jaw::INVALID_ID;
 	}
 	jaw::stateid s = (jaw::stateid)numStates++;
-	states[s] = { init, loop };
-	if (initOnce) initOnce(props);
+	states[s] = fns;
+	if (fns.initOnce) fns.initOnce(props);
 	return s;
 }
 
 bool state::push(jaw::stateid id) {
-	if (stackTop == state::MAX_STACK_SIZE
-		|| id == jaw::INVALID_ID
-	) {
+	if (stackTop == state::MAX_STACK_SIZE ||
+		id == jaw::INVALID_ID)
+	{
 		return false;
 	}
-	newStateFlag = true;
+
+	if (newStateFlag == false) {
+		newStateFlag = true;
+		if (stackTop > 0) prevState = stack[stackTop - 1];
+		else prevState = jaw::INVALID_ID;
+	}
+
 	stack[stackTop++] = id;
 	return true;
 }
 
 bool state::pop() {
 	if (stackTop == 0) return false;
-	newStateFlag = true;
+
+	if (newStateFlag == false) {
+		newStateFlag = true;
+		if (stackTop < state::MAX_STACK_SIZE) prevState = stack[stackTop - 1];
+		else prevState = jaw::INVALID_ID;
+	}
+
 	stackTop--;
 	return true;
 }
 
-jaw::stateid state::top() {
+jaw::stateid state::current() {
 	if (stackTop == 0) return jaw::INVALID_ID;
 	else return stack[stackTop-1];
 }
 
+jaw::stateid state::previous() {
+	if (prevState == jaw::INVALID_ID) return jaw::INVALID_ID;
+	else return prevState;
+}
+
 bool state::loop(jaw::properties *props) {
 	if (stackTop == 0) return false;
-	const jaw::stateid s = stack[stackTop - 1];
-	const functions &f = states[s];
+	const jaw::stateid currentState = stack[stackTop - 1];
+	const jaw::stateFns &currentFns = states[currentState];
 
-	if (newStateFlag && f.init) {
+	// If this is a new state, call the old one's deinit and the new one's init
+	if (newStateFlag) {
 		newStateFlag = false;
-		f.init(props);
+
+		if (prevState != jaw::INVALID_ID) {
+			const jaw::stateFns &oldFns = states[prevState];
+			if (oldFns.deinit) oldFns.deinit(props);
+		}
+
+		if (currentFns.init) currentFns.init(props);
 	}
-	f.loop(props);
+
+	currentFns.loop(props);
 	return true;
 }
 
-void state::deinit() {
+void state::deinit(jaw::properties *props) {
+	const jaw::stateid currentState = stack[stackTop - 1];
+	const jaw::stateFns &currentFns = states[currentState];
+	if (currentFns.deinit) currentFns.deinit(props);
+
 	newStateFlag = false;
 	numStates = 0;
 	stackTop = 0;

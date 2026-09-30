@@ -12,6 +12,18 @@
 #pragma once
 #include "types.h"
 
+/*
+	Each frame, the engine will call the active state's loop function.
+
+	When the stack is changed using push or pop,
+	the old state's deinit, and the new state's init will be called
+	before calling the new state's loop.
+
+	If two states are pushed within the same frame, for example,
+	then deinit will only be called on the original, and init only on the second.
+	In other words, at most only one deinit and init will be called per-frame
+*/
+
 namespace state {
 	constexpr size_t MAX_NUM_STATES = 256;
 	constexpr size_t MAX_STACK_SIZE = 256;
@@ -19,14 +31,17 @@ namespace state {
 	// Create a new state, does not affect the current stack
 	// Calls the new state's initOnce now
 	// Returns jaw::INVALID_ID on failure
-	jaw::stateid create(jaw::properties *props, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop);
+	jaw::stateid create(jaw::properties *props, const jaw::stateFns &fns);
 
-	// Push a new state onto the stack, calling the new state's init
+	// Push a new state onto the stack
 	bool push(jaw::stateid);
 
-	// Pop the current state off the stack and return to the previous state, calling init on the new state
+	// Pop the current state off the stack and return to the previous state
 	bool pop();
 
 	// Returns the id of the current state
-	jaw::stateid top();
+	jaw::stateid current();
+
+	// Returns the id of the previous state
+	jaw::stateid previous();
 }

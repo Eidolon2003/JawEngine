@@ -82,7 +82,7 @@ end:
 }
 
 //TODO: run the renderer and game loop on two separate threads
-void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop) {
+void engine::start(jaw::properties *props, const jaw::stateFns &fns) {
 	if (props == nullptr) return;
 
 	// This is for single-threaded only
@@ -111,12 +111,15 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 #endif
 
 #ifdef JAW_NSTATE
-	if (initOnce) initOnce(props);
-	if (init) init(props);
+	if (fns.initOnce) fns.initOnce(props);
+	if (fns.init) fns.init(props);
 #else
+	// Pushing the initial state before creating it is intentional
+	// This allows for the game to push inside its initial set up.
+	// We want our zero state to be at the bottom of the stack
 	state::push(0);
-	auto sid = state::create(props, initOnce, init, loop);
-	assert(sid == 0);
+	auto sid = state::create(props, fns);
+	if (sid != 0) return;
 #endif
 
 /*
@@ -145,7 +148,7 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 		util::updateTimers(props);
 
 #ifdef JAW_NSTATE
-		loop(props);
+		fns.loop(props);
 #else
 		if (!state::loop(props)) {
 			running = false;
@@ -178,8 +181,10 @@ void engine::start(jaw::properties *props, jaw::statefn initOnce, jaw::statefn i
 	input::deinit();
 #endif
 
-#ifndef JAW_NSTATE
-	state::deinit();
+#ifdef JAW_NSTATE
+	fns.deinit(props);
+#else
+	state::deinit(props);
 #endif
 
 #ifndef JAW_NSOUND

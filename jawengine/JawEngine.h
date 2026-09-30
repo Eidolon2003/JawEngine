@@ -68,6 +68,6 @@ inline constexpr const char *_JAW_FILENAME(const char *file) {
 #endif
 
 namespace engine {
-	void start(jaw::properties*, jaw::statefn initOnce, jaw::statefn init, jaw::statefn loop);
+	void start(jaw::properties*, const jaw::stateFns &fns);
 	void stop();
 }

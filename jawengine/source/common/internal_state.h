@@ -14,5 +14,5 @@
 
 namespace state {
 	bool loop(jaw::properties*);
-	void deinit();
+	void deinit(jaw::properties*);
 }

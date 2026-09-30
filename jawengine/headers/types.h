@@ -310,6 +310,13 @@ namespace jaw {
 #endif
 
 	typedef void (*statefn)(jaw::properties*);
+	struct stateFns {
+		jaw::statefn initOnce;
+		jaw::statefn init;
+		jaw::statefn deinit;
+		jaw::statefn loop;
+	};
+	static_assert(std::is_trivial_v<stateFns>);
 
 #ifndef JAW_NINPUT
 	typedef uint32_t clickableid;
