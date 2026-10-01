@@ -470,4 +470,6 @@ void asset::deinit() {
 
 	for (auto &[key, val] : wavCache) VirtualFree(val.samples, 0, MEM_RELEASE);
 	wavCache.clear();
+
+	deinitSynth();
 }

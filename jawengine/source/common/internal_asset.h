@@ -14,4 +14,7 @@
 namespace asset {
 	void init();
 	void deinit();
+
+	// called by asset::deinit
+	void deinitSynth();
 }

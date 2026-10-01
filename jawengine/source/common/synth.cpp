@@ -16,8 +16,8 @@
 // triplets, 1st/2nd endings, P: field support, octave option on V: and K:, broken rhythm, accidentals carry through bar
 // and probably other things...
 
-#include "../../JawEngine.h" // sound.h & JAW_DBGPRINT
-#include "../../source/common/internal_sound.h"
+#include "../../JawEngine.h" // asset.h & JAW_DBGPRINT
+#include "../../source/common/internal_asset.h"
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -553,7 +553,7 @@ static void completeHeader(InfoFields *fields) {
 	}
 }
 
-static float getFreq(char note, float octave, InfoFields::Key &key, Accidental accidental, const sound::ABCOptions &opt) {
+static float getFreq(char note, float octave, InfoFields::Key &key, Accidental accidental, const asset::ABCOptions &opt) {
 	// Increase octave if lowercase, and convert to uppercase
 	octave *= toupper(note) == note ? 1 : 2;
 	note = toupper(note);
@@ -609,7 +609,7 @@ static BarType classifyBar(std::string &line, size_t begin, size_t end) {
 }
 
 // Currently don't support fields within the tune body
-static bool parseTuneBody(std::stringstream &dataStream, std::string &line, InfoFields *fields, const sound::ABCOptions &opt) {
+static bool parseTuneBody(std::stringstream &dataStream, std::string &line, InfoFields *fields, const asset::ABCOptions &opt) {
 	static const char *NOTES = "ABCDEFGabcdefgZzx";
 	static const char *BARLINES = ":[]|";
 	static const char *PREFIXES = ".LH^=_";
@@ -856,7 +856,7 @@ static bool parseTuneBody(std::stringstream &dataStream, std::string &line, Info
 	return true;
 }
 
-static int16_t *parseABC(const char *abcData, size_t *numSamples, const sound::ABCOptions &opt) {
+static int16_t *parseABC(const char *abcData, size_t *numSamples, const asset::ABCOptions &opt) {
 	// set up voices (the default voice is used if no other is specified with a V: field)
 	numVoices = 0;
 	voices.clear();
@@ -900,16 +900,12 @@ static int16_t *parseABC(const char *abcData, size_t *numSamples, const sound::A
 	return mix(&voices[0], numVoices, numSamples, opt.lowpass, opt.masterGain);
 }
 
-jaw::soundid sound::abc(const char *abcData, const sound::ABCOptions &opt) {
-	size_t numSamples;
-	int16_t *samples = parseABC(abcData, &numSamples, opt);
-	if (!samples) return jaw::INVALID_ID;
-	jaw::soundid id = sound::create();
-	if (!sound::write(id, samples, numSamples, opt.loop)) return jaw::INVALID_ID;
-	else return id;
+int16_t *asset::abc(const char *abcData, size_t *numSamples, const asset::ABCOptions &opt) {
+	int16_t *samples = parseABC(abcData, numSamples, opt);
+	return samples;
 }
 
-void sound::deinitSynth() {
+void asset::deinitSynth() {
 	for (void *x : allocations) free(x);
 	allocations.clear();
 }
