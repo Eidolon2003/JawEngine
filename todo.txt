@@ -1,8 +1,6 @@
 Short-term for 0.2.2:
-- Move ABC parser to asset module, because it's just another way to get raw data from a file after all
 - add "cameras" that allow rendering through a transform (sprites own a camera id and automatically use it if set?)
 - logging library?
-
 
 Potential Future Features:
 - Support more audio formats
@@ -11,6 +9,18 @@ Potential Future Features:
 - Physics system
 - Thread safety
 - ABC parser improvements
+
+Thoughts for a future secondary rendering thread:
+- The render thread owns all of its resources
+- At the synchronization point, the main thread hands the render thread three things
+	1. Resource command queue
+	2. Render command queue
+	3. Frame-local arena
+There are two instances of each of these, at the same time that the renderer is rendering the current frame, the game is filling in commands for the next frame. Simply swap at the sync point.
+	
+Currently, the game mutates the render's resources directly through calls like createBmp and tobmp, but this is a problem for threading. The resource command queue defers these actions for the render thread to perform them in its own context. The resource queue holds commands like createBmp, destroyBmp, tobmp, and so on. These must all be consumed in submission order prior to doing any rendering. After finishing resource commands, do render commands. The render queue will look exactly like it currently does. Any memory that the renderer needs to reference during its execution should either come from constant static storage (string literals, assets loaded through the asset module) or from the frame-local allocator.
+
+Resources like bitmaps will be allocated IDs by a slotAllocator on the game thread, and the renderer will use these IDs to allocate their corresponding resources on the render thread. This avoids the issue of the game thread and render thread both trying to refer to the same slotAllocator at the same time.
 
 Known Issues:
 - DirectInput EnumDevices hangs on some systems. If "joy.cpl" also hangs, this is the issue

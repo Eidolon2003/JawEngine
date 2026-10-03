@@ -191,6 +191,11 @@ void input::bindXMB2Up(jaw::statefn fn) { xmb2Up = fn; }
 
 void input::clear() {
 	slots.clear();
+
+	lmbDown = lmbUp = rmbDown = rmbUp = mmbDown = mmbUp = xmb1Down = xmb1Up = xmb2Down = xmb2Up = nullptr;
+	for (size_t i = 0; i < 256; i++) {
+		keyDownBindings[i] = keyUpBindings[i] = nullptr;
+	}
 }
 
 jaw::clickableid input::createClickable(const jaw::clickable &c) {

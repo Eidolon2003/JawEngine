@@ -25,17 +25,12 @@ namespace util {
 	// Automatically cleared by the engine at the end of the frame
 	inline arenaAllocator *frameAllocator;
 
-	// Attempt to map a circular buffer in virtual address space
-	// buf[0] == buf[bytes] && buf[1] == buf[bytes+1] && etc.
-	// The size of the buffer may be rounded up due to OS constraints
-	void *mapCircularBuffer(size_t *bytes);
-
-	// Unmap a circular buffer allocated with mapCircularBuffer
-	// The bytes value must be the rounded value returned from mapCircularBuffer
-	void unmapCircularBuffer(void *buffer, size_t bytes);
+	// The maximum number of timers that can exist at once
+	constexpr size_t MAX_NUM_TIMERS = 32;
 
 	// The engine will automatically call the callback after the given time has passed
-	void setTimer(const jaw::properties *props, jaw::nanoseconds time, jaw::statefn callback);
+	// Returns false if the maximum number of timers was exceeded
+	bool setTimer(const jaw::properties *props, jaw::nanoseconds time, jaw::statefn callback);
 
 	// Remove all active timers 
 	void clearTimers();
@@ -45,4 +40,13 @@ namespace util {
 
 	// Sleep as close to the target as possible then spin for the remaining time
 	jaw::nanoseconds accurateSleep(jaw::nanoseconds time, jaw::nanoseconds startPoint);
+
+	// Attempt to map a circular buffer in virtual address space
+	// buf[0] == buf[bytes] && buf[1] == buf[bytes+1] && etc.
+	// The size of the buffer may be rounded up due to OS constraints
+	void *mapCircularBuffer(size_t *bytes);
+
+	// Unmap a circular buffer allocated with mapCircularBuffer
+	// The bytes value must be the rounded value returned from mapCircularBuffer
+	void unmapCircularBuffer(void *buffer, size_t bytes);
 }

@@ -14,9 +14,9 @@
 
 namespace draw {
 	constexpr size_t MAX_DRAW_SIZE = 30;
-	constexpr size_t MAX_QUEUE_SIZE = 65536;
-	constexpr size_t MAX_NUM_FONTS = 1024;
-	constexpr size_t MAX_NUM_BMPS = 1024;
+	constexpr size_t MAX_QUEUE_SIZE = 4096;
+	constexpr size_t MAX_NUM_FONTS = 256;
+	constexpr size_t MAX_NUM_BMPS = 256;
 	
 	void setBackgroundColor(jaw::argb);
 

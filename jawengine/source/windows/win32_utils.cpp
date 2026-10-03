@@ -30,7 +30,7 @@ struct timer {
 	jaw::statefn callback;
 };
 static_assert(std::is_trivial_v<timer>);
-static std::list<timer> timerList;
+static util::slotAllocator<uint32_t, timer, util::MAX_NUM_TIMERS> timers;
 
 #ifndef NDEBUG
 static size_t maxBytes = 0;
@@ -40,7 +40,7 @@ bool util::init(jaw::properties *props) {
 	static auto _frameAllocator = util::arenaAllocator(props->frameAllocatorBytes);
 	frameAllocator = &_frameAllocator;
 
-	timerList.clear();
+	timers.clear();
 	timeGetDevCaps(&timerInfo, sizeof(timerInfo));
 	timeBeginPeriod(timerInfo.wPeriodMin);
 	auto b = QueryPerformanceFrequency(&countsPerSecond);
@@ -51,7 +51,7 @@ void util::deinit() {
 #ifndef NDEBUG
 	JAW_DBGPRINT("frameAllocator used a maximum of " << maxBytes << " bytes");
 #endif
-	timerList.clear();
+	timers.clear();
 	timeEndPeriod(timerInfo.wPeriodMin);
 }
 
@@ -119,24 +119,24 @@ void util::unmapCircularBuffer(void *buffer, size_t bytes) {
 	UnmapViewOfFile((LPBYTE)buffer + bytes);
 }
 
-void util::setTimer(const jaw::properties *props, jaw::nanoseconds time, jaw::statefn callback) {
-	timerList.emplace_back(props->uptime + time, callback);
+bool util::setTimer(const jaw::properties *props, jaw::nanoseconds time, jaw::statefn callback) {
+	timer t = { .endTime = props->uptime + time, .callback = callback };
+	uint32_t id = timers.create(&t);
+	return id != jaw::INVALID_ID;
 }
 
 void util::clearTimers() {
-	timerList.clear();
+	timers.clear();
 }
 
 void util::updateTimers(jaw::properties *props) {
-	auto it = timerList.begin();
-	while (it != timerList.end()) {
-		if (props->uptime >= it->endTime) {
-			// Time is up
-			it->callback(props);
-			timerList.erase(it++);
-		}
-		else {
-			it++;
+	for (uint32_t slot = 0; slot < timers.nextSlot; slot++) {
+		if (timers.isOpen[slot]) continue;
+		uint32_t id = slot | timers.gens[slot];
+		timer *t = timers.items + slot;
+		if (props->uptime >= t->endTime) {
+			t->callback(props);
+			timers.destroy(id);
 		}
 	}
 }

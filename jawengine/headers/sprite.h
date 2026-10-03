@@ -13,7 +13,7 @@
 #include "types.h"
 
 namespace sprite {
-	constexpr size_t MAX_NUM_SPR = 65536;
+	constexpr size_t MAX_NUM_SPR = 256;
 
 	// Clear all sprites
 	void clear();
@@ -47,7 +47,7 @@ namespace sprite {
 }
 
 namespace anim {
-	constexpr size_t MAX_NUM_ANIM = 65536;
+	constexpr size_t MAX_NUM_ANIM = 256;
 
 	// Clears all animation definitions and states
 	void clear();
