@@ -22,10 +22,6 @@
 #include "../common/internal_utils.h"
 #include "../../JawEngine.h"	// JAW_DBGPRINTF & utils.h
 
-static char *arena;
-static char *head;
-static char *end;
-
 static LARGE_INTEGER countsPerSecond;
 static TIMECAPS timerInfo;
 
@@ -41,10 +37,9 @@ static size_t maxBytes = 0;
 #endif
 
 bool util::init(jaw::properties *props) {
-	arena = (char*)VirtualAlloc(NULL, props->tempallocBytes, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-	if (!arena) return false;
-	head = arena;
-	end = arena + props->tempallocBytes;
+	static auto _frameAllocator = util::arenaAllocator(props->frameAllocatorBytes);
+	frameAllocator = &_frameAllocator;
+
 	timerList.clear();
 	timeGetDevCaps(&timerInfo, sizeof(timerInfo));
 	timeBeginPeriod(timerInfo.wPeriodMin);
@@ -53,32 +48,18 @@ bool util::init(jaw::properties *props) {
 }
 
 void util::deinit() {
-	VirtualFree(arena, 0, MEM_RELEASE);
-	arena = head = end = nullptr;
-	JAW_DBGPRINT("tempalloc used a maximum of " << maxBytes << " bytes");
+#ifndef NDEBUG
+	JAW_DBGPRINT("frameAllocator used a maximum of " << maxBytes << " bytes");
+#endif
 	timerList.clear();
 	timeEndPeriod(timerInfo.wPeriodMin);
 }
 
 void util::beginFrame() {
 #ifndef NDEBUG
-	if ((size_t)(head - arena) > maxBytes) maxBytes = (head - arena);
+	if (frameAllocator->bytesUsed() > maxBytes) maxBytes = frameAllocator->bytesUsed();
 #endif
-	head = arena;
-}
-
-void *util::tempalloc(size_t bytes) {
-	if (head + bytes > end) {
-		assert(false);
-		return nullptr;
-	}
-	char *old = head;
-	head += bytes;
-	return old;
-}
-
-size_t util::tempallocBytesRemaining() {
-	return (size_t)(end - head);
+	frameAllocator->clear();
 }
 
 void *util::mapCircularBuffer(size_t *bytes) {
@@ -176,4 +157,15 @@ jaw::nanoseconds util::accurateSleep(jaw::nanoseconds time, jaw::nanoseconds sta
 	jaw::nanoseconds retTime;
 	while ((retTime = getTimePoint()) - startPoint < time);
 	return retTime;
+}
+
+// arenaAllocator constructor implementation
+util::arenaAllocator::arenaAllocator(size_t commitSize) {
+	base = head = end = nullptr;
+
+	void *alloc = VirtualAlloc(NULL, commitSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+	if (alloc) {
+		base = head = alloc;
+		end = (char *)base + commitSize;
+	}
 }

@@ -13,6 +13,7 @@
 #include "../../headers/types.h"
 
 namespace state {
-	bool loop(jaw::properties*);
+	void init(jaw::properties*);
 	void deinit(jaw::properties*);
+	bool loop(jaw::properties*);
 }

@@ -18,25 +18,12 @@
 #include <type_traits>
 
 namespace util {
-	// returns an unaligned pointer to n bytes
-	void *tempalloc(size_t n);
+	// util::slotAllocator, util::arenaAllocator
+#include "allocators.h"
 
-	// conveniently allocate num * sizeof(T) bytes aligned to alignof(T)
-	// does not actually initialize the memory in any way
-	template <typename T>
-	T *tempalloc(size_t num) {
-		constexpr auto align = alignof(T);
-		void *p = tempalloc(num*sizeof(T) + align - 1);
-		if (!p) return nullptr;
-		uintptr_t aligned = (((uintptr_t)p + align - 1) / align) * align;
-		return (T*)aligned;
-	}
-
-	// Get the number of bytes remaining in the temporary allocator
-	size_t tempallocBytesRemaining();
-
-	// util::slotAllocator
-#include "slot_allocator.h"
+	// Frame-local arena allocator
+	// Automatically cleared by the engine at the end of the frame
+	inline arenaAllocator *frameAllocator;
 
 	// Attempt to map a circular buffer in virtual address space
 	// buf[0] == buf[bytes] && buf[1] == buf[bytes+1] && etc.

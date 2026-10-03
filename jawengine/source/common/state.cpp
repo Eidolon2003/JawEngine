@@ -21,6 +21,15 @@ static size_t stackTop;
 static bool newStateFlag;
 static jaw::stateid prevState = jaw::INVALID_ID;
 
+#ifndef NDEBUG
+static size_t maxBytes;
+#endif
+
+void state::init(jaw::properties *props) {
+	static auto _stateAllocator = util::arenaAllocator(props->stateAllocatorBytes);
+	allocator = &_stateAllocator;
+}
+
 jaw::stateid state::create(jaw::properties *props, const jaw::stateFns &fns) {
 	if (numStates == state::MAX_NUM_STATES ||
 		fns.loop == nullptr)
@@ -87,6 +96,11 @@ bool state::loop(jaw::properties *props) {
 			if (oldFns.deinit) oldFns.deinit(props);
 		}
 
+#ifndef NDEBUG
+		if (allocator->bytesUsed() > maxBytes) maxBytes = allocator->bytesUsed();
+#endif
+		allocator->clear();
+
 		if (currentFns.init) currentFns.init(props);
 	}
 
@@ -95,6 +109,12 @@ bool state::loop(jaw::properties *props) {
 }
 
 void state::deinit(jaw::properties *props) {
+#ifndef NDEBUG
+	// Check one last time at the end in case newStateFlag was never set
+	if (allocator->bytesUsed() > maxBytes) maxBytes = allocator->bytesUsed();
+	JAW_DBGPRINT("state::allocator used a maximum of " << maxBytes << " bytes");
+#endif
+
 	const jaw::stateid currentState = stack[stackTop - 1];
 	const jaw::stateFns &currentFns = states[currentState];
 	if (currentFns.deinit) currentFns.deinit(props);

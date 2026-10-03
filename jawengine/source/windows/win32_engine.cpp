@@ -117,6 +117,7 @@ void engine::start(jaw::properties *props, const jaw::stateFns &fns) {
 	// Pushing the initial state before creating it is intentional
 	// This allows for the game to push inside its initial set up.
 	// We want our zero state to be at the bottom of the stack
+	state::init(props);
 	state::push(0);
 	auto sid = state::create(props, fns);
 	if (sid != 0) return;

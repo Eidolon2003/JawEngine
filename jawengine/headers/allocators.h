@@ -69,7 +69,46 @@ struct slotAllocator {
 	T *idtoptr(IDT id) {
 		IDT slot = id & (MAX_NUM-1);
 		if (slot >= nextSlot || isOpen[slot] || id != (slot | gens[slot])) return nullptr;
-		
+
 		return items + slot;
 	}
+};
+
+
+struct arenaAllocator {
+	void *base, *head, *end;
+
+	// The arena constructor takes the number of bytes to commit.
+	// This is the maximum size of the arena, it does not support resizing.
+	// Note: real memory usage will not be as high as the commit size right away,
+	// the OS will page in memory as it's used.
+	// This funciton is not defined inline because it is platform dependent
+	arenaAllocator(size_t commitSize);
+
+	inline size_t bytesRemaining() const { return (size_t)((char *)end - (char *)head); };
+
+	inline size_t bytesUsed() const { return (size_t)((char *)head - (char *)base); }
+
+	// Allocates exactly this many unaligned, uninitialized bytes
+	// Returns nullptr if the arena is out of space
+	inline void *allocRaw(size_t bytes) {
+		if (bytes > bytesRemaining()) return nullptr;
+		void *ret = head;
+		head = (char *)head + bytes;
+		return ret;
+	}
+
+	// Allocates enough memory for an aligned array of num elements of type T
+	// This memory is not initialized, and the elements are not constructed
+	template <typename T>
+	inline T *alloc(size_t num) {
+		constexpr auto align = alignof(T);
+		void *p = allocRaw(num*sizeof(T) + align - 1);
+		if (!p) return nullptr;
+		uintptr_t aligned = (((uintptr_t)p + align - 1) / align) * align;
+		return (T*)aligned;
+	}
+
+	// Simply resets the arena 
+	inline void clear() { head = base; }
 };

@@ -10,7 +10,7 @@
  */
 
 #pragma once
-#include "types.h"
+#include "../JawEngine.h"
 
 /*
 	Each frame, the engine will call the active state's loop function.
@@ -44,4 +44,9 @@ namespace state {
 
 	// Returns the id of the previous state
 	jaw::stateid previous();
+
+	// Arena allocator for state-local data
+	// Automatically cleared by the engine after a state deinits but before the next inits
+	// Meaning: if you allocate in your state's init, it will exist for the life of the state
+	inline util::arenaAllocator *allocator;
 }

@@ -236,8 +236,11 @@ namespace jaw {
 		// This may be used for any sort of game data that needs to be passed around
 		void *data = nullptr;
 
-		// The size of the temporary allocator arena in bytes
-		size_t tempallocBytes = 1<<20;
+		// The commit size of util::frameAllocator in bytes
+		size_t frameAllocatorBytes = 16<<20;
+
+		// The commit size of state::stateAllocator in bytes
+		size_t stateAllocatorBytes = 16<<20;
 
 		//These are automatically populated by the system, read only
 		vec2i winsize = vec2i();
