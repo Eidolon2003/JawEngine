@@ -14,6 +14,11 @@
 #include <string>
 #include <vector>
 
+/*
+	Assets loaded here are valid for the whole lifetime of the engine,
+	and cannot be dynamically unloaded.
+*/
+
 namespace asset {
 	// This function is cached internally
 	// Points to a read-only memory mapped file, do not write!

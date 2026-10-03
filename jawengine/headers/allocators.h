@@ -11,6 +11,10 @@
 
 #pragma once
 
+// The slotAllocator is used for dynamically allocating slots in a fixed size pool
+// It's used throughout the engine itself as a solution for not passing around raw pointers.
+// IDs returned by this allocator can stably refer to the allocated data,
+// and idtoptr will safely return a nullptr when the data no longer exists.
 template <typename IDT, typename T, size_t MAX_NUM>
 struct slotAllocator {
 	static_assert(std::is_same_v<IDT, uint32_t>, "IDT must be uint32_t");
@@ -74,7 +78,7 @@ struct slotAllocator {
 	}
 };
 
-
+// The engine provides two arenas by default: util::frameAllocator and state::allocator
 struct arenaAllocator {
 	void *base, *head, *end;
 

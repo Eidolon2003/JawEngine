@@ -192,12 +192,17 @@ namespace jaw {
 	static_assert(std::is_trivial_v<mouse>);
 
 	struct key {
-		bool isDown;
-		bool isHeld;
+		bool isDown;	// true for one frame if the key was pressed
+		bool isHeld;	// continuously true if the key is held down
 	};
 	static_assert(std::is_trivial_v<key>);
 #endif
 	
+
+	// This struct is the engine's general purpose context.
+	// It defines properties during start up (desired size, title, etc),
+	// it has runtime relevant information (mouse, uptime, frametime, etc),
+	// and void *data provides a way to pass application specific global context
 	struct properties {
 		const char *title = " ";
 		vec2i size = vec2i(640, 480);		// The logical size of the window

@@ -45,7 +45,7 @@ namespace draw {
 
 	#pragma pack(push, 4)
 	// Note: The string this is pointing to must exist past the end of the frame.
-	// Memory allocated by tempalloc is safe to use here
+	// Memory allocated by util::frameAllocator is guaranteed to be safe here
 	struct str {
 		jaw::recti rect;
 		const char *str;
@@ -118,7 +118,8 @@ namespace draw {
 	template<>
 	drawCall make<ellipse>(const ellipse&, uint8_t z);
 
-	// Draw a primitive to the screen
+	// Submit a drawCall to the render queue
+	// The renderer will draw them in submission order, sorted by z
 	template <typename T>
 	bool enqueue(const T&, uint8_t);
 	template<>
@@ -148,7 +149,11 @@ namespace draw {
 	};
 	static_assert(std::is_trivial_v<font>);
 
-	jaw::fontid newFont(const font*);	// Default font 0 is "Courier New" size 10
+	// Just like with assets loaded by the asset system,
+	// these assets live for the lifetime of the engine.
+
+	// Font ID zero is automatically created by the engine: "Courier New" size 10
+	jaw::fontid newFont(const font*);	
 	inline jaw::fontid newFont(const font &o) { return newFont(&o); }
 
 	// Returns jaw::INVALID_ID on failure

@@ -118,6 +118,7 @@ void state::deinit(jaw::properties *props) {
 	const jaw::stateid currentState = stack[stackTop - 1];
 	const jaw::stateFns &currentFns = states[currentState];
 	if (currentFns.deinit) currentFns.deinit(props);
+	allocator->clear();
 
 	newStateFlag = false;
 	numStates = 0;

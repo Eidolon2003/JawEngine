@@ -20,6 +20,9 @@ namespace sound {
 	jaw::soundid create();
 
 	// Write a stream of samples into a sound buffer, and whether it should loop
+	// The sound system retains a pointer to the sample data you give it, it is not copied internally
+	// This means the data must either come from the asset system (engine lifetime),
+	// or otherwise have a long lifetime
 	bool write(jaw::soundid id, int16_t *sampleData, size_t numSamples, bool loop);
 
 	// Start playing a sound from the beginning
