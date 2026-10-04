@@ -149,7 +149,7 @@ void engine::start(jaw::properties *props, const jaw::stateFns &fns) {
 		util::updateTimers(props);
 
 #ifdef JAW_NSTATE
-		fns.loop(props);
+		if (fns.loop) fns.loop(props);
 #else
 		if (!state::loop(props)) {
 			running = false;
@@ -183,7 +183,7 @@ void engine::start(jaw::properties *props, const jaw::stateFns &fns) {
 #endif
 
 #ifdef JAW_NSTATE
-	fns.deinit(props);
+	if (fns.deinit) fns.deinit(props);
 #else
 	state::deinit(props);
 #endif

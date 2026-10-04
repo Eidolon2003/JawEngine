@@ -31,11 +31,8 @@ void state::init(jaw::properties *props) {
 }
 
 jaw::stateid state::create(jaw::properties *props, const jaw::stateFns &fns) {
-	if (numStates == state::MAX_NUM_STATES ||
-		fns.loop == nullptr)
-	{
-		return jaw::INVALID_ID;
-	}
+	if (numStates == state::MAX_NUM_STATES) return jaw::INVALID_ID;
+
 	jaw::stateid s = (jaw::stateid)numStates++;
 	states[s] = fns;
 	if (fns.initOnce) fns.initOnce(props);
@@ -104,7 +101,7 @@ bool state::loop(jaw::properties *props) {
 		if (currentFns.init) currentFns.init(props);
 	}
 
-	currentFns.loop(props);
+	if (currentFns.loop) currentFns.loop(props);
 	return true;
 }
 

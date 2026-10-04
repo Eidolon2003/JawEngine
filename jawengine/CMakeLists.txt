@@ -7,6 +7,7 @@ if(WIN32)
 		"source/windows/win32_win.cpp"
 		"source/windows/win32_d2d.cpp"
 		"source/windows/win32_utils.cpp"
+		"source/common/synth.cpp"
 	)
 
 	if(NOT NSOUND)
@@ -22,12 +23,6 @@ if(WIN32)
 	endif()
 else()
 	message(FATAL_ERROR "Only Windows is supported at this time")
-endif()
-
-if(NOT NSOUND)
-	list(APPEND JAWENGINE_SOURCES
-		"source/common/synth.cpp"
-	)
 endif()
 
 if(NOT NSPRITE)
