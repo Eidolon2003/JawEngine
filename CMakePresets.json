@@ -17,6 +17,16 @@
 				"type": "equals",
 				"lhs": "${hostSystemName}",
 				"rhs": "Windows"
+			},
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "clang-cl",
+				"CMAKE_CXX_COMPILER": "clang-cl"
+			},
+			// Disables clang-tidy code analysis inside Visual Studio
+			"vendor": {
+				"microsoft.com/VisualStudioSettings/CMake/1.0": {
+					"enableClangTidyCodeAnalysis": false
+				}
 			}
 		},
 

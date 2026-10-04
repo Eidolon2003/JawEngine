@@ -1,7 +1,6 @@
 ﻿add_executable(TestApp "TestApp.cpp")
 # target_link_options(TestApp PRIVATE /MAP)
 target_link_libraries(TestApp jawengine)
-set_property(TARGET TestApp PROPERTY CXX_STANDARD 20)
 
 # Set the entry point to the custom engine entry which checks for AVX2 compat
 if(MSVC)

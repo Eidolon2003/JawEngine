@@ -43,7 +43,7 @@ bool util::init(jaw::properties *props) {
 	timers.clear();
 	timeGetDevCaps(&timerInfo, sizeof(timerInfo));
 	timeBeginPeriod(timerInfo.wPeriodMin);
-	auto b = QueryPerformanceFrequency(&countsPerSecond);
+	(void)QueryPerformanceFrequency(&countsPerSecond);
 	return true;
 }
 

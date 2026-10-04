@@ -61,7 +61,6 @@ endif()
 
 # Main compilation
 add_library(jawengine STATIC ${JAWENGINE_SOURCES} "source/common/avx2.cpp" "source/common/noavx2.cpp")
-set_property(TARGET jawengine PROPERTY CXX_STANDARD 20)
 
 # Link required windows libraries
 if(WIN32)

@@ -162,9 +162,9 @@ void draw::init(const jaw::properties *p, HWND hwnd) {
 	}
 
 	// Create the deafault font as font zero
-	font f = { .name = "Courier New", .size = 10.f };
+	font f = { .size = 10.f, .name = "Courier New" };	// Demo out-of-order designated initializer working
 	auto id = draw::newFont(&f);
-	assert(id == 0);
+	if (id != 0) assert(false);
 }
 
 void draw::deinit() {

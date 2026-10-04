@@ -86,7 +86,7 @@ void engine::start(jaw::properties *props, const jaw::stateFns &fns) {
 	if (props == nullptr) return;
 
 	// This is for single-threaded only
-	auto hr_ = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_SPEED_OVER_MEMORY);
+	(void)CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_SPEED_OVER_MEMORY);
 
 /*
 *	Subsystem Initialization

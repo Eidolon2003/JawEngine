@@ -38,9 +38,10 @@ void input::init(HWND hwnd) {
 
 	HINSTANCE inst = GetModuleHandleA(NULL);
 	HRESULT hr = DirectInput8Create(inst, DIRECTINPUT_VERSION, IID_IDirectInput8A, (LPVOID*)&di, NULL);
-
-	JAW_DBGPRINT("DirectInput8 init " << (SUCCEEDED(hr) ? "succeeded" : "failed"));
-
+	if (FAILED(hr)) {
+		JAW_DBGPRINT("DirectInput8 init failed");
+	}
+	
 	findNewGamepads();
 }
 
@@ -195,8 +196,9 @@ bool input::findNewGamepads() {
 
 	bool newFound;
 	HRESULT hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, (LPDIENUMDEVICESCALLBACKA)EnumCallback, (LPVOID)&newFound, DIEDFL_ATTACHEDONLY);
-
-	JAW_DBGPRINT("DIEnumDevices " << (SUCCEEDED(hr) ? "succeeded" : "failed"));
+	if (FAILED(hr)) {
+		JAW_DBGPRINT("DIEnumDevices failed");
+	}
 
 	if (newFound) readGamepads();
 	return newFound;

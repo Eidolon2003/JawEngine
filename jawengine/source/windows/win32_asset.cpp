@@ -455,7 +455,9 @@ void asset::init() {
 	HRESULT hr = CoCreateInstance(
 		CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&iwic)
 	);
-	assert(SUCCEEDED(hr));
+	if (FAILED(hr)) {
+		assert(false);
+	}
 }
 
 void asset::deinit() {
