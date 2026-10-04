@@ -90,7 +90,7 @@ namespace jaw {
 		int16_t x, y;
 		vec2i() = default;
 		constexpr vec2i(int16_t x, int16_t y) { this->x = x; this->y = y; }
-		constexpr vec2i(jaw::vec2f v) { x = (uint16_t)v.x; y = (uint16_t)v.y; }
+		constexpr vec2i(jaw::vec2f v) { x = (int16_t)v.x; y = (int16_t)v.y; }
 
 		constexpr vec2i operator+(const vec2i rhs) const { return { (int16_t)(x + rhs.x), (int16_t)(y + rhs.y) }; }
 		constexpr vec2i operator+(const int16_t rhs) const { return { (int16_t)(x + rhs), (int16_t)(y + rhs) }; }

@@ -112,11 +112,13 @@ void state::deinit(jaw::properties *props) {
 	JAW_DBGPRINT("state::allocator used a maximum of " << maxBytes << " bytes");
 #endif
 
-	const jaw::stateid currentState = stack[stackTop - 1];
-	const jaw::stateFns &currentFns = states[currentState];
-	if (currentFns.deinit) currentFns.deinit(props);
-	allocator->clear();
+	if (stackTop > 0) {
+		const jaw::stateid currentState = stack[stackTop - 1];
+		const jaw::stateFns &currentFns = states[currentState];
+		if (currentFns.deinit) currentFns.deinit(props);
+	}
 
+	allocator->clear();
 	newStateFlag = false;
 	numStates = 0;
 	stackTop = 0;
