@@ -196,7 +196,7 @@ namespace ui {
 			UIElement *p = slots.idtoptr(id);
 			if (!p) [[unlikely]] return;
 
-			int16_t border = p->rect.contains(props->mouse.pos) ? SELECT_BORDER : DESELECT_BORDER;
+			int16_t border = p->rect.contains(input::getMouse().pos) ? SELECT_BORDER : DESELECT_BORDER;
 
 			draw::drawCall calls[3]{
 				draw::make<draw::rect>({
@@ -300,7 +300,7 @@ namespace ui {
 			if (!p) [[unlikely]] return;
 
 			if (p->selected && (
-					(props->mouse.flags.lmb && !p->rect.contains(props->mouse.pos)) ||
+					(input::getMouse().flags.lmb && !p->rect.contains(input::getMouse().pos)) ||
 					(input::getKey(key::ENTER).isDown && !input::getKey(key::SHIFT).isHeld)
 				)
 			) {
