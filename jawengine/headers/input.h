@@ -20,6 +20,9 @@ namespace input {
 	// Return the current state of a keyboard key
 	jaw::key getKey(uint8_t code);
 
+	// Return the current state of the mouse
+	const jaw::mouse &getMouse();
+
 	// Adds characters to this string upto size
 	// May also remove characters if the backspace key was pressed
 	void getString(char *str, size_t);

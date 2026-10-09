@@ -16,6 +16,7 @@
 constexpr float PI32 = 3.14159265f;
 
 namespace jaw {
+	// Provides useful information about the system at runtime
 	struct Sysinfo {
 		bool wine;
 		bool avx2;
@@ -24,41 +25,16 @@ namespace jaw {
 	// Set before main is called by the engine's entry point
 	extern Sysinfo sysinfo;
 
+	/*
+		COMMON TYPES
+	*/
 	typedef int64_t nanoseconds;
-
 	constexpr jaw::nanoseconds millis(float m) { return (jaw::nanoseconds)(m * 1'000'000); }
 	constexpr float to_millis(jaw::nanoseconds n) { return n / 1'000'000.f; }
 	constexpr jaw::nanoseconds seconds(float s) { return (jaw::nanoseconds)(s * 1'000'000'000); }
 	constexpr float to_seconds(jaw::nanoseconds n) { return n / 1'000'000'000.f; }
 
 	constexpr uint32_t INVALID_ID = UINT32_MAX;
-	typedef uint32_t bmpid;
-	typedef uint32_t fontid;
-
-	typedef uint32_t argb;
-	namespace color {
-		constexpr argb RED = 0xFFFF0000;
-		constexpr argb GREEN = 0xFF00FF00;
-		constexpr argb BLUE = 0xFF0000FF;
-		constexpr argb WHITE = 0xFFFFFFFF;
-		constexpr argb BLACK = 0xFF000000;
-		constexpr argb CYAN = 0xFF00FFFF;
-		constexpr argb MAGENTA = 0xFFFF00FF;
-		constexpr argb YELLOW = 0xFFFFFF00;
-
-		constexpr argb dark(argb c) { return (c & 0xFF000000) | ((c & 0x00FEFEFE) >> 1); }
-
-		constexpr argb DARK_RED = dark(RED);
-		constexpr argb DARK_GREEN = dark(GREEN);
-		constexpr argb DARK_BLUE = dark(BLUE);
-		constexpr argb GRAY = dark(WHITE);
-		constexpr argb GREY = GRAY;
-		constexpr argb DARK_GRAY = dark(GRAY);
-		constexpr argb DARK_GREY = DARK_GRAY;
-		constexpr argb DARK_CYAN = dark(CYAN);
-		constexpr argb DARK_MAGENTA = dark(MAGENTA);
-		constexpr argb DARK_YELLOW = dark(YELLOW);
-	};
 
 	//TODO: more convenient op overloads for these structs
 	struct vec2i;
@@ -168,37 +144,9 @@ namespace jaw {
 	};
 	static_assert(std::is_trivial_v<ellipse>);
 
-#ifndef JAW_NINPUT
-	union mouseFlags {
-		uint8_t all;
-		struct {
-			char lmb : 1;
-			char rmb : 1;
-			char shift : 1;
-			char ctrl : 1;
-			char mmb : 1;
-			char xmb1 : 1;
-			char xmb2 : 1;
-		};
-	};
-	static_assert(std::is_trivial_v<mouseFlags>);
-
-	struct mouse {
-		jaw::vec2i pos;
-		int32_t wheelDelta;
-		jaw::mouseFlags flags;
-		jaw::mouseFlags prevFlags;
-	};
-	static_assert(std::is_trivial_v<mouse>);
-
-	struct key {
-		bool isDown;	// true for one frame if the key was pressed
-		bool isHeld;	// continuously true if the key is held down
-	};
-	static_assert(std::is_trivial_v<key>);
-#endif
-	
-
+/*
+	PROPERTIES STRUCT
+*/
 	// This struct is the engine's general purpose context.
 	// It defines properties during start up (desired size, title, etc),
 	// it has runtime relevant information (mouse, uptime, frametime, etc),
@@ -209,11 +157,11 @@ namespace jaw {
 		float scale = 1.f;					// Integer scaling values use nearest neighbor
 		float targetFramerate = 0;			// <=0 means VSync
 		int monitorIndex = -1;				// Which monitor the window should open on
-											// Negative means primary, high values are capped
+		// Negative means primary, high values are capped
 		bool enableSubpixelTextRendering = false;
 		bool enablePerPrimitiveAA = false;
 
-		enum { 
+		enum {
 			// Drawable window size is size * scale
 			WINDOWED,
 
@@ -254,20 +202,136 @@ namespace jaw {
 		jaw::nanoseconds logicFrametime = 0;
 		jaw::nanoseconds uptime = 0;
 
-#ifndef JAW_NINPUT
-		jaw::mouse mouse{};
-#endif
-
 		//Convenience functions
 		vec2i scaledSize() const {
 			return size * scale;
 		}
 	};
 
+/*
+	DRAW TYPES
+*/
+	typedef uint32_t bmpid;
+	typedef uint32_t fontid;
+	typedef uint32_t argb;
+	namespace color {
+		constexpr argb RED = 0xFFFF0000;
+		constexpr argb GREEN = 0xFF00FF00;
+		constexpr argb BLUE = 0xFF0000FF;
+		constexpr argb WHITE = 0xFFFFFFFF;
+		constexpr argb BLACK = 0xFF000000;
+		constexpr argb CYAN = 0xFF00FFFF;
+		constexpr argb MAGENTA = 0xFFFF00FF;
+		constexpr argb YELLOW = 0xFFFFFF00;
+
+		constexpr argb dark(argb c) { return (c & 0xFF000000) | ((c & 0x00FEFEFE) >> 1); }
+
+		constexpr argb DARK_RED = dark(RED);
+		constexpr argb DARK_GREEN = dark(GREEN);
+		constexpr argb DARK_BLUE = dark(BLUE);
+		constexpr argb GRAY = dark(WHITE);
+		constexpr argb GREY = GRAY;
+		constexpr argb DARK_GRAY = dark(GRAY);
+		constexpr argb DARK_GREY = DARK_GRAY;
+		constexpr argb DARK_CYAN = dark(CYAN);
+		constexpr argb DARK_MAGENTA = dark(MAGENTA);
+		constexpr argb DARK_YELLOW = dark(YELLOW);
+	};
+
+/*
+	INPUT TYPES
+*/
+#ifndef JAW_NINPUT
+	union mouseFlags {
+		uint8_t all;
+		struct {
+			char lmb : 1;
+			char rmb : 1;
+			char shift : 1;
+			char ctrl : 1;
+			char mmb : 1;
+			char xmb1 : 1;
+			char xmb2 : 1;
+		};
+	};
+	static_assert(std::is_trivial_v<mouseFlags>);
+
+	struct mouse {
+		jaw::vec2i pos;
+		int32_t wheelDelta;
+		jaw::mouseFlags flags;
+		jaw::mouseFlags prevFlags;
+	};
+	static_assert(std::is_trivial_v<mouse>);
+
+	struct key {
+		bool isDown;	// true for one frame if the key was pressed
+		bool isHeld;	// continuously true if the key is held down
+	};
+	static_assert(std::is_trivial_v<key>);
+#endif
+
+/*
+	SOUND TYPES
+*/
 #ifndef JAW_NSOUND
 	typedef uint32_t soundid;
 #endif
 
+/*
+	INPUT TYPES
+*/
+#ifndef JAW_NINPUT
+	typedef uint32_t clickableid;
+	typedef void (*clickfn)(jaw::clickableid, jaw::properties*);
+	struct clickable {
+		jaw::recti *rect;
+		jaw::clickfn callback;
+		jaw::mouseFlags condition;
+		void *data;
+	};
+	static_assert(std::is_trivial_v<clickable>);
+
+	struct SonyGamepad {
+		jaw::key x, square, circle, triangle;
+		jaw::key up, down, left, right;
+		jaw::key select, start;
+		jaw::key r1, l1, r2, l2, r3, l3;
+		float r2a, l2a;
+		jaw::vec2f r, l;
+		jaw::key ps, pad;
+	};
+	static_assert(std::is_trivial_v<SonyGamepad>);
+
+	struct gamepad {
+		enum class type { SONY, UNKNOWN } type;
+		union {
+			SonyGamepad sony;
+		};
+	};
+	static_assert(std::is_trivial_v<gamepad>);
+#endif
+
+/*
+	STATE TYPES
+*/
+#ifndef JAW_NSTATE
+	typedef uint32_t stateid;
+#endif
+	// These do not get removed with JAW_NSTATE
+	// The engine always depends on them
+	typedef void (*statefn)(jaw::properties*);
+	struct stateFns {
+		jaw::statefn initOnce;
+		jaw::statefn init;
+		jaw::statefn deinit;
+		jaw::statefn loop;
+	};
+	static_assert(std::is_trivial_v<stateFns>);
+
+/*
+	SPRITE TYPES
+*/
 #ifndef JAW_NSPRITE
 	typedef uint32_t sprid;
 	typedef uint32_t animstateid;
@@ -317,47 +381,14 @@ namespace jaw {
 	typedef void (*sprfn)(jaw::sprid, jaw::properties*);
 #endif
 
-	typedef void (*statefn)(jaw::properties*);
-	struct stateFns {
-		jaw::statefn initOnce;
-		jaw::statefn init;
-		jaw::statefn deinit;
-		jaw::statefn loop;
+/*
+	CALLBACK TYPES
+*/
+#ifndef JAW_NCALLBACK
+	typedef uint32_t callbackid;
+	struct callback {
+		statefn callback;
 	};
-	static_assert(std::is_trivial_v<stateFns>);
-
-#ifndef JAW_NINPUT
-	typedef uint32_t clickableid;
-	typedef void (*clickfn)(jaw::clickableid, jaw::properties*);
-	struct clickable {
-		jaw::recti *rect;
-		jaw::clickfn callback;
-		jaw::mouseFlags condition;
-		void *data;
-	};
-	static_assert(std::is_trivial_v<clickable>);
-
-	struct SonyGamepad {
-		jaw::key x, square, circle, triangle;
-		jaw::key up, down, left, right;
-		jaw::key select, start;
-		jaw::key r1, l1, r2, l2, r3, l3;
-		float r2a, l2a;
-		jaw::vec2f r, l;
-		jaw::key ps, pad;
-	};
-	static_assert(std::is_trivial_v<SonyGamepad>);
-
-	struct gamepad {
-		enum class type { SONY, UNKNOWN } type;
-		union {
-			SonyGamepad sony;
-		};
-	};
-	static_assert(std::is_trivial_v<gamepad>);
-#endif
-
-#ifndef JAW_NSTATE
-	typedef uint32_t stateid;
+	static_assert(std::is_trivial_v<callback>);
 #endif
 }

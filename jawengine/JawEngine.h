@@ -67,6 +67,10 @@ inline constexpr const char *_JAW_FILENAME(const char *file) {
 #include "headers/state.h"
 #endif
 
+#ifndef JAW_NCALLBACK
+#include "headers/callback.h"
+#endif
+
 namespace engine {
 	void start(jaw::properties*, const jaw::stateFns &fns);
 	void stop();

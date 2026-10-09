@@ -28,6 +28,7 @@ static jaw::statefn lmbDown, lmbUp, rmbDown, rmbUp, mmbDown,
 
 static util::slotAllocator<jaw::clickableid, jaw::clickable, input::MAX_NUM_CLICKABLE> slots;
 
+static jaw::mouse mouse;
 
 void input::beginFrame(jaw::properties *props) {
 	for (int i = 0; i < 256; i++) {
@@ -35,19 +36,19 @@ void input::beginFrame(jaw::properties *props) {
 	}
 
 	backspaceCount = 0;
-	props->mouse.wheelDelta = 0;
+	mouse.wheelDelta = 0;
 	inputString[0] = 0;
 	inputStringLength = 0;
 }
 
 void input::updateMouse(const jaw::mouse *m, jaw::properties *props) {
-	props->mouse.wheelDelta += m->wheelDelta;
-	props->mouse.prevFlags.all = props->mouse.flags.all;
-	props->mouse.flags.all = m->flags.all;
-	props->mouse.pos = m->pos;
+	mouse.wheelDelta += m->wheelDelta;
+	mouse.prevFlags.all = mouse.flags.all;
+	mouse.flags.all = m->flags.all;
+	mouse.pos = m->pos;
 
 	jaw::mouseFlags changed;
-	changed.all = props->mouse.flags.all ^ props->mouse.prevFlags.all;
+	changed.all = mouse.flags.all ^ mouse.prevFlags.all;
 	if (changed.all == 0) return;
 
 	// First check clickables
@@ -163,6 +164,10 @@ void input::getString(char *str, size_t size) {
 
 jaw::key input::getKey(uint8_t code) {
 	return keys[code];
+}
+
+const jaw::mouse &input::getMouse() {
+	return mouse;
 }
 
 void input::bindKeyDown(uint8_t code, jaw::statefn f) { keyDownBindings[code] = f; }

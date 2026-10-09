@@ -2,6 +2,10 @@ Short-term for 0.2.2:
 - add "cameras" that allow rendering through a transform (sprites own a camera id and automatically use it if set?)
 - logging library?
 
+- current sprites are renamed to something like "callback", an object that provides a callback from the engine at regular (configurable) intervals. Just one callback instead of a separate update and draw call, as these callbacks are more generalized than that. For example, the optix light simulation loop should be a callback instead of a recursive timer. 
+	- Animation becomes a separate module
+	- Sprite becomes a lib (sprite.h), which is a composition of a callback, animation, and camera (and eventually a physics body, but not in 0.2.2)
+
 Potential Future Features:
 - Support more audio formats
 - Support more gamepads

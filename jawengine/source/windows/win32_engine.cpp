@@ -37,6 +37,10 @@
 #include "../common/internal_state.h"
 #endif
 
+#ifndef JAW_NCALLBACK
+#include "../common/internal_callback.h"
+#endif
+
 #include <objbase.h>	//CoInitializeEx
 
 static bool running;
@@ -102,6 +106,10 @@ void engine::start(jaw::properties *props, const jaw::stateFns &fns) {
 		exit(1);
 	}
 
+#ifndef JAW_NCALLBACK
+	callback::init();
+#endif
+
 #ifndef JAW_NSOUND
 	sound::init();
 #endif
@@ -144,6 +152,10 @@ void engine::start(jaw::properties *props, const jaw::stateFns &fns) {
 
 #ifndef JAW_NSPRITE
 		sprite::updateAll(props);
+#endif
+
+#ifndef JAW_NCALLBACK
+		callback::loop(props);
 #endif
 
 		util::updateTimers(props);

@@ -11,7 +11,28 @@
 
 #include "../jawengine/JawEngine.h"
 
+static jaw::callbackid cb;
+static jaw::argb color;
+
+void myCallback(jaw::properties *p) {
+	color++;
+}
+
+void initOnce(jaw::properties *props) {
+	color = jaw::color::RED;
+	cb = callback::create({ .callback = myCallback });
+}
+
+void loop(jaw::properties *props) {
+	auto mouse = input::getMouse();
+
+	draw::enqueue(draw::rect{
+		.rect = jaw::recti(mouse.pos, mouse.pos + 50),
+		.color = color
+	}, 0);
+}
+
 int main() {
 	jaw::properties p;
-	engine::start(&p, {});
+	engine::start(&p, { .loop = loop, .initOnce = initOnce });
 }

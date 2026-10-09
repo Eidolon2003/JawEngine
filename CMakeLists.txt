@@ -11,6 +11,7 @@ option(NSPRITE "Disable sprite and animation APIs" OFF)
 option(NSOUND "Disable sound API" OFF)
 option(NINPUT "Disable input API" OFF)
 option(NSTATE "Disable state API" OFF)
+option(NCALLBACK "Disable callback API" OFF)
 
 # Require clang
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

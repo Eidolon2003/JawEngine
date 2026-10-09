@@ -43,6 +43,12 @@ if(NOT NSTATE)
 	)
 endif()
 
+if(NOT NCALLBACK)
+	list(APPEND JAWENGINE_SOURCES
+		"source/common/callback.cpp"
+	)
+endif()
+
 # Always compile avx2.cpp with AVX2 enabled
 if(MSVC)
 	set_source_files_properties("source/common/avx2.cpp" PROPERTIES COMPILE_FLAGS /arch:AVX2)
@@ -108,6 +114,15 @@ if(NSTATE)
 		target_compile_options(jawengine PRIVATE /DJAW_NSTATE)
 	else()
 		target_compile_options(jawengine PRIVATE -DJAW_NSTATE)
+	endif()
+endif()
+
+if (NCALLBACK)
+	message("JawEngine NCALLBACK ON")
+	if(MSVC)
+		target_compile_options(jawengine PRIVATE /DJAW_NCALLBACK)
+	else()
+		target_compile_options(jawengine PRIVATE -DJAW_NCALLBACK)
 	endif()
 endif()
 
