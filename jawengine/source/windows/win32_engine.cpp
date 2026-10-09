@@ -154,10 +154,6 @@ void engine::start(jaw::properties *props, const jaw::stateFns &fns) {
 		sprite::updateAll(props);
 #endif
 
-#ifndef JAW_NCALLBACK
-		callback::loop(props);
-#endif
-
 		util::updateTimers(props);
 
 #ifdef JAW_NSTATE
@@ -167,6 +163,10 @@ void engine::start(jaw::properties *props, const jaw::stateFns &fns) {
 			running = false;
 			break;
 		}
+#endif
+
+#ifndef JAW_NCALLBACK
+		callback::loop(props);
 #endif
 
 #ifndef JAW_NSPRITE

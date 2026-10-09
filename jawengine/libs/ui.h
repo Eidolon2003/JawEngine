@@ -71,18 +71,19 @@ namespace ui {
 		jaw::argb backColor = jaw::color::BLACK;
 		jaw::argb borderColor = jaw::color::WHITE;
 		jaw::argb textColor = jaw::color::WHITE;
-		jaw::sprid spr = jaw::INVALID_ID;
+		jaw::callbackid cb = jaw::INVALID_ID;
 		jaw::clickableid click = jaw::INVALID_ID;
 		ui::uifn select = nullptr, deselect = nullptr;
 		bool selected = false;
 		void *data = nullptr;
+		uint8_t z;
 	};
 	
 	inline util::slotAllocator<id, UIElement, MAX_NUM> slots;
 
 	inline void clear() {
 		slots.clear();
-		sprite::clear();
+		callback::clear();
 		input::clear();
 	}
 
@@ -91,7 +92,7 @@ namespace ui {
 		UIElement *e = slots.idtoptr(x);
 		if (!e) [[unlikely]] return;
 		if (e->click != jaw::INVALID_ID) input::destroy(e->click);
-		if (e->spr != jaw::INVALID_ID) sprite::destroy(e->spr);
+		if (e->cb != jaw::INVALID_ID) callback::destroy(e->cb);
 		slots.destroy(x);
 	}
 
@@ -99,72 +100,95 @@ namespace ui {
 		return slots.idtoptr(i);
 	}
 
+	inline void _updateTextDisplay(jaw::callbackid cbid, jaw::properties *props) {
+		jaw::callback *cb = callback::idtoptr(cbid);
+		if (!cb) [[unlikely]] return;
+
+		ui::id id = (ui::id)(uintptr_t)cb->data;
+		UIElement *p = slots.idtoptr(id);
+		if (!p) [[unlikely]] return;
+
+		constexpr int16_t BORDER = JAWUI_TEXT_DISPLAY_BORDER_WIDTH;
+		draw::drawCall calls[3]{
+			draw::make<draw::rect>({
+				.rect = p->rect,
+				.color = p->borderColor
+			}, p->z),
+			draw::make<draw::rect>({
+				.rect = jaw::recti(p->rect.tl + BORDER, p->rect.br - BORDER),
+				.color = p->backColor
+			}, p->z),
+			draw::make<draw::str>({
+				.rect = jaw::recti(p->rect.tl + BORDER, p->rect.br - BORDER),
+				.str = p->text,
+				.color = p->textColor,
+				.font = p->font
+			}, p->z)
+		};
+		draw::enqueueMany(calls, 3);
+	}
 	inline id createTextDisplay(const UIElement &e, uint8_t z)
 	{
-		constexpr int16_t BORDER = JAWUI_TEXT_DISPLAY_BORDER_WIDTH;
-
 		ui::id x = slots.create(&e);
 		if (x == jaw::INVALID_ID) [[unlikely]] return jaw::INVALID_ID;
 
-		jaw::sprid spr = sprite::create(jaw::sprite{
-			.z = z,
+		jaw::callbackid cbid = callback::create(jaw::callback{
+			.callback = _updateTextDisplay,
 			.data = (void*)(uintptr_t)x
 		});
-		if (spr == jaw::INVALID_ID) [[unlikely]] {
+		if (cbid == jaw::INVALID_ID) [[unlikely]] {
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
-		slots.idtoptr(x)->spr = spr;
-
-		sprite::customDraw(spr, [](jaw::sprid sprid, jaw::properties*) {
-			jaw::sprite *spr = sprite::idtoptr(sprid);
-			if (!spr) [[unlikely]] return;
-
-			ui::id id = (ui::id)(uintptr_t)spr->data;
-			UIElement *p = slots.idtoptr(id);
-			if (!p) [[unlikely]] return;
-
-			draw::drawCall calls[3]{
-				draw::make<draw::rect>({
-					.rect = p->rect,
-					.color = p->borderColor
-				}, spr->z),
-				draw::make<draw::rect>({
-					.rect = jaw::recti(p->rect.tl + BORDER, p->rect.br - BORDER),
-					.color = p->backColor
-				}, spr->z),
-				draw::make<draw::str>({
-					.rect = jaw::recti(p->rect.tl + BORDER, p->rect.br - BORDER),
-					.str = p->text,
-					.color = p->textColor,
-					.font = p->font
-				}, spr->z)
-			};
-			draw::enqueueMany(calls, 3);
-		});
-		sprite::customUpdate(spr, [](jaw::sprid, jaw::properties*) {});
-
+		slots.idtoptr(x)->cb = cbid;
 		return x;
 	}
 
-	inline id createTextButton(const UIElement &e, uint8_t z)
-	{
+	inline void _updateTextButton(jaw::callbackid cbid, jaw::properties *props) {
+		jaw::callback *cb = callback::idtoptr(cbid);
+		if (!cb) [[unlikely]] return;
+
+		ui::id id = (ui::id)(uintptr_t)cb->data;
+		UIElement *p = slots.idtoptr(id);
+		if (!p) [[unlikely]] return;
+
 		constexpr int16_t DESELECT_BORDER = JAWUI_TEXT_BUTTON_DESELECT_BORDER_WIDTH;
 		constexpr int16_t SELECT_BORDER = JAWUI_TEXT_BUTTON_SELECT_BORDER_WIDTH;
+		int16_t border = p->rect.contains(input::getMouse().pos) ? SELECT_BORDER : DESELECT_BORDER;
 
+		draw::drawCall calls[3]{
+			draw::make<draw::rect>({
+				.rect = p->rect,
+				.color = p->borderColor
+			}, p->z),
+			draw::make<draw::rect>({
+				.rect = jaw::recti(p->rect.tl + border, p->rect.br - border),
+				.color = p->backColor
+			}, p->z),
+			draw::make<draw::str>({
+				.rect = jaw::recti(p->rect.tl + border, p->rect.br - border),
+				.str = p->text,
+				.color = p->textColor,
+				.font = p->font
+			}, p->z)
+		};
+		draw::enqueueMany(calls, 3);
+	}
+	inline id createTextButton(const UIElement &e, uint8_t z)
+	{
 		ui::id x = slots.create(&e);
 		if (x == jaw::INVALID_ID) [[unlikely]] return jaw::INVALID_ID;
 		UIElement *ep = slots.idtoptr(x);
 
-		jaw::sprid spr = sprite::create(jaw::sprite{
-			.z = z,
+		jaw::callbackid cbid = callback::create(jaw::callback{
+			.callback = _updateTextButton,
 			.data = (void*)(uintptr_t)x
 		});
-		if (spr == jaw::INVALID_ID) [[unlikely]] {
+		if (cbid == jaw::INVALID_ID) [[unlikely]] {
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
-		ep->spr = spr;
+		ep->cb = cbid;
 
 		jaw::clickableid click = input::createClickable(jaw::clickable{
 			.rect = &ep->rect,
@@ -182,62 +206,70 @@ namespace ui {
 			.data = (void*)(uintptr_t)x
 		});
 		if (click == jaw::INVALID_ID) [[unlikely]] {
-			sprite::destroy(spr);
+			callback::destroy(cbid);
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
 		ep->click = click;
 
-		sprite::customDraw(spr, [](jaw::sprid sprid, jaw::properties *props) {
-			jaw::sprite *spr = sprite::idtoptr(sprid);
-			if (!spr) [[unlikely]] return;
-
-			ui::id id = (ui::id)(uintptr_t)spr->data;
-			UIElement *p = slots.idtoptr(id);
-			if (!p) [[unlikely]] return;
-
-			int16_t border = p->rect.contains(input::getMouse().pos) ? SELECT_BORDER : DESELECT_BORDER;
-
-			draw::drawCall calls[3]{
-				draw::make<draw::rect>({
-					.rect = p->rect,
-					.color = p->borderColor
-				}, spr->z),
-				draw::make<draw::rect>({
-					.rect = jaw::recti(p->rect.tl + border, p->rect.br - border),
-					.color = p->backColor
-				}, spr->z),
-				draw::make<draw::str>({
-					.rect = jaw::recti(p->rect.tl + border, p->rect.br - border),
-					.str = p->text,
-					.color = p->textColor,
-					.font = p->font
-				}, spr->z)
-			};
-			draw::enqueueMany(calls, 3);
-		});
-		sprite::customUpdate(spr, [](jaw::sprid, jaw::properties*) {});
-
 		return x;
 	}
 
-	inline id createTextInput(const UIElement &e, uint8_t z) {
+	inline void _updateTextInput(jaw::callbackid cbid, jaw::properties *props) {
+		jaw::callback *cb = callback::idtoptr(cbid);
+		if (!cb) [[unlikely]] return;
+
+		ui::id id = (ui::id)(uintptr_t)cb->data;
+		UIElement *p = slots.idtoptr(id);
+		if (!p) [[unlikely]] return;
+
+		if (p->selected && (
+			(input::getMouse().flags.lmb && !p->rect.contains(input::getMouse().pos)) ||
+			(input::getKey(key::ENTER).isDown && !input::getKey(key::SHIFT).isHeld)
+			)
+			) {
+			p->selected = false;
+			if (p->deselect) p->deselect(id, props);
+		}
+
+		if (p->selected) input::getString(p->text, JAWUI_TEXT_CAPACITY);
+
 		constexpr int16_t DESELECT_BORDER = JAWUI_TEXT_INPUT_DESELECT_BORDER_WIDTH;
 		constexpr int16_t SELECT_BORDER = JAWUI_TEXT_INPUT_SELECT_BORDER_WIDTH;
+		int16_t border = p->selected ? SELECT_BORDER : DESELECT_BORDER;
 
+		draw::drawCall calls[3]{
+			draw::make<draw::rect>({
+				.rect = p->rect,
+				.color = p->borderColor
+			}, p->z),
+			draw::make<draw::rect>({
+				.rect = jaw::recti(p->rect.tl + border, p->rect.br - border),
+				.color = p->backColor
+			}, p->z),
+			draw::make<draw::str>({
+				.rect = jaw::recti(p->rect.tl + border, p->rect.br - border),
+				.str = p->text,
+				.color = p->textColor,
+				.font = p->font
+			}, p->z)
+		};
+		draw::enqueueMany(calls, 3);
+	}
+	inline id createTextInput(const UIElement &e, uint8_t z) {
 		ui::id x = slots.create(&e);
 		if (x == jaw::INVALID_ID) [[unlikely]] return jaw::INVALID_ID;
 		UIElement *ep = slots.idtoptr(x);
 
-		jaw::sprid spr = sprite::create(jaw::sprite{
-			.z = z,
+		jaw::callbackid cbid = callback::create(jaw::callback{
+			.callback = _updateTextInput,
 			.data = (void*)(uintptr_t)x
 		});
-		if (spr == jaw::INVALID_ID) [[unlikely]] {
+		if (cbid == jaw::INVALID_ID) [[unlikely]] {
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
-		ep->spr = spr;
+		ep->cb = cbid;
 
 		jaw::clickableid click = input::createClickable(jaw::clickable{
 			.rect = &ep->rect,
@@ -256,81 +288,57 @@ namespace ui {
 			.data = (void*)(uintptr_t)x
 		});
 		if (click == jaw::INVALID_ID) [[unlikely]] {
-			sprite::destroy(spr);
+			callback::destroy(cbid);
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
 		ep->click = click;
 
-		sprite::customDraw(spr, [](jaw::sprid sprid, jaw::properties *props) {
-			jaw::sprite *spr = sprite::idtoptr(sprid);
-			if (!spr) [[unlikely]] return;
-
-			ui::id id = (ui::id)(uintptr_t)spr->data;
-			UIElement *p = slots.idtoptr(id);
-			if (!p) [[unlikely]] return;
-
-			int16_t border = p->selected ? SELECT_BORDER : DESELECT_BORDER;
-
-			draw::drawCall calls[3]{
-				draw::make<draw::rect>({
-					.rect = p->rect,
-					.color = p->borderColor
-				}, spr->z),
-				draw::make<draw::rect>({
-					.rect = jaw::recti(p->rect.tl + border, p->rect.br - border),
-					.color = p->backColor
-				}, spr->z),
-				draw::make<draw::str>({
-					.rect = jaw::recti(p->rect.tl + border, p->rect.br - border),
-					.str = p->text,
-					.color = p->textColor,
-					.font = p->font
-				}, spr->z)
-			};
-			draw::enqueueMany(calls, 3);
-		});
-
-		sprite::customUpdate(spr, [](jaw::sprid sprid, jaw::properties *props) {
-			jaw::sprite *spr = sprite::idtoptr(sprid);
-			if (!spr) [[unlikely]] return;
-
-			ui::id id = (ui::id)(uintptr_t)spr->data;
-			UIElement *p = slots.idtoptr(id);
-			if (!p) [[unlikely]] return;
-
-			if (p->selected && (
-					(input::getMouse().flags.lmb && !p->rect.contains(input::getMouse().pos)) ||
-					(input::getKey(key::ENTER).isDown && !input::getKey(key::SHIFT).isHeld)
-				)
-			) {
-				p->selected = false;
-				if (p->deselect) p->deselect(id, props);
-			}
-			
-			if (p->selected) input::getString(p->text, JAWUI_TEXT_CAPACITY);
-		});
-
 		return x;
 	}
 
-	inline id createCheckbox(const UIElement &e, uint8_t z) {
+	inline void _updateCheckbox(jaw::callbackid cbid, jaw::properties *props) {
+		jaw::callback *cb = callback::idtoptr(cbid);
+		if (!cb) [[unlikely]] return;
+
+		ui::id id = (ui::id)(uintptr_t)cb->data;
+		UIElement *p = slots.idtoptr(id);
+		if (!p) [[unlikely]] return;
+
 		constexpr int16_t BORDER = JAWUI_CHECKBOX_BORDER_WIDTH;
 		constexpr int16_t STROKE = JAWUI_CHECKBOX_STROKE_WIDTH;
-
+		draw::drawCall calls[4] = {
+			draw::make<draw::rect>({
+				.rect = p->rect,
+				.color = p->borderColor
+			}, p->z),
+			draw::make<draw::rect>({
+				.rect = jaw::recti(p->rect.tl + BORDER, p->rect.br - BORDER),
+				.color = p->backColor
+			}, p->z),
+			draw::make<draw::line>({
+				.p1 = p->rect.tl + 2*BORDER,
+				.p2 = p->rect.br - 2*BORDER,
+				.color = p->textColor,
+				.width = STROKE
+			}, p->z)
+		};
+		draw::enqueueMany(calls, 2 + p->selected);
+	}
+	inline id createCheckbox(const UIElement &e, uint8_t z) {
 		ui::id x = slots.create(&e);
 		if (x == jaw::INVALID_ID) [[unlikely]] return jaw::INVALID_ID;
 		UIElement *ep = slots.idtoptr(x);
 
-		jaw::sprid spr = sprite::create(jaw::sprite{
-			.z = z,
+		jaw::callbackid cbid = callback::create(jaw::callback{
+			.callback = _updateCheckbox,
 			.data = (void*)(uintptr_t)x
 			});
-		if (spr == jaw::INVALID_ID) [[unlikely]] {
+		if (cbid == jaw::INVALID_ID) [[unlikely]] {
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
-		ep->spr = spr;
+		ep->cb = cbid;
 
 		jaw::clickableid click = input::createClickable(jaw::clickable{
 			.rect = &ep->rect,
@@ -348,38 +356,11 @@ namespace ui {
 			.data = (void*)(uintptr_t)x
 		});
 		if (click == jaw::INVALID_ID) [[unlikely]] {
-			sprite::destroy(spr);
+			callback::destroy(cbid);
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
 		ep->click = click;
-
-		sprite::customDraw(spr, [](jaw::sprid sprid, jaw::properties *props) {
-			jaw::sprite *spr = sprite::idtoptr(sprid);
-			if (!spr) [[unlikely]] return;
-
-			ui::id id = (ui::id)(uintptr_t)spr->data;
-			UIElement *p = slots.idtoptr(id);
-			if (!p) [[unlikely]] return;
-
-			draw::drawCall calls[4] = {
-				draw::make<draw::rect>({
-					.rect = p->rect,
-					.color = p->borderColor
-				}, spr->z),
-				draw::make<draw::rect>({
-					.rect = jaw::recti(p->rect.tl + BORDER, p->rect.br - BORDER),
-					.color = p->backColor
-				}, spr->z),
-				draw::make<draw::line>({
-					.p1 = p->rect.tl + 2*BORDER,
-					.p2 = p->rect.br - 2*BORDER,
-					.color = p->textColor,
-					.width = STROKE
-				}, spr->z)
-			};
-			draw::enqueueMany(calls, 2 + p->selected);
-		});
 
 		return x;
 	}

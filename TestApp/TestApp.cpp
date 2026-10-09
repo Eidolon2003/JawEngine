@@ -10,29 +10,18 @@
  */
 
 #include "../jawengine/JawEngine.h"
-
-static jaw::callbackid cb;
-static jaw::argb color;
-
-void myCallback(jaw::properties *p) {
-	color++;
-}
+#include "../jawengine/libs/ui.h"
+#include <iostream>
 
 void initOnce(jaw::properties *props) {
-	color = jaw::color::RED;
-	cb = callback::create({ .callback = myCallback });
-}
-
-void loop(jaw::properties *props) {
-	auto mouse = input::getMouse();
-
-	draw::enqueue(draw::rect{
-		.rect = jaw::recti(mouse.pos, mouse.pos + 50),
-		.color = color
+	(void)ui::createTextButton(ui::UIElement{
+		.rect = jaw::recti(30, 30, 200, 200),
+		.text = "Click Me!",
+		.select = [](ui::id, jaw::properties*) { puts("CLICK"); }
 	}, 0);
 }
 
 int main() {
-	jaw::properties p;
-	engine::start(&p, { .loop = loop, .initOnce = initOnce });
+	jaw::properties p { .showCMD = true };
+	engine::start(&p, { .initOnce = initOnce });
 }

@@ -40,7 +40,8 @@ void callback::loop(jaw::properties *p) {
 	for (jaw::callbackid i = 0; i < callbacks.nextSlot; i++) {
 		if (callbacks.isOpen[i]) continue;
 
+		jaw::callbackid id = i | callbacks.gens[i];
 		jaw::callback *cb = callbacks.items + i;
-		if (cb->callback) cb->callback(p);
+		if (cb->callback) cb->callback(id, p);
 	}
 }

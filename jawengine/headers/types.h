@@ -386,8 +386,10 @@ namespace jaw {
 */
 #ifndef JAW_NCALLBACK
 	typedef uint32_t callbackid;
+	typedef void (*callbackfn)(jaw::callbackid, jaw::properties *);
 	struct callback {
-		statefn callback;
+		callbackfn callback;
+		void *data;
 	};
 	static_assert(std::is_trivial_v<callback>);
 #endif
