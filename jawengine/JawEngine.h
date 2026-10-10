@@ -51,10 +51,6 @@ inline constexpr const char *_JAW_FILENAME(const char *file) {
 #include "headers/asset.h"
 #include "headers/draw.h"
 
-#ifndef JAW_NSPRITE
-#include "headers/sprite.h"
-#endif
-
 #ifndef JAW_NSOUND
 #include "headers/sound.h"
 #endif

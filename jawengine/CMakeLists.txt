@@ -25,12 +25,6 @@ else()
 	message(FATAL_ERROR "Only Windows is supported at this time")
 endif()
 
-if(NOT NSPRITE)
-	list(APPEND JAWENGINE_SOURCES
-		"source/common/sprite.cpp"
-	)
-endif()
-
 if(NOT NINPUT)
 	list(APPEND JAWENGINE_SOURCES
 		"source/common/input.cpp"
@@ -81,15 +75,6 @@ if(WIN32)
 endif()
 
 # Set environment variables for disabled systems
-if(NSPRITE)
-	message("JawEngine NSPRITE ON")
-	if(MSVC)
-		target_compile_options(jawengine PRIVATE /DJAW_NSPRITE)
-	else()
-		target_compile_options(jawengine PRIVATE -DJAW_NSPRITE)
-	endif()
-endif()
-
 if(NSOUND)
 	message("JawEngine NSOUND ON")
 	if(MSVC)

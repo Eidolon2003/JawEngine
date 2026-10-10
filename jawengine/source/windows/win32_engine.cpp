@@ -20,10 +20,6 @@
 #include "../common/internal_utils.h"
 #include "../../headers/utils.h"
 
-#ifndef JAW_NSPRITE
-#include "../common/internal_sprite.h"
-#endif
-
 #ifndef JAW_NSOUND
 #include "../common/internal_sound.h"
 #endif
@@ -150,10 +146,6 @@ void engine::start(jaw::properties *props, const jaw::stateFns &fns) {
 			DispatchMessage(&msg);
 		}
 
-#ifndef JAW_NSPRITE
-		sprite::updateAll(props);
-#endif
-
 		util::updateTimers(props);
 
 #ifdef JAW_NSTATE
@@ -169,10 +161,6 @@ void engine::start(jaw::properties *props, const jaw::stateFns &fns) {
 		callback::loop(props);
 #endif
 
-#ifndef JAW_NSPRITE
-		sprite::drawAll(props);
-#endif
-
 		draw::prepareRender();
 		draw::render();
 		prelimit(props);
@@ -184,12 +172,6 @@ void engine::start(jaw::properties *props, const jaw::stateFns &fns) {
 /*
 *	Deinitialization and clean-up
 */
-
-#ifndef JAW_NSPRITE
-	sprite::clear();
-	anim::clear();
-#endif
-
 #ifndef JAW_NINPUT
 	input::deinit();
 #endif

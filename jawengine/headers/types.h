@@ -239,6 +239,13 @@ namespace jaw {
 	};
 
 /*
+	SOUND TYPES
+*/
+#ifndef JAW_NSOUND
+	typedef uint32_t soundid;
+#endif
+
+/*
 	INPUT TYPES
 */
 #ifndef JAW_NINPUT
@@ -269,19 +276,7 @@ namespace jaw {
 		bool isHeld;	// continuously true if the key is held down
 	};
 	static_assert(std::is_trivial_v<key>);
-#endif
 
-/*
-	SOUND TYPES
-*/
-#ifndef JAW_NSOUND
-	typedef uint32_t soundid;
-#endif
-
-/*
-	INPUT TYPES
-*/
-#ifndef JAW_NINPUT
 	typedef uint32_t clickableid;
 	typedef void (*clickfn)(jaw::clickableid, jaw::properties*);
 	struct clickable {
@@ -328,58 +323,6 @@ namespace jaw {
 		jaw::statefn loop;
 	};
 	static_assert(std::is_trivial_v<stateFns>);
-
-/*
-	SPRITE TYPES
-*/
-#ifndef JAW_NSPRITE
-	typedef uint32_t sprid;
-	typedef uint32_t animstateid;
-	typedef uint32_t animdefid;
-
-	struct animation {
-		unsigned startFrame;
-		unsigned endFrame;
-		unsigned row;
-		jaw::nanoseconds frameInterval;
-		bool loop;
-	};
-	static_assert(std::is_trivial_v<animation>);
-
-	// The engine will automatically handle the following:
-	// - Update pos using vel
-	// - Update age
-	// - Handle animation
-	struct sprite {
-		// Pixel coordinate and velocity in pixels per second
-		jaw::vec2f pos, vel;
-		uint8_t z;
-		bool mirrorX;
-		bool mirrorY;
-
-		// The id of this sprite's bitmap
-		jaw::bmpid bmp;
-
-		// The size in pixels of a single animation frame,
-		// or the sprite itself if not animated
-		jaw::vec2i frameSize;
-
-		// Age is updated by the system
-		jaw::nanoseconds age;
-
-		// Optional: if the sprite is animated
-		jaw::animstateid animState;
-
-		// Optional: custom data
-		void *data;
-
-		//Convenience functions
-		constexpr jaw::recti rect() const { return jaw::recti(pos, jaw::vec2i(pos) + frameSize); }
-	};
-	static_assert(std::is_trivial_v<sprite>);
-
-	typedef void (*sprfn)(jaw::sprid, jaw::properties*);
-#endif
 
 /*
 	CALLBACK TYPES

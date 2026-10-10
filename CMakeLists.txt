@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 # Compilation Options
 option(REQUIRE_AVX2 "Enable AVX2 optimizations" OFF)
-option(NSPRITE "Disable sprite and animation APIs" OFF)
 option(NSOUND "Disable sound API" OFF)
 option(NINPUT "Disable input API" OFF)
 option(NSTATE "Disable state API" OFF)
