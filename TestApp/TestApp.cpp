@@ -18,7 +18,7 @@ void initOnce(jaw::properties *props) {
 		.rect = jaw::recti(30, 30, 200, 200),
 		.text = "Click Me!",
 		.select = [](ui::id, jaw::properties*) { puts("CLICK"); }
-	}, 0);
+	});
 }
 
 int main() {

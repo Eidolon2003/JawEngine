@@ -80,10 +80,10 @@ namespace ui {
 	void destroy(ui::id);
 
 	// Functions for creating specific UI Elements
-	ui::id createTextDisplay(const UIElement &e, uint8_t z);
-	ui::id createTextButton(const UIElement &e, uint8_t z);
-	ui::id createTextInput(const UIElement &e, uint8_t z);
-	ui::id createCheckbox(const UIElement &e, uint8_t z);
+	ui::id createTextDisplay(const UIElement &e);
+	ui::id createTextButton(const UIElement &e);
+	ui::id createTextInput(const UIElement &e);
+	ui::id createCheckbox(const UIElement &e);
 
 	// Helper functions for basic screen layout
 	// Computes the coordinates of a rect relative to the screen size
@@ -125,7 +125,7 @@ namespace ui {
 		return slots.idtoptr(i);
 	}
 
-	inline id createTextDisplay(const UIElement &e, uint8_t z)
+	inline id createTextDisplay(const UIElement &e)
 	{
 		ui::id x = slots.create(&e);
 		if (x == jaw::INVALID_ID) [[unlikely]] return jaw::INVALID_ID;
@@ -168,7 +168,7 @@ namespace ui {
 		return x;
 	}
 
-	inline id createTextButton(const UIElement &e, uint8_t z)
+	inline id createTextButton(const UIElement &e)
 	{
 		ui::id x = slots.create(&e);
 		if (x == jaw::INVALID_ID) [[unlikely]] return jaw::INVALID_ID;
@@ -238,10 +238,7 @@ namespace ui {
 		return x;
 	}
 
-	inline void _updateTextInput(jaw::callbackid cbid, jaw::properties *props) {
-
-	}
-	inline id createTextInput(const UIElement &e, uint8_t z) {
+	inline id createTextInput(const UIElement &e) {
 		ui::id x = slots.create(&e);
 		if (x == jaw::INVALID_ID) [[unlikely]] return jaw::INVALID_ID;
 		UIElement *ep = slots.idtoptr(x);
@@ -322,7 +319,7 @@ namespace ui {
 		return x;
 	}
 
-	inline id createCheckbox(const UIElement &e, uint8_t z) {
+	inline id createCheckbox(const UIElement &e) {
 		ui::id x = slots.create(&e);
 		if (x == jaw::INVALID_ID) [[unlikely]] return jaw::INVALID_ID;
 		UIElement *ep = slots.idtoptr(x);
