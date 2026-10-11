@@ -12,7 +12,7 @@
 // This file contains AVX2 optimized code whether or not REQUIRE_AVX2 is on.
 
 #include "avx2.h"
-#include <intrin.h>
+#include <x86intrin.h>
 
 void multiplyAlpha_avx2(jaw::argb *dst, const jaw::argb *src, size_t n) {
 	size_t i = 0;

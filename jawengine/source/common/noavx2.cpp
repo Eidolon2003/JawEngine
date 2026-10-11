@@ -16,7 +16,7 @@
 #include <windows.h>
 #endif 
 
-#include <intrin.h>
+#include <x86intrin.h>
 
 jaw::Sysinfo jaw::sysinfo;
 
