@@ -10,18 +10,8 @@
  */
 
 #include "../jawengine/JawEngine.h"
-#include "../jawengine/libs/ui.h"
-#include <iostream>
-
-void initOnce(jaw::properties *props) {
-	(void)ui::createTextButton(ui::UIElement{
-		.rect = jaw::recti(30, 30, 200, 200),
-		.text = "Click Me!",
-		.select = [](ui::id, jaw::properties*) { puts("CLICK"); }
-	});
-}
 
 int main() {
-	jaw::properties p { .showCMD = true };
-	engine::start(&p, { .initOnce = initOnce });
+	jaw::properties p;
+	engine::start(&p, {});
 }

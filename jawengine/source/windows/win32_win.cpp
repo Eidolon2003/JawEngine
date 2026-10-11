@@ -77,7 +77,8 @@ static void handleMouse(WPARAM wparam, LPARAM lparam, jaw::properties *props) {
 #endif
 
 static LRESULT __stdcall winproc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
-	auto props = (jaw::properties*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+	// This is unused when input is disabled
+	[[maybe_unused]] auto props = (jaw::properties*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
 	switch (umsg) {
 #ifndef JAW_NINPUT

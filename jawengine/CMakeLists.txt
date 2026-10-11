@@ -2,12 +2,10 @@
 if(WIN32)
 	message("JawEngine for Windows")
 	list(APPEND JAWENGINE_SOURCES
-		"source/windows/win32_asset.cpp"
 		"source/windows/win32_engine.cpp"
 		"source/windows/win32_win.cpp"
 		"source/windows/win32_d2d.cpp"
 		"source/windows/win32_utils.cpp"
-		"source/common/synth.cpp"
 	)
 
 	if(NOT NSOUND)
@@ -21,6 +19,14 @@ if(WIN32)
 			"source/windows/win32_dinput.cpp"
 		)
 	endif()
+
+	if(NOT NASSET)
+		list(APPEND JAWENGINE_SOURCES
+			"source/windows/win32_asset.cpp"
+			"source/common/synth.cpp"
+		)
+	endif()
+
 else()
 	message(FATAL_ERROR "Only Windows is supported at this time")
 endif()
@@ -74,7 +80,16 @@ if(WIN32)
 	)
 endif()
 
-# Set environment variables for disabled systems
+# Set environment variables
+if (REQUIRE_AVX2)
+	message("JawEngine REQUIRE_AVX2 ON")
+	if(MSVC)
+		target_compile_options(jawengine PRIVATE /DJAW_REQUIRE_AVX2)
+	else()
+		target_compile_options(jawengine PRIVATE -DJAW_REQUIRE_AVX2)
+	endif()
+endif()
+
 if(NSOUND)
 	message("JawEngine NSOUND ON")
 	if(MSVC)
@@ -111,11 +126,11 @@ if (NCALLBACK)
 	endif()
 endif()
 
-if (REQUIRE_AVX2)
-	message("JawEngine REQUIRE_AVX2 ON")
+if (NASSET)
+	message("JawEngine NASSET ON")
 	if(MSVC)
-		target_compile_options(jawengine PRIVATE /DJAW_REQUIRE_AVX2)
+		target_compile_options(jawengine PRIVATE /DJAW_NASSET)
 	else()
-		target_compile_options(jawengine PRIVATE -DJAW_REQUIRE_AVX2)
+		target_compile_options(jawengine PRIVATE -DJAW_NASSET)
 	endif()
 endif()

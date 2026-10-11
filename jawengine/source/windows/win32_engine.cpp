@@ -16,9 +16,12 @@
 #include "../../JawEngine.h"
 #include "win32_internal_draw.h"
 #include "win32_internal_win.h"
-#include "../common/internal_asset.h"
 #include "../common/internal_utils.h"
 #include "../../headers/utils.h"
+
+#ifndef JAW_NASSET
+#include "../common/internal_asset.h"
+#endif
 
 #ifndef JAW_NSOUND
 #include "../common/internal_sound.h"
@@ -95,12 +98,15 @@ void engine::start(jaw::properties *props, const jaw::stateFns &fns) {
 	HWND hwnd = win::init(props);
 	ValidateRect(hwnd, NULL);
 	draw::init(props, hwnd);
-	asset::init();
 
 	if (!util::init(props)) {
 		MessageBox(NULL, "malloc failed to allocate memory\nIs the system out of RAM?", "malloc failure", MB_OK | MB_ICONWARNING);
 		exit(1);
 	}
+
+#ifndef JAW_NASSET
+	asset::init();
+#endif
 
 #ifndef JAW_NCALLBACK
 	callback::init();
@@ -186,8 +192,11 @@ void engine::start(jaw::properties *props, const jaw::stateFns &fns) {
 	sound::deinit();
 #endif
 
-	util::deinit();
+#ifndef JAW_NASSET
 	asset::deinit();
+#endif
+
+	util::deinit();
 	draw::deinit();
 	win::deinit(hwnd);
 	CoUninitialize();

@@ -48,8 +48,11 @@ inline constexpr const char *_JAW_FILENAME(const char *file) {
 
 #include "headers/types.h"
 #include "headers/utils.h"
-#include "headers/asset.h"
 #include "headers/draw.h"
+
+#ifndef JAW_NASSET
+#include "headers/asset.h"
+#endif
 
 #ifndef JAW_NSOUND
 #include "headers/sound.h"
