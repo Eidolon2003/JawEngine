@@ -9,7 +9,7 @@
  * https://github.com/Eidolon2003/JawEngine
  */
 
-#include "../jawengine/JawEngine.h"
+#include <JawEngine.h>
 
 int main() {
 	jaw::properties p;

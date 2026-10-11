@@ -80,6 +80,9 @@ if(WIN32)
 	)
 endif()
 
+# Set the libraries include directory here, so #include <JawEngine.h> is possible
+target_include_directories(jawengine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+
 # Set environment variables
 if (REQUIRE_AVX2)
 	message("JawEngine REQUIRE_AVX2 ON")

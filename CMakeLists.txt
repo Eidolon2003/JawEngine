@@ -6,6 +6,7 @@ project("JawEngine")
 set(CMAKE_CXX_STANDARD 20)
 
 # Compilation Options
+option(COMPILE_EXAMPLES "Enable compilation of JawEngine examples" OFF)
 option(REQUIRE_AVX2 "Enable AVX2 optimizations" OFF)
 option(NSOUND "Disable sound API" OFF)
 option(NINPUT "Disable input API" OFF)
@@ -42,3 +43,8 @@ endif()
 # Include sub-projects.
 add_subdirectory("jawengine")
 add_subdirectory("TestApp")
+
+# Conditionally include the examples
+if(COMPILE_EXAMPLES)
+	add_subdirectory("examples")
+endif()
