@@ -37,11 +37,26 @@ void callback::clear() {
 
 // Call each callback each loop
 void callback::loop(jaw::properties *p) {
+	jaw::nanoseconds thisTime = util::getTimePoint();
+	uint64_t thisFrame = p->framecount;
+
 	for (jaw::callbackid i = 0; i < callbacks.nextSlot; i++) {
 		if (callbacks.isOpen[i]) continue;
 
 		jaw::callbackid id = i | callbacks.gens[i];
 		jaw::callback *cb = callbacks.items + i;
-		if (cb->callback) cb->callback(id, p);
+
+		if (cb->frameInterval > 0) {
+			if (thisFrame >= cb->frameInterval + cb->_prevFrame) {
+				cb->_prevFrame = thisFrame;
+				if (cb->callback) cb->callback(id, p);
+			}
+		}
+		else if (cb->timeInterval > 0) {
+			if (thisTime >= cb->timeInterval + cb->_prevTime) {
+				cb->_prevTime = thisTime;
+				if (cb->callback) cb->callback(id, p);
+			}
+		}
 	}
 }

@@ -132,6 +132,7 @@ namespace ui {
 
 		jaw::callbackid cbid = callback::create(jaw::callback{
 			.data = (void*)(uintptr_t)x,
+			.frameInterval = 1,
 			.callback = [](jaw::callbackid cbid, jaw::properties *props) {
 				jaw::callback *cb = callback::idtoptr(cbid);
 				if (!cb) [[unlikely]] return;
@@ -176,6 +177,7 @@ namespace ui {
 
 		jaw::callbackid cbid = callback::create(jaw::callback{
 			.data = (void*)(uintptr_t)x,
+			.frameInterval = 1,
 			.callback = [](jaw::callbackid cbid, jaw::properties *props) {
 				jaw::callback *cb = callback::idtoptr(cbid);
 				if (!cb) [[unlikely]] return;
@@ -245,6 +247,7 @@ namespace ui {
 
 		jaw::callbackid cbid = callback::create(jaw::callback{
 			.data = (void*)(uintptr_t)x,
+			.frameInterval = 1,
 			.callback = [](jaw::callbackid cbid, jaw::properties *props) {
 				jaw::callback *cb = callback::idtoptr(cbid);
 				if (!cb) [[unlikely]] return;
@@ -326,6 +329,7 @@ namespace ui {
 
 		jaw::callbackid cbid = callback::create(jaw::callback{
 			.data = (void*)(uintptr_t)x,
+			.frameInterval = 1,
 			.callback = [](jaw::callbackid cbid, jaw::properties *props) {
 				jaw::callback *cb = callback::idtoptr(cbid);
 				if (!cb) [[unlikely]] return;
