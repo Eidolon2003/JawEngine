@@ -332,7 +332,7 @@ namespace jaw {
 	typedef void (*callbackfn)(jaw::callbackid, jaw::properties *);
 	// Callbacks are configurable to work on either frame intervals or walltime intervals
 	// It will try frame interval first, but if frameInterval is set to zero, it will fallback to time
-	// If timeInterval is also zero, the callback will never fire.
+	// If is also zero, the callback will fire every frame.
 	struct callback {
 		callbackfn callback;
 		uint64_t frameInterval;

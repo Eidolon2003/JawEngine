@@ -58,5 +58,6 @@ void callback::loop(jaw::properties *p) {
 				if (cb->callback) cb->callback(id, p);
 			}
 		}
+		else if (cb->callback) cb->callback(id, p);
 	}
 }
