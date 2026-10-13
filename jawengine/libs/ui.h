@@ -12,43 +12,12 @@
 #pragma once
 #include "../JawEngine.h"
 
-#ifndef JAWUI_TEXT_CAPACITY
-#define JAWUI_TEXT_CAPACITY 32
-#endif
-
-#ifndef JAWUI_TEXT_DISPLAY_BORDER_WIDTH
-#define JAWUI_TEXT_DISPLAY_BORDER_WIDTH 2
-#endif
-
-#ifndef JAWUI_TEXT_BUTTON_DESELECT_BORDER_WIDTH
-#define JAWUI_TEXT_BUTTON_DESELECT_BORDER_WIDTH 2
-#endif
-
-#ifndef JAWUI_TEXT_BUTTON_SELECT_BORDER_WIDTH
-#define JAWUI_TEXT_BUTTON_SELECT_BORDER_WIDTH 3
-#endif
-
-#ifndef JAWUI_TEXT_INPUT_DESELECT_BORDER_WIDTH
-#define JAWUI_TEXT_INPUT_DESELECT_BORDER_WIDTH 2
-#endif
-
-#ifndef JAWUI_TEXT_INPUT_SELECT_BORDER_WIDTH
-#define JAWUI_TEXT_INPUT_SELECT_BORDER_WIDTH 3
-#endif
-
-#ifndef JAWUI_CHECKBOX_BORDER_WIDTH
-#define JAWUI_CHECKBOX_BORDER_WIDTH 2
-#endif
-
-#ifndef JAWUI_CHECKBOX_STROKE_WIDTH
-#define JAWUI_CHECKBOX_STROKE_WIDTH 2
-#endif
-
 namespace ui {
 	constexpr size_t MAX_NUM = 128;
 	typedef uint32_t id;
 	typedef void (*uifn)(ui::id, jaw::properties*);
 
+	constexpr size_t JAWUI_TEXT_CAPACITY = 32;
 	struct UIElement {
 		char text[JAWUI_TEXT_CAPACITY] = "";
 		jaw::recti rect = jaw::recti();
@@ -74,6 +43,10 @@ namespace ui {
 
 	// Destroy and clean up any UI Element
 	void destroy(ui::id);
+
+	// Return a pointer to an existing UI Element, if it exists
+	// returns nullptr if not
+	UIElement *idtoptr(ui::id i);
 
 	// Functions for creating specific UI Elements
 	ui::id createTextDisplay(const UIElement &e);
