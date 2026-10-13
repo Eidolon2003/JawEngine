@@ -25,8 +25,7 @@
 // the sound API is completely removed, resulting in a smaller binary
 #define JAW_NSOUND
 #include <JawEngine.h>
-#include <libs/ui.h>
-
+#include <libs/ui.cpp>	// Include the implementation exactly once, or integrate it into your build
 
 /*
 *	FORWARD DECLARE STATE FUNCTIONS
