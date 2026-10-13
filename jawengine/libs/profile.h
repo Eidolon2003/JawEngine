@@ -20,40 +20,38 @@ namespace profile {
 	inline void clear(jaw::properties*);
 
 	// Begin a new timing period
-	inline void begin(uint16_t);
+	inline void begin(uint8_t);
 
 	// End a previously begun timing period
-	inline void end(uint16_t);
+	inline void end(uint8_t);
 
 	// Get the value in nanoseconds for a completed timing period
 	// You may also lookup in the periods array directly 
-	inline jaw::nanoseconds get(uint16_t);
+	inline jaw::nanoseconds get(uint8_t);
 
 #ifndef JAW_NPROFILE
-	inline jaw::nanoseconds periods[65536];
+	inline jaw::nanoseconds periods[256];
 #endif
 
 	inline void clear() {
 #ifndef JAW_NPROFILE
-		for (size_t i = 0; i < 65536; i++) {
-			periods[i] = 0;
-		}
+		memset(periods, 0, sizeof(periods));
 #endif
 	}
 
-	inline void begin(uint16_t id) {
+	inline void begin(uint8_t id) {
 #ifndef JAW_NPROFILE
 		periods[id] = util::getTimePoint();
 #endif
 	}
 
-	inline void end(uint16_t id) {
+	inline void end(uint8_t id) {
 #ifndef JAW_NPROFILE
 		periods[id] = util::getTimePoint() - periods[id];
 #endif
 	}
 
-	inline jaw::nanoseconds get(uint16_t id) {
+	inline jaw::nanoseconds get(uint8_t id) {
 #ifndef JAW_NPROFILE
 		return periods[id];
 #else
