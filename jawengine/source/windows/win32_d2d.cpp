@@ -92,14 +92,15 @@ void draw::init(const jaw::properties *p, HWND hwnd) {
 
 	pD2DFactory->CreateHwndRenderTarget(
 		D2D1::RenderTargetProperties(
-			D2D1_RENDER_TARGET_TYPE_DEFAULT,
+			p->forceSoftwareRendering ? 
+				D2D1_RENDER_TARGET_TYPE_SOFTWARE : D2D1_RENDER_TARGET_TYPE_DEFAULT,
 			D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED)
 		),
 		D2D1::HwndRenderTargetProperties(
 			hwnd,
 			D2D1::SizeU(props->winsize.x, props->winsize.y),
 			props->targetFramerate <= 0 ?
-			D2D1_PRESENT_OPTIONS_NONE : D2D1_PRESENT_OPTIONS_IMMEDIATELY
+				D2D1_PRESENT_OPTIONS_NONE : D2D1_PRESENT_OPTIONS_IMMEDIATELY
 		),
 		&pRenderTarget
 	);

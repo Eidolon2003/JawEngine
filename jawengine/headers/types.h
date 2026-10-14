@@ -160,6 +160,7 @@ namespace jaw {
 		// Negative means primary, high values are capped
 		bool enableSubpixelTextRendering = false;
 		bool enablePerPrimitiveAA = false;
+		bool forceSoftwareRendering = false;	// Force Direct2D into software rendering mode
 
 		enum {
 			// Drawable window size is size * scale
