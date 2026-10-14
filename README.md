@@ -29,6 +29,7 @@ Current APIs include:
 
 ## Cross-compilation on Linux (WIP)
 1) Ensure that you have `git`, `cmake`, and the `clang` compiler with Windows libraries
+    - Tested working on clang-19, not working on clang-14. Will flesh out these instructions more
 2) Compile as with Windows, but with `cmake --preset windows-release` and `cmake --build --preset windows-release`
 3) Run with `wine64`
 
