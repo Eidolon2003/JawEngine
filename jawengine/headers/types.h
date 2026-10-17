@@ -96,6 +96,9 @@ namespace jaw {
 		}
 		constexpr rectf(vec2f tl, vec2f br) { this->tl = tl; this->br = br; }
 
+		constexpr rectf operator+(const vec2f rhs) const { return { tl + rhs, br + rhs }; }
+		constexpr rectf operator-(const vec2f rhs) const { return { tl - rhs, br - rhs }; }
+
 		constexpr float width() const { return br.x - tl.x; }
 		constexpr float height() const { return br.y - tl.y; }
 		constexpr vec2f tr() const { return vec2f(br.x, tl.y); }
@@ -103,10 +106,16 @@ namespace jaw {
 
 		constexpr bool contains(const jaw::vec2f pt) const { return pt >= tl && pt < br; }
 		constexpr bool collides(const jaw::rectf r) const {
-			return r.contains(tl) ||
-				r.contains(br) ||
-				r.contains(tr()) ||
-				r.contains(bl());
+			// My left edge is to the left of the other's right edge
+			const bool a = tl.x < r.br.x;
+			// My right edge is to the right of the other's left edge
+			const bool b = br.x > r.tl.x;
+			// My top edge is above the other's bottom edge
+			const bool c = tl.y < r.br.y;
+			// My bottom edge is below the other's top edge
+			const bool d = br.y > r.tl.y;
+
+			return a && b && c && d;
 		}
 	};
 	static_assert(std::is_trivial_v<rectf>);
@@ -119,6 +128,9 @@ namespace jaw {
 		}
 		constexpr recti(vec2i tl, vec2i br) { this->tl = tl; this->br = br; }
 
+		constexpr recti operator+(const vec2i rhs) const { return { tl + rhs, br + rhs }; }
+		constexpr recti operator-(const vec2i rhs) const { return { tl - rhs, br - rhs }; }
+
 		constexpr int16_t width() const { return br.x - tl.x; }
 		constexpr int16_t height() const { return br.y - tl.y; }
 		constexpr vec2i tr() const { return vec2i(br.x, tl.y); }
@@ -126,10 +138,16 @@ namespace jaw {
 
 		constexpr bool contains(const jaw::vec2i pt) const { return pt >= tl && pt < br; }
 		constexpr bool collides(const jaw::recti r) const {
-			return r.contains(tl) ||
-				r.contains(br) ||
-				r.contains(tr()) ||
-				r.contains(bl());
+			// My left edge is to the left of the other's right edge
+			const bool a = tl.x < r.br.x;
+			// My right edge is to the right of the other's left edge
+			const bool b = br.x > r.tl.x;
+			// My top edge is above the other's bottom edge
+			const bool c = tl.y < r.br.y;
+			// My bottom edge is below the other's top edge
+			const bool d = br.y > r.tl.y;
+
+			return a && b && c && d;
 		}
 	};
 	static_assert(std::is_trivial_v<recti>);

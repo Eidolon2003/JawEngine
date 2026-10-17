@@ -55,6 +55,7 @@ void input::updateMouse(const jaw::mouse *m, jaw::properties *props) {
 	for (size_t i = 0; i < slots.nextSlot; i++) {
 		if (slots.isOpen[i] == true) continue;
 		jaw::clickable *c = slots.items + i;
+		jaw::clickableid cid = i | slots.gens[i];
 
 		// Check if modifier keys match condition
 		if (c->condition.shift != m->flags.shift ||
@@ -70,7 +71,7 @@ void input::updateMouse(const jaw::mouse *m, jaw::properties *props) {
 		if (!c->rect->contains(m->pos)) continue;
 
 		if (c->callback) {
-			c->callback((jaw::clickableid)i, props);
+			c->callback((jaw::clickableid)cid, props);
 			return;
 		}
 	}
@@ -159,7 +160,7 @@ void input::getString(char *str, size_t size) {
 	for (size_t i = 0; i < backspaceCount && len > 0; i++) {
 		str[--len] = 0;
 	}
-	strncat(str, inputString, size);
+	strncat(str, inputString, size-len);
 }
 
 jaw::key input::getKey(uint8_t code) {
