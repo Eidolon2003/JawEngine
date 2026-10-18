@@ -11,6 +11,7 @@
 
 #pragma once
 #include "../JawEngine.h"
+#include "cam.h"
 
 namespace ui {
 	constexpr size_t MAX_NUM = 128;
@@ -19,18 +20,55 @@ namespace ui {
 
 	constexpr size_t JAWUI_TEXT_CAPACITY = 32;
 	struct UIElement {
+		// The text displayed in the UI element
+		// Applies to: TextDisplay, TextButton, TextInput
 		char text[JAWUI_TEXT_CAPACITY] = "";
+
+		// The UI element's logical location
+		// Applies to: all
 		jaw::recti rect = jaw::recti();
+
+		// The font used to draw text
+		// Applies to: TextDisplay, TextButton, TextInput
 		jaw::fontid font = 0;
+		
+		// Colors used for drawing
+		// Applies to: all
 		jaw::argb backColor = jaw::color::BLACK;
 		jaw::argb borderColor = jaw::color::WHITE;
 		jaw::argb textColor = jaw::color::WHITE;
+
+		// An optional camera that transforms the logical position
+		// for the purposes of drawing and mouse collision detection.
+		// Note: This is not automatically cleared when calling ui::clear
+		// Applies to: all
+		cam::id camera = jaw::INVALID_ID;
+
+		// Callback called when the UI element is "selected"
+		// Applies to: TextButton, TextInput, Checkbox
+		ui::uifn select = nullptr;
+
+		// Callback called when the UI element is "deselected"
+		// Applies to: TextInput, Checkbox
+		ui::uifn deselect = nullptr;
+
+		// Set when the UI element is "selected"
+		// Applies to: TextInput, Checkbox
+		bool selected = false;
+
+		// Sets the z-height of the element for drawing
+		// Applies to: all
+		uint8_t z;
+
+		// Opaque data pointer for general user purposes
+		// Untouched by the library
+		void *data = nullptr;
+
+		// IDs of the internal callback, clickable, and transformedRect which drive the UI
+		// This should generally not be touched by the user
 		jaw::callbackid cb = jaw::INVALID_ID;
 		jaw::clickableid click = jaw::INVALID_ID;
-		ui::uifn select = nullptr, deselect = nullptr;
-		bool selected = false;
-		void *data = nullptr;
-		uint8_t z;
+		jaw::recti transformedRect;
 	};
 
 	// Destroy all UI Elements and their associated components

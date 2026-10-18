@@ -9,42 +9,44 @@
  * https://github.com/Eidolon2003/JawEngine
  */
 
-// Verify rect collision logic
+// Demo UI elements with cameras
+// The text box follows the mouse via a camera, while its logical position remains constant
 
 #include <JawEngine.h>
-#include <libs/cam.cpp>
-#include <iostream>
+#include <libs/ui.cpp>
 
-static jaw::recti rectA = jaw::recti(500, 100, 560, 360);
-static jaw::recti rectB = jaw::recti(1000, 100, 1500, 600);
-static jaw::recti rectC = jaw::recti(0, 0, 250, 50);
+static jaw::fontid font;
+static cam::id camera;
+static ui::id uiel;
 
-void loop(jaw::properties *) {
-	// draw rectA and rectB in blue
-	draw::enqueue<draw::rect>({
-		.rect = rectA,
-		.color = jaw::color::BLUE
-	}, 0);
-	draw::enqueue<draw::rect>({
-		.rect = rectB,
-		.color = jaw::color::BLUE
-	}, 0);
+static void init(jaw::properties *) {
+	font = draw::newFont({
+		.name = "Courier New",
+		.size = 48.0f,
+		.alignx = draw::font::CENTERX,
+		.aligny = draw::font::CENTERY
+	});
 
-	// rectC is relative to the mouse
-	auto rectC_offset = rectC + input::getMouse().pos;
+	camera = cam::create({
+		.multiplier = 1.0f,
+		.offset = {}
+	});
 
-	bool isColliding = rectC_offset.collides(rectA) || rectC_offset.collides(rectB);
+	uiel = ui::createTextDisplay({
+		.text = "Hello!",
+		.font = font,
+		.rect = jaw::recti(0, 0, 300, 80),
+		.camera = camera
+	});
+}
 
-	// Draw rectC as red or green depending on collision
-	draw::enqueue<draw::rect>({
-		.rect = rectC_offset,
-		.color = isColliding ? jaw::color::GREEN : jaw::color::RED
-	}, 0);
+static void loop(jaw::properties *) {
+	auto mousePos = input::getMouse().pos;
+	cam::Camera *c = cam::idtoptr(camera);
+	if (c) c->offset = mousePos;
 }
 
 int main() {
 	jaw::properties p;
-	p.size = { 1600,1200 };
-	p.showCMD = true;
-	engine::start(&p, { .loop = loop });
+	engine::start(&p, { .loop = loop, .init = init });
 }

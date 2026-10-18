@@ -88,6 +88,7 @@ namespace jaw {
 	inline constexpr jaw::vec2f::vec2f(jaw::vec2i v) { x = (float)v.x; y = (float)v.y; }
 	static_assert(std::is_trivial_v<vec2i>);
 
+	struct recti;
 	struct rectf {
 		vec2f tl, br;
 		rectf() = default;
@@ -95,9 +96,16 @@ namespace jaw {
 			tl.x = tlx; tl.y = tly; br.x = brx; br.y = bry;
 		}
 		constexpr rectf(vec2f tl, vec2f br) { this->tl = tl; this->br = br; }
+		constexpr rectf(jaw::recti);
 
 		constexpr rectf operator+(const vec2f rhs) const { return { tl + rhs, br + rhs }; }
 		constexpr rectf operator-(const vec2f rhs) const { return { tl - rhs, br - rhs }; }
+		constexpr rectf operator*(const vec2f rhs) const { return { tl * rhs, br * rhs }; }
+		constexpr rectf operator/(const vec2f rhs) const { return { tl / rhs, br / rhs }; }
+		constexpr rectf operator+(const float rhs) const { return { tl + rhs, br + rhs }; }
+		constexpr rectf operator-(const float rhs) const { return { tl - rhs, br - rhs }; }
+		constexpr rectf operator*(const float rhs) const { return { tl * rhs, br * rhs }; }
+		constexpr rectf operator/(const float rhs) const { return { tl / rhs, br / rhs }; }
 
 		constexpr float width() const { return br.x - tl.x; }
 		constexpr float height() const { return br.y - tl.y; }
@@ -127,9 +135,16 @@ namespace jaw {
 			tl.x = tlx; tl.y = tly; br.x = brx; br.y = bry;
 		}
 		constexpr recti(vec2i tl, vec2i br) { this->tl = tl; this->br = br; }
+		constexpr recti(jaw::rectf r) { this->tl = jaw::vec2i(r.tl); this->br = jaw::vec2i(r.br); }
 
 		constexpr recti operator+(const vec2i rhs) const { return { tl + rhs, br + rhs }; }
 		constexpr recti operator-(const vec2i rhs) const { return { tl - rhs, br - rhs }; }
+		constexpr recti operator*(const vec2i rhs) const { return { tl * rhs, br * rhs }; }
+		constexpr recti operator/(const vec2i rhs) const { return { tl / rhs, br / rhs }; }
+		constexpr recti operator+(const int16_t rhs) const { return { tl + rhs, br + rhs }; }
+		constexpr recti operator-(const int16_t rhs) const { return { tl - rhs, br - rhs }; }
+		constexpr recti operator*(const int16_t rhs) const { return { tl * rhs, br * rhs }; }
+		constexpr recti operator/(const int16_t rhs) const { return { tl / rhs, br / rhs }; }
 
 		constexpr int16_t width() const { return br.x - tl.x; }
 		constexpr int16_t height() const { return br.y - tl.y; }
@@ -150,6 +165,7 @@ namespace jaw {
 			return a && b && c && d;
 		}
 	};
+	inline constexpr jaw::rectf::rectf(jaw::recti r) { this->tl = jaw::vec2f(r.tl); this->br = jaw::vec2f(r.br); }
 	static_assert(std::is_trivial_v<recti>);
 
 	struct ellipse {

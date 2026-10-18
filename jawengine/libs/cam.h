@@ -40,10 +40,12 @@ namespace cam {
 	// Returns nullptr if the camera no longer exists
 	Camera *idtoptr(cam::id);
 
-	// Transform a vec forward through the camera into a new vec
+	// Transform a vec or rect forward through the camera into a new vec or rect
 	jaw::vec2i forward(cam::id, jaw::vec2i);
+	jaw::recti forward(cam::id, jaw::recti);
 
-	// Transform a vec backward through the camera
+	// Transform a vec or rect backward through the camera
 	// v == reverse(forward(v))
 	jaw::vec2i reverse(cam::id, jaw::vec2i);
+	jaw::recti reverse(cam::id, jaw::recti);
 };

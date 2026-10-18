@@ -9,7 +9,10 @@
  * https://github.com/Eidolon2003/JawEngine
  */
 
+#pragma once
 #include "ui.h"
+#include "cam.cpp"	// The implementation of ui relies on the implementation of cam
+// Because these cpp files are also pragma once, the user can also include cam.cpp without issue
 
 #ifndef JAWUI_TEXT_DISPLAY_BORDER_WIDTH
 #define JAWUI_TEXT_DISPLAY_BORDER_WIDTH 2
@@ -86,18 +89,20 @@ namespace ui {
 				UIElement *p = slots.idtoptr(id);
 				if (!p) [[unlikely]] return;
 
+				p->transformedRect = cam::forward(p->camera, p->rect);
+
 				constexpr int16_t BORDER = JAWUI_TEXT_DISPLAY_BORDER_WIDTH;
 				draw::drawCall calls[3]{
 					draw::make<draw::rect>({
-						.rect = p->rect,
+						.rect = p->transformedRect,
 						.color = p->borderColor
 					}, p->z),
 					draw::make<draw::rect>({
-						.rect = jaw::recti(p->rect.tl + BORDER, p->rect.br - BORDER),
+						.rect = jaw::recti(p->transformedRect.tl + BORDER, p->transformedRect.br - BORDER),
 						.color = p->backColor
 					}, p->z),
 					draw::make<draw::str>({
-						.rect = jaw::recti(p->rect.tl + BORDER, p->rect.br - BORDER),
+						.rect = jaw::recti(p->transformedRect.tl + BORDER, p->transformedRect.br - BORDER),
 						.str = p->text,
 						.color = p->textColor,
 						.font = p->font
@@ -111,6 +116,7 @@ namespace ui {
 			return jaw::INVALID_ID;
 		}
 		slots.idtoptr(x)->cb = cbid;
+
 		return x;
 	}
 
@@ -131,21 +137,23 @@ namespace ui {
 				UIElement *p = slots.idtoptr(id);
 				if (!p) [[unlikely]] return;
 
+				p->transformedRect = cam::forward(p->camera, p->rect);
+
 				constexpr int16_t DESELECT_BORDER = JAWUI_TEXT_BUTTON_DESELECT_BORDER_WIDTH;
 				constexpr int16_t SELECT_BORDER = JAWUI_TEXT_BUTTON_SELECT_BORDER_WIDTH;
-				int16_t border = p->rect.contains(input::getMouse().pos) ? SELECT_BORDER : DESELECT_BORDER;
+				int16_t border = p->transformedRect.contains(input::getMouse().pos) ? SELECT_BORDER : DESELECT_BORDER;
 
 				draw::drawCall calls[3]{
 					draw::make<draw::rect>({
-						.rect = p->rect,
+						.rect = p->transformedRect,
 						.color = p->borderColor
 					}, p->z),
 					draw::make<draw::rect>({
-						.rect = jaw::recti(p->rect.tl + border, p->rect.br - border),
+						.rect = jaw::recti(p->transformedRect.tl + border, p->transformedRect.br - border),
 						.color = p->backColor
 					}, p->z),
 					draw::make<draw::str>({
-						.rect = jaw::recti(p->rect.tl + border, p->rect.br - border),
+						.rect = jaw::recti(p->transformedRect.tl + border, p->transformedRect.br - border),
 						.str = p->text,
 						.color = p->textColor,
 						.font = p->font
@@ -161,7 +169,7 @@ namespace ui {
 		ep->cb = cbid;
 
 		jaw::clickableid click = input::createClickable(jaw::clickable{
-			.rect = &ep->rect,
+			.rect = &ep->transformedRect,
 			.condition = jaw::mouseFlags{.lmb = true },
 			.data = (void*)(uintptr_t)x,
 			.callback = [](jaw::clickableid cid, jaw::properties *props) {
@@ -182,6 +190,8 @@ namespace ui {
 		}
 		ep->click = click;
 
+		ep->transformedRect = cam::forward(ep->camera, ep->rect);
+
 		return x;
 	}
 
@@ -201,8 +211,10 @@ namespace ui {
 				UIElement *p = slots.idtoptr(id);
 				if (!p) [[unlikely]] return;
 
+				p->transformedRect = cam::forward(p->camera, p->rect);
+
 				if (p->selected && (
-					(input::getMouse().flags.lmb && !p->rect.contains(input::getMouse().pos)) ||
+					(input::getMouse().flags.lmb && !p->transformedRect.contains(input::getMouse().pos)) ||
 					(input::getKey(key::ENTER).isDown && !input::getKey(key::SHIFT).isHeld)
 					)
 					) {
@@ -218,15 +230,15 @@ namespace ui {
 
 				draw::drawCall calls[3]{
 					draw::make<draw::rect>({
-						.rect = p->rect,
+						.rect = p->transformedRect,
 						.color = p->borderColor
 					}, p->z),
 					draw::make<draw::rect>({
-						.rect = jaw::recti(p->rect.tl + border, p->rect.br - border),
+						.rect = jaw::recti(p->transformedRect.tl + border, p->transformedRect.br - border),
 						.color = p->backColor
 					}, p->z),
 					draw::make<draw::str>({
-						.rect = jaw::recti(p->rect.tl + border, p->rect.br - border),
+						.rect = jaw::recti(p->transformedRect.tl + border, p->transformedRect.br - border),
 						.str = p->text,
 						.color = p->textColor,
 						.font = p->font
@@ -242,7 +254,7 @@ namespace ui {
 		ep->cb = cbid;
 
 		jaw::clickableid click = input::createClickable(jaw::clickable{
-			.rect = &ep->rect,
+			.rect = &ep->transformedRect,
 			.condition = jaw::mouseFlags{.lmb = true },
 			.data = (void*)(uintptr_t)x,
 			.callback = [](jaw::clickableid cid, jaw::properties *props) {
@@ -264,6 +276,8 @@ namespace ui {
 		}
 		ep->click = click;
 
+		ep->transformedRect = cam::forward(ep->camera, ep->rect);
+
 		return x;
 	}
 
@@ -283,20 +297,22 @@ namespace ui {
 				UIElement *p = slots.idtoptr(id);
 				if (!p) [[unlikely]] return;
 
+				p->transformedRect = cam::forward(p->camera, p->rect);
+
 				constexpr int16_t BORDER = JAWUI_CHECKBOX_BORDER_WIDTH;
 				constexpr int16_t STROKE = JAWUI_CHECKBOX_STROKE_WIDTH;
 				draw::drawCall calls[4] = {
 					draw::make<draw::rect>({
-						.rect = p->rect,
+						.rect = p->transformedRect,
 						.color = p->borderColor
 					}, p->z),
 					draw::make<draw::rect>({
-						.rect = jaw::recti(p->rect.tl + BORDER, p->rect.br - BORDER),
+						.rect = jaw::recti(p->transformedRect.tl + BORDER, p->transformedRect.br - BORDER),
 						.color = p->backColor
 					}, p->z),
 					draw::make<draw::line>({
-						.p1 = p->rect.tl + 2*BORDER,
-						.p2 = p->rect.br - 2*BORDER,
+						.p1 = p->transformedRect.tl + 2*BORDER,
+						.p2 = p->transformedRect.br - 2*BORDER,
 						.color = p->textColor,
 						.width = STROKE
 					}, p->z)
@@ -311,7 +327,7 @@ namespace ui {
 		ep->cb = cbid;
 
 		jaw::clickableid click = input::createClickable(jaw::clickable{
-			.rect = &ep->rect,
+			.rect = &ep->transformedRect,
 			.condition = jaw::mouseFlags{.lmb = true },
 			.data = (void*)(uintptr_t)x,
 			.callback = [](jaw::clickableid cid, jaw::properties *props) {
@@ -322,15 +338,24 @@ namespace ui {
 				UIElement *p = slots.idtoptr(id);
 				if (!p) [[unlikely]] return;
 
-				p->selected = !p->selected;
+				if (p->selected) {
+					p->selected = false;
+					if (p->deselect) p->deselect(id, props);
+				}
+				else {
+					p->selected = true;
+					if (p->select) p->select(id, props);
+				}
 			}
-			});
+		});
 		if (click == jaw::INVALID_ID) [[unlikely]] {
 			callback::destroy(cbid);
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
 		ep->click = click;
+
+		ep->transformedRect = cam::forward(ep->camera, ep->rect);
 
 		return x;
 	}
