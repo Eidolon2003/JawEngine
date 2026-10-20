@@ -50,7 +50,7 @@
 				"CMAKE_FIND_ROOT_PATH_MODE_PROGRAM": "NEVER",
 				"CMAKE_FIND_ROOT_PATH_MODE_LIBRARY": "ONLY",
 				"CMAKE_FIND_ROOT_PATH_MODE_INCLUDE": "ONLY",
-				"CMAKE_EXE_LINKER_FLAGS": "-fuse-ld=lld -static"
+				"CMAKE_EXE_LINKER_FLAGS": "-fuse-ld=lld -static-libgcc -static-libstdc++"
 			}
 		},
 
