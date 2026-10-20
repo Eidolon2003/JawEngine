@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2026 Julian Williams
  *
- * JawEngine 0.2.1
+ * JawEngine 0.2.2
  * https://github.com/Eidolon2003/JawEngine
  */
 

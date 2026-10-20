@@ -5,7 +5,7 @@
  *
  * Copyright (c) 2025-2026 Julian Williams
  *
- * JawEngine 0.2.1
+ * JawEngine 0.2.2
  * https://github.com/Eidolon2003/JawEngine
  */
 
@@ -183,7 +183,7 @@ namespace jaw {
 */
 	// This struct is the engine's general purpose context.
 	// It defines properties during start up (desired size, title, etc),
-	// it has runtime relevant information (mouse, uptime, frametime, etc),
+	// it has runtime relevant information (uptime, frametime, etc),
 	// and void *data provides a way to pass application specific global context
 	struct properties {
 		const char *title = " ";

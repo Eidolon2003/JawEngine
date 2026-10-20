@@ -1,4 +1,4 @@
-# JawEngine 0.2.1 - (0.2.2 in progress)
+# JawEngine 0.2.2 (WIP)
 JawEngine is a game engine for building 2D games in C++. It is designed to be minimal, explicit, and simple, while still providing the core features needed to create games. For usage examples, check out the examples directory!
 
 This project is a work-in-progress. For now, only Windows is supported via DirectX (Direct2D, XAudio, and DirectInput), but cross-platform support is planned. For now, programs built with JawEngine run on WINE with minimal issues.
@@ -51,6 +51,6 @@ The engine acknowledges four basic lifetimes for data: application lifetime, eng
 The engine makes extensive use of `util::slotAllocator` for managing engine objects such as callbacks and clickables. The slot allocator is a solution to the problem of referring to engine managed resources with raw pointers, which is unsafe. An ID returned by a slotAllocator is guaranteed to stably refer to a particular piece of engine managed memory. When that object is destroyed, attempting to lookup its ID will yield a nullptr. `util::arenaAllocator` is a simple bump allocator which frees its data all at once. The engine provides two managed arenas itself, `util::frameAllocator` for frame lifetime data, and `state::allocator` for state lifetime data. Both of these allocators are available for general use, if the application requires them.
 
 ## License
-JawEngine 0.2.1 is licensed under the Mozilla Public License 2.0 (MPL 2.0)
+JawEngine 0.2.2 is licensed under the Mozilla Public License 2.0 (MPL 2.0)
 
 This license encourages the open development of JawEngine while also allowing developers to use it freely, including in closed source projects. 
