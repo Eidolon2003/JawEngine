@@ -360,16 +360,90 @@ namespace ui {
 		return x;
 	}
 
-	jaw::recti relrect(jaw::vec2i screenSize, jaw::vec2f reltl, jaw::vec2f reldim) {
-		auto tl = jaw::vec2i(jaw::vec2f(screenSize) * reltl);
-		auto br = tl + jaw::vec2i(jaw::vec2f(screenSize) * reldim);
-		return jaw::recti(tl, br);
-	}
+	namespace layout {
+		Context *begin(const Context &c) {
+			Context *x = util::frameAllocator->alloc<Context>(1);
+			*x = {
+				.type = c.type,
+				.rect = c.rect,
+				.gap = c.gap
+			};
+			return x;
+		}
 
-	jaw::recti relsqr(jaw::vec2i screenSize, jaw::vec2f reltl, float reldim) {
-		auto tl = jaw::vec2i(jaw::vec2f(screenSize) * reltl);
-		float dim = std::min(screenSize.x, screenSize.y) * reldim;
-		auto br = tl + jaw::vec2i(jaw::vec2f(dim, dim));
-		return jaw::recti(tl, br);
+		static int16_t availableWidth(Context *ctx) {
+			int16_t ret = ctx->rect.width();
+			if (ctx->type == Type::ROW) {
+				ret -= ctx->progress;
+			}
+			return ret;
+		}
+		static int16_t availableHeight(Context *ctx) {
+			int16_t ret = ctx->rect.height();
+			if (ctx->type == Type::COL) {
+				ret -= ctx->progress;
+			}
+			return ret;
+		}
+
+		jaw::recti get(Context *ctx, const Options &opt) {
+			const jaw::recti error { -1, -1, -1, -1 };
+
+			// Handle either absolute or relative sizing
+			// relative size is used if absoluteSize is 0,0
+			jaw::recti ret;
+			if (opt.absoluteSize == jaw::vec2i()) {
+				ret = { 0, 0,
+					(int16_t)(ctx->rect.width() * opt.relativeSize.x),
+					(int16_t)(ctx->rect.height() * opt.relativeSize.y)
+				};
+			}
+			else {
+				ret = { { 0, 0 }, opt.absoluteSize };
+			}
+
+			// Handle errors for out-of-space
+			if (ret.br.x > availableWidth(ctx) ||
+				ret.br.y > availableHeight(ctx))
+			{
+				return error;
+			}
+
+			// Handle autofill
+			if (ret.br.x <= 0) ret.br.x = availableWidth(ctx);
+			if (ret.br.y <= 0) ret.br.y = availableHeight(ctx);
+
+			// Move rect to be in the parent
+			ret = ret + ctx->rect.tl;
+			switch (ctx->type) {
+			case Type::ROW:
+				ret = ret + jaw::vec2i(ctx->progress, 0);
+				ctx->progress += ret.width();
+				ret.tl.x += ctx->gap/2;
+				ret.br.x -= ctx->gap/2;
+				break;
+			case Type::COL:
+				ret = ret + jaw::vec2i(0, ctx->progress);
+				ctx->progress += ret.height();
+				ret.tl.y += ctx->gap/2;
+				ret.br.y -= ctx->gap/2;
+				break;
+			}
+
+			return ret;
+		}
+
+		jaw::recti relrect(jaw::vec2i screenSize, jaw::vec2f reltl, jaw::vec2f reldim) {
+			auto tl = jaw::vec2i(jaw::vec2f(screenSize) * reltl);
+			auto br = tl + jaw::vec2i(jaw::vec2f(screenSize) * reldim);
+			return jaw::recti(tl, br);
+		}
+
+		jaw::recti relsqr(jaw::vec2i screenSize, jaw::vec2f reltl, float reldim) {
+			auto tl = jaw::vec2i(jaw::vec2f(screenSize) * reltl);
+			float dim = std::min(screenSize.x, screenSize.y) * reldim;
+			auto br = tl + jaw::vec2i(jaw::vec2f(dim, dim));
+			return jaw::recti(tl, br);
+		}
 	}
 }

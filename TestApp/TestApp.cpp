@@ -9,44 +9,54 @@
  * https://github.com/Eidolon2003/JawEngine
  */
 
-// Demo UI elements with cameras
-// The text box follows the mouse via a camera, while its logical position remains constant
+// Demo ui layout system
 
 #include <JawEngine.h>
 #include <libs/ui.cpp>
 
-static jaw::fontid font;
-static cam::id camera;
-static ui::id uiel;
+static void init(jaw::properties *props) {
+	auto parentRect = ui::layout::relrect(
+		props->size,
+		jaw::vec2f(0.25f, 0.f),
+		jaw::vec2f(0.5f, 1.f)
+	);
 
-static void init(jaw::properties *) {
-	font = draw::newFont({
-		.name = "Courier New",
-		.size = 48.0f,
-		.alignx = draw::font::CENTERX,
-		.aligny = draw::font::CENTERY
+	(void)ui::createTextDisplay({ .rect = parentRect });
+
+	auto layout = ui::layout::begin({
+		.type = ui::layout::Type::COL,
+		.rect = parentRect,
+		.gap = 10
+	});
+	(void)ui::createTextDisplay({
+		.rect = ui::layout::get(layout, { .absoluteSize = { 0, 100 }}),
+		.text = "A"
+	});
+	(void)ui::createTextDisplay({
+		.rect = ui::layout::get(layout, { .absoluteSize = { 0, 100 }}),
+		.text = "B"
+	});
+	(void)ui::createTextDisplay({
+		.rect = ui::layout::get(layout, { .absoluteSize = { 0, 100 }}),
+		.text = "C"
 	});
 
-	camera = cam::create({
-		.multiplier = 1.0f,
-		.offset = {}
+	auto layoutRow = ui::layout::begin({
+		.type = ui::layout::Type::ROW,
+		.rect = ui::layout::get(layout, { .absoluteSize = { 0, 100 }}),
+		.gap = 10
 	});
-
-	uiel = ui::createTextDisplay({
-		.text = "Hello!",
-		.font = font,
-		.rect = jaw::recti(0, 0, 300, 80),
-		.camera = camera
+	(void)ui::createTextDisplay({
+		.rect = ui::layout::get(layoutRow, { .relativeSize = { 0.5f, 0 }}),
+		.text = "D"
 	});
-}
-
-static void loop(jaw::properties *) {
-	auto mousePos = input::getMouse().pos;
-	cam::Camera *c = cam::idtoptr(camera);
-	if (c) c->offset = mousePos;
+	(void)ui::createTextDisplay({
+		.rect = ui::layout::get(layoutRow, { .relativeSize = { 0.5f, 0 }}),
+		.text = "E"
+	});
 }
 
 int main() {
 	jaw::properties p;
-	engine::start(&p, { .loop = loop, .init = init });
+	engine::start(&p, { .init = init });
 }

@@ -1,9 +1,10 @@
 Short-term for 0.2.2:
+- Improve audio synthesizer using PolyBLEP or minBLEP to prevent aliasing. Allow per-voice lowpass config, ADSR, and duty cycle.
+- Add a native-profile build preset option that compiles with CMAKE_BUILD_TYPE=RelWithDebInfo, and sets a macro that enables profile.h instead of using the debug macro for it
+- UI Layout engine
+- Reimplement sprites and animations
+- Bundle assets into the executable by appending them to the end of the file in a custom packed format
 - logging library?
-
-- current sprites are renamed to something like "callback", an object that provides a callback from the engine at regular (configurable) intervals. Just one callback instead of a separate update and draw call, as these callbacks are more generalized than that. For example, the optix light simulation loop should be a callback instead of a recursive timer. 
-	- Animation becomes a separate module
-	- Sprite becomes a lib (sprite.h), which is a composition of a callback, animation, and camera (and eventually a physics body, but not in 0.2.2)
 
 Potential Future Features:
 - Support more audio formats
@@ -12,7 +13,6 @@ Potential Future Features:
 - Physics system
 - ABC parser improvements
 - C compatible wrapper
-
 
 Thoughts for a future secondary rendering thread:
 - The render thread owns all of its resources

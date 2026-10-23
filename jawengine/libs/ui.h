@@ -12,6 +12,7 @@
 #pragma once
 #include "../JawEngine.h"
 #include "cam.h"
+#include <queue>
 
 namespace ui {
 	constexpr size_t MAX_NUM = 128;
@@ -92,9 +93,44 @@ namespace ui {
 	ui::id createTextInput(const UIElement &e);
 	ui::id createCheckbox(const UIElement &e);
 
-	// Helper functions for basic screen layout
-	// Computes the coordinates of a rect relative to the screen size
-	jaw::recti relrect(jaw::vec2i screenSize, jaw::vec2f reltl, jaw::vec2f reldim);
-	// Same as relrect, but forces the rect to be square
-	jaw::recti relsqr(jaw::vec2i screenSize, jaw::vec2f reltl, float reldim);
+	// UI Layout Engine
+	namespace layout {
+		enum class Type {
+			ROW = 0, COL
+		};
+		struct Context {
+			layout::Type type;
+
+			// The higher-level rect that this layout lives inside of
+			jaw::recti rect;
+
+			// The size of gap to leave between elements and around edges
+			unsigned gap;
+
+			// Number of pixels we are into the layout, starts at zero
+			int16_t progress;
+		};
+
+		struct Options {
+			// The size of the rect to be laid out
+			// <=0 in either dimension will automatically fill the available space
+			jaw::vec2i absoluteSize;	// size in pixels
+			jaw::vec2f relativeSize;	// size relative to the parent rect
+		};
+
+		// Begin a new layout
+		// This allocates a context struct in the frame allocator,
+		// so it doesn't require any clean up!
+		Context *begin(const Context &);
+
+		// Get the next rect in the layout, as described by the options.
+		// Returns a rect with all -1 when there isn't enough space
+		jaw::recti get(Context *, const Options &);
+
+		// Helper functions for basic screen layout
+		// Computes the coordinates of a rect relative to the screen size
+		jaw::recti relrect(jaw::vec2i screenSize, jaw::vec2f reltl, jaw::vec2f reldim);
+		// Same as relrect, but forces the rect to be square
+		jaw::recti relsqr(jaw::vec2i screenSize, jaw::vec2f reltl, float reldim);
+	}
 }
