@@ -9,51 +9,31 @@
  * https://github.com/Eidolon2003/JawEngine
  */
 
-// Demo ui layout system
+// Synth testing
 
 #include <JawEngine.h>
-#include <libs/ui.cpp>
+
+const char *abc = "\
+%abc\n\
+\n\
+K:C\n\
+V:1 jaw-waveform=pulse jaw-dutycycle=0.5 jaw-lowpass=0.1\n\
+c\n\
+V:1 jaw-lowpass=0.5\n\
+c\n\
+";
 
 static void init(jaw::properties *props) {
-	auto parentRect = ui::layout::relrect(
-		props->size,
-		jaw::vec2f(0.25f, 0.f),
-		jaw::vec2f(0.5f, 1.f)
-	);
+	size_t numSamples;
+	int16_t *audioData = asset::abc(abc, &numSamples, {});
+	if (audioData) {
+		jaw::soundid music = sound::create();
+		if (music != jaw::INVALID_ID) {
+			if (sound::write(music, audioData, numSamples, true))
+				sound::start(music);
+		}
 
-	(void)ui::createTextDisplay({ .rect = parentRect });
-
-	auto layout = ui::layout::begin({
-		.type = ui::layout::Type::COL,
-		.rect = parentRect,
-		.gap = 10
-	});
-	(void)ui::createTextDisplay({
-		.rect = ui::layout::get(layout, { .absoluteSize = { 0, 100 }}),
-		.text = "A"
-	});
-	(void)ui::createTextDisplay({
-		.rect = ui::layout::get(layout, { .absoluteSize = { 0, 100 }}),
-		.text = "B"
-	});
-	(void)ui::createTextDisplay({
-		.rect = ui::layout::get(layout, { .absoluteSize = { 0, 100 }}),
-		.text = "C"
-	});
-
-	auto layoutRow = ui::layout::begin({
-		.type = ui::layout::Type::ROW,
-		.rect = ui::layout::get(layout, { .absoluteSize = { 0, 100 }}),
-		.gap = 10
-	});
-	(void)ui::createTextDisplay({
-		.rect = ui::layout::get(layoutRow, { .relativeSize = { 0.5f, 0 }}),
-		.text = "D"
-	});
-	(void)ui::createTextDisplay({
-		.rect = ui::layout::get(layoutRow, { .relativeSize = { 0.5f, 0 }}),
-		.text = "E"
-	});
+	}	
 }
 
 int main() {

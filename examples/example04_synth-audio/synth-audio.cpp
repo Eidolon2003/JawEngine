@@ -11,107 +11,59 @@
 
 #include "../jawengine/JawEngine.h"
 
-// Demo the ABC synth, this audio is generated at runtime from the source text :)
+// Demo the ABC synth. This audio is generated at runtime from the source text :)
 // See: https://abcnotation.com/, https://abcnotation.com/wiki/abc:standard:v2.1
 
 const char *abc = "\
-%abc																				\n\
-X:1																					\n\
-T:Mario																				\n\
-V:1 jaw-waveform=square jaw-amplitude=5000											\n\
-V:2 jaw-waveform=square jaw-amplitude=5000											\n\
-V:3 jaw-waveform=triangle jaw-amplitude=10000										\n\
-L:1/8																				\n\
-Q:1/4=200																			\n\
-M:4/4																				\n\
-K:C																					\n\
-%																					\n\
-V:1																					\n\
-e.exexLcex | .g2x2.G2x2	|:															\n\
-|: .c2x.G2x.E2 | x.A2B2_B.A2 | G4/3e4/3g4/3.a2fg | x.e2cd.B2x ::					\n\
-V:2																					\n\
-^F.^Fx^FxL^F^Fx | .B2x2.G2x2 |:														\n\
-|: .E2x.C2x.G,2 | x.C2D2_D.C2 | C4/3G4/3B4/3.c2AB | x.A2EF.D2x ::					\n\
-V:3																					\n\
-D,.D,xD,xLD,D,x | .G2x2.G,2x2 |:													\n\
-|: .G,2x.E,2x.C,2 | x.F,2G,2_G,.F,2 | E,4/3C4/3E4/3.F2DE | x.C2A,B,.G,2x ::			\n\
-%																					\n\
-V:1																					\n\
-x2g_gf.^dxe | x^GAcxAcd | x2g_gf.^dxe | x.c'2c'.c'2x2 |								\n\
-V:2																					\n\
-x2e_ed.Bxc | xEFGxCEF | x2e_ed.Bxc | x.g2g.g2x2 |									\n\
-V:3																					\n\
-.C,2xG,x2.C2 | .F,2xC.C2.F,2 | .C,2xE,x2G,C | x.f2f.f2.G,2 |						\n\
-%																					\n\
-V:1																					\n\
-x2g_gf.^dxe | x^GAcxAcd | x2._e2xdx2 | cx7 :|										\n\
-V:2																					\n\
-x2e_ed.Bxc | xEFGxCEF | x2._A2xFx2 | Ex7 :|											\n\
-V:3																					\n\
-.C,2xG,x2.C2 | .F,2xC.C2.F,2 | .C,2._A,2x_B,x2 | .C2xG,.G,2.C,2 :|					\n\
-%																					\n\
-V:1																					\n\
-c.cxcxLcdx | ecxAGx3 | c.cxcxLcde | x8 |											\n\
-V:2																					\n\
-_A._Ax_AxL_A_Bx | GExECx3 | _A._Ax_AxL_A_BG | x8 |									\n\
-V:3																					\n\
-._A,,2x_E,x2._A,2 | .G,2xC,x2.G,,2 | ._A,,2x_E,x2._A,2 | .G,2xC,x2.G,,2 |			\n\
-%																					\n\
-V:1																					\n\
-c.cxcxLcdx | ecxAGx3 | e.exexLcex | .g2x2.G2x2 |									\n\
-V:2																					\n\
-_A._Ax_AxL_A_Bx | GExECx3 | ^F.^Fx^FxL^F^Fx | .B2x2.G2x2 |							\n\
-V:3																					\n\
-._A,,2x_E,x2._A,2 | .G,2xC,x2.G,,2 | D,.D,xD,xLD,D,x | .G2x2.G,2x2 |				\n\
-%																					\n\
-V:1																					\n\
-|: .c2x.G2x.E2 | x.A2B2_B.A2 | G4/3e4/3g4/3.a2fg | x.e2cd.B2x :|:					\n\
-V:2																					\n\
-|: .E2x.C2x.G,2 | x.C2D2_D.C2 | C4/3G4/3B4/3.c2AB | x.A2EF.D2x :|:					\n\
-V:3																					\n\
-|: .G,2x.E,2x.C,2 | x.F,2G,2_G,.F,2 | E,4/3C4/3E4/3.F2DE | x.C2A,B,.G,2x :|:		\n\
-%																					\n\
-V:1																					\n\
-ecxGx2.^G2 | Afxf.A2x2 | B4/3.a4/3.a4/3 a4/3.g4/3.f4/3 | ecxA.G2x2 |				\n\
-V:2																					\n\
-cAxEx2.E2 | Fcxc.F2x2 | G4/3.f4/3.f4/3 f4/3.e4/3.d4/3 | cAxF.E2x2 |					\n\
-V:3																					\n\
-.C,2xL^F,.G,2.C2 | .F,2.F,2CC.F,2 | .D,2xLF,.G,2.B,2 | .G,2.G,2.C.C.G,2				\n\
-%																					\n\
-V:1																					\n\
-ecxGx2.^G2 | Afxf.A2x2 | Bfxf f4/3e4/3d4/3 | cExE.C2x2 :|							\n\
-V:2																					\n\
-cAxEx2.E2 | Fcxc.F2x2 | Gdxd d4/3c4/3B4/3 | GExE.C2x2 :|							\n\
-V:3																					\n\
-.C,2xL^F,.G,2.C2 | .F,2.F,2CC.F,2 | .G,2xG, G,4/3A,4/3B,4/3 | .C2.G,2.C,2x2 :| 		\n\
-%																					\n\
-V:1																					\n\
-c.cxcxLcdx | ecxAGx3 | c.cxcxLcde | x8 |											\n\
-V:2																					\n\
-_A._Ax_AxL_A_Bx | GExECx3 | _A._Ax_AxL_A_BG | x8 |									\n\
-V:3																					\n\
-._A,,2x_E,x2._A,2 | .G,2xC,x2.G,,2 | ._A,,2x_E,x2._A,2 | .G,2xC,x2.G,,2 |			\n\
-%																					\n\
-V:1																					\n\
-c.cxcxLcdx | ecxAGx3 | e.exexLcex | .g2x2.G2x2 |									\n\
-V:2																					\n\
-_A._Ax_AxL_A_Bx | GExECx3 | ^F.^Fx^FxL^F^Fx | .B2x2.G2x2 |							\n\
-V:3																					\n\
-._A,,2x_E,x2._A,2 | .G,2xC,x2.G,,2 | D,.D,xD,xLD,D,x | .G2x2.G,2x2 |				\n\
-%																					\n\
-V:1																					\n\
-ecxGx2.^G2 | Afxf.A2x2 | B4/3.a4/3.a4/3 a4/3.g4/3.f4/3 | ecxA.G2x2 |				\n\
-V:2																					\n\
-cAxEx2.E2 | Fcxc.F2x2 | G4/3.f4/3.f4/3 f4/3.e4/3.d4/3 | cAxF.E2x2 |					\n\
-V:3																					\n\
-.C,2xL^F,.G,2.C2 | .F,2.F,2CC.F,2 | .D,2xLF,.G,2.B,2 | .G,2.G,2.C.C.G,2				\n\
-%																					\n\
-V:1																					\n\
-ecxGx2.^G2 | Afxf.A2x2 | Bfxf f4/3e4/3d4/3 | cExE.C2x2 :|							\n\
-V:2																					\n\
-cAxEx2.E2 | Fcxc.F2x2 | Gdxd d4/3c4/3B4/3 | GExE.C2x2 :|							\n\
-V:3																					\n\
-.C,2xL^F,.G,2.C2 | .F,2.F,2CC.F,2 | .G,2xG, G,4/3A,4/3B,4/3 | .C2.G,2.C,2x2 :| 		\n\
+%abc                                                             \n\
+X:1                                                              \n\
+T:Matoya                                                         \n\
+V:1 jaw-waveform=square   jaw-amplitude=5000  jaw-lowpass=0.15   \n\
+V:2 jaw-waveform=square   jaw-amplitude=4000  jaw-lowpass=0.15   \n\
+V:3 jaw-waveform=triangle jaw-amplitude=15000 jaw-lowpass=0.7    \n\
+M:4/4                                                            \n\
+L:1/8                                                            \n\
+Q:1/4=150                                                        \n\
+K:D                                                              \n\
+%                                                                \n\
+V:1                                                              \n\
+BdfB g2 fe | d2 ed c4 | dfad b2 ag | f2 gf e2 fg |               \n\
+V:2                                                              \n\
+B,FB,F B,GB,G | B,GB,G CACA | DADA DBDB | DBDB CACA |            \n\
+V:3                                                              \n\
+B,,4 E,4 | G,4 A,2 G,2 | D,4 G,4 | B,4 A,.E,.C,.A,, |            \n\
+%                                                                \n\
+V:1                                                              \n\
+a4 c2 e2 | d2/3c2/3d2/3 B4 ga | b4 d2 g2 | f2/3g2/3f2/3 e4 ab |  \n\
+V:2                                                              \n\
+AA x2 AA x2 | FF x2 FF x2 | BB x2 BB x2 | cc x2 cc x2 |          \n\
+V:3                                                              \n\
+xF,,.C,.F, x.F,,F,.C, | xB,,.F,.B, x.B,,B,.F, |                  \n\
+xG,,.D,.G, x.G,,G,.D, | xA,,.E,.A, xA,,A,.E, |                   \n\
+%                                                                \n\
+V:1                                                              \n\
+c'4 xabc' | e'/d'/c'/d'/ b3agf | e5 =cde | d4 c2 A2 |            \n\
+V:2                                                              \n\
+AA x2 AA x2 | FF x2 FF x2 | EGEG EGEG | EGEG A/G/F/E/ F/E/D/C/ | \n\
+V:3                                                              \n\
+xF,,.C,.F, x.F,,F,.C, | xB,,.F,.B, x.B,,B,.F, |                  \n\
+=C,.=C =C,.=C =C,.=C =C,.=C | A,,.A, A,,.A, A,,.A, A,,.A,        \n\
+%                                                                \n\
+V:1                                                              \n\
+d8 | d6 d/c/B/c/ | d8 | d6 f/e/d/e/ |                            \n\
+V:2                                                              \n\
+F2 D2 G2 D2 | AADA G2 E2 | F2 D2 G2 D2 | AADA G2 E2 |            \n\
+V:3                                                              \n\
+D,.A,x.A, D,.B,x.B, | D,.Cx.C D,.B,x.B, |                        \n\
+D,.A,x.A, D,.B,x.B, | D,.Cx.C D,.B,x.B, |                        \n\
+%                                                                \n\
+V:1                                                              \n\
+f8 | f6 a/g/f/g/ | a8 | a4 f/e/d/c/ e/d/c/^A/ |                  \n\
+V:2                                                              \n\
+F2 D2 G2 D2 | AADA G2 E2 | F2 D2 G2 D2 | AADA G2 E2 |            \n\
+V:3                                                              \n\
+D,.A,x.A, D,.B,x.B, | D,.Cx.C D,.B,x.B, |                        \n\
+D,.A,x.A, D,.B,x.B, | D,.Cx.C F,,.C, F,,.C, |                    \n\
 ";
 
 void init(jaw::properties *) {

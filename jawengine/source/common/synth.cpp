@@ -31,8 +31,10 @@ constexpr float PI = 3.1415926535f;
 struct ABCVoice {
 	std::vector<int16_t> samples{};
 	std::vector<size_t> repeatStack;
-	float(*waveform)(float){};
+	float(*waveform)(float, float, float){};
 	int16_t amplitude{};
+	float dutyCycle;
+	float lowpass;
 };
 
 enum Accidental : int { 
@@ -84,22 +86,33 @@ struct InfoFields {
 
 static std::vector<void*> allocations;
 
-static float square(float x) {
-	if (x <= PI) return 1;
-	else return -1;
-	/*
-		// Fourier series form
-		constexpr size_t NUM_HARMONICS = 20;
-		float ret = 0;
-		for (size_t i = 0; i < NUM_HARMONICS; i++) {
-			float n = 1 + 2*(float)i;
-			ret += sin(n * x) / n;
+static float square(float x, float dx, float dutyCycle) {
+	float sample = x < dutyCycle*2*PI ? 1.f : -1.f;
+
+	// Apply PolyBLEP to cut down on aliasing at the discontinuities
+	// A square wave has two, where a sawtooth has only one
+	if (x < dx) {
+		x /= dx;
+		sample += -x*x + 2*x - 1.f;
+	}
+	else if (x > 2*PI - dx) {
+		x = (x - 2*PI) / dx;
+		sample += x*x + 2*x + 1.f;
+	}
+	else if (x > dutyCycle*2*PI - dx && x < dutyCycle*2*PI + dx) {
+		x = (x - dutyCycle*2*PI) / dx;
+		if (x < 0) {
+			sample -= x*x + 2*x + 1.f;
 		}
-		return ret * 0.7f;
-	*/
+		else {
+			sample -= -x*x + 2*x - 1.f;
+		}
+	}
+
+	return sample;
 }
 
-static float triangle(float x) {
+static float triangle(float x, float, float) {
 	// Triangle that has f(0)=0 and f(2pi)=0
 	constexpr float AMP = 2/PI;
 	if (x < PI/2) {
@@ -109,31 +122,27 @@ static float triangle(float x) {
 		return AMP * (PI - x);
 	}
 	else return AMP * (x - 2*PI);
-	/*
-		// Fourier series form
-		constexpr size_t NUM_HARMONICS = 20;
-		float ret = 0;
-		for (size_t i = 0; i < NUM_HARMONICS; i++) {
-			float n = 1 + 2*(float)i;
-			float sign = (i & 1) ? 1.f : -1.f;
-			ret += sign * sin(n * x) / (n*n);
-		}
-		return ret * 0.7f;
-	*/
 }
 
-static float sawtooth(float x) {
-	return (x - PI) / PI;
-	/*
-		// Fourier series form
-		constexpr size_t NUM_HARMONICS = 20;
-		float ret = 0;
-		for (size_t i = 1; i < NUM_HARMONICS; i++) {
-			float sign = (i & 1) ? 1.f : -1.f;
-			ret += sign * sin(i * x) / i;
-		}
-		return ret * 0.7f;
-	*/
+static float sawtooth(float x, float dx, float) {
+	// Rising sawtooth
+	float sample = (x - PI) / PI;
+
+	// Apply PolyBLEP to cut down on aliasing at the discontinuity
+	if (x < dx) {
+		x /= dx;
+		sample -= -x*x + 2*x - 1.f;
+	}
+	else if (x > 2*PI - dx) {
+		x = (x - 2*PI) / dx;
+		sample -= x*x + 2*x + 1.f;
+	}
+
+	return sample;
+}
+
+static float sine(float x, float, float) {
+	return sinf(x);
 }
 
 static int16_t *mix(ABCVoice *voices, size_t numVoices, size_t *numSamples, float lowpass, float gain) {
@@ -151,18 +160,16 @@ static int16_t *mix(ABCVoice *voices, size_t numVoices, size_t *numSamples, floa
 	allocations.push_back(ptr);
 	int16_t *ret = (int16_t*)ptr;
 
-	// Using a low-pass filter to smooth out the sound of these harsh samples
 	// https://kiritchatterjee.wordpress.com/2014/11/10/a-simple-digital-low-pass-filter-in-c/
-	double smoothed = 0;
-
+	float smoothed = 0;
 	for (size_t i = 0; i < longest; i++) {
-		double sum = 0;
+		float sum = 0;
 		for (size_t j = 0; j < numVoices; j++) {
 			auto &vec = voices[j].samples;
 			if (i >= vec.size()) continue;
-			else sum += (double)vec[i];
+			else sum += (float)vec[i];
 		}
-		sum /= sqrt((double)numVoices);
+		sum /= sqrtf((float)numVoices);
 		smoothed = smoothed - (lowpass * (smoothed - sum));
 		int16_t sample = (int16_t)(smoothed * gain);
 		ret[2*i] = ret[2*i+1] = sample;
@@ -175,7 +182,15 @@ static int16_t *mix(ABCVoice *voices, size_t numVoices, size_t *numSamples, floa
 // length is given in seconds
 // waveform should be a funciton like math.h's sin(),
 // ie it should repeat every 2pi, and return a value between approx. -1 and 1
-static void writeSample(std::vector<int16_t> *vec, float length, float freq, int16_t amplitude, float(*waveform)(float)) {
+static void writeSample(
+	std::vector<int16_t> *vec, 
+	float length, 
+	float freq, 
+	int16_t amplitude,
+	float dutyCycle,
+	float lowpass,
+	float(*waveform)(float, float, float)) 
+{
 	constexpr unsigned SAMPLE_RATE = 44100;
 
 	// The most important thing is to write the exact correct number of samples for the given length of time
@@ -196,8 +211,11 @@ static void writeSample(std::vector<int16_t> *vec, float length, float freq, int
 	// Write audio data
 	float phase = 0;
 	float step = (2*PI) / samplesPerCycle;
+	float smoothed = 0;
 	for (unsigned i = 0; i < totalSamples; i++) {
-		int16_t sample = (int16_t)(amplitude * waveform(phase));
+		// Apply the same lowpass filter per-voice that we do in the master mix
+		smoothed = smoothed - (lowpass * (smoothed - waveform(phase, step, dutyCycle)));
+		int16_t sample = (int16_t)(amplitude * smoothed);
 
 		// Apply a simple fade to the first and last samples
 		constexpr unsigned FADE_SIZE = 200;
@@ -211,7 +229,7 @@ static void writeSample(std::vector<int16_t> *vec, float length, float freq, int
 		vec->push_back(sample);
 
 		phase += step;
-		if (phase > 2*PI) phase -= 2*PI;
+		if (phase >= 2*PI) phase -= 2*PI;
 	}
 }
 
@@ -357,7 +375,7 @@ static void parseV(std::string &s) {
 	}
 	else {
 		index = numVoices++;
-		voices.push_back({});
+		voices.push_back({ .amplitude = 10000, .dutyCycle = 0.5f, .lowpass = 0.5f });
 		voiceIndices[label] = index;
 	}
 	ABCVoice &voice = voices[index];
@@ -370,8 +388,8 @@ static void parseV(std::string &s) {
 		std::string option = s.substr(eq+1, end-eq-1);
 
 		if (eq >= 12 && s.compare(eq-12, 12, "jaw-waveform") == 0) {
-			if (option == "sine") voice.waveform = sinf;
-			else if (option == "square") voice.waveform = square;
+			if (option == "sine") voice.waveform = sine;
+			else if (option == "square" || option == "pulse") voice.waveform = square;
 			else if (option == "triangle") voice.waveform = triangle;
 			else if (option == "sawtooth") voice.waveform = sawtooth;
 			else JAW_DBGPRINT("Malformed abc: unrecognized waveform option " << option);
@@ -379,6 +397,14 @@ static void parseV(std::string &s) {
 		else if (eq >= 13 && s.compare(eq-13, 13, "jaw-amplitude") == 0) {
 			int a = std::stol(option);
 			voice.amplitude = (int16_t)std::clamp(a, 0, 32767);
+		}
+		else if (eq >= 13 && s.compare(eq-13, 13, "jaw-dutycycle") == 0) {
+			float x = std::stof(option);
+			voice.dutyCycle = (float)std::clamp(x, 0.f, 1.f);
+		}
+		else if (eq >= 11 && s.compare(eq-11, 11,"jaw-lowpass") == 0) {
+			float x = std::stof(option);
+			voice.lowpass = (float)std::clamp(x, 0.f, 1.f);
 		}
 		else JAW_DBGPRINT("Malformed abc: unsupported V property; ignored.");
 	}
@@ -726,11 +752,11 @@ static bool parseTuneBody(std::stringstream &dataStream, std::string &line, Info
 		float freq = getFreq(line[index], octave, fields->K, acc, opt);
 		
 		if (staccato) {	// Staccato halves note length and fills the rest with silence
-			writeSample(&v.samples, len/2, freq, (int16_t)(amp*v.amplitude), v.waveform);
-			writeSample(&v.samples, len/2, 0, 0, nullptr);
+			writeSample(&v.samples, len/2, freq, (int16_t)(amp*v.amplitude), v.dutyCycle, v.lowpass, v.waveform);
+			writeSample(&v.samples, len/2, 0, 0, 0, 0, nullptr);
 		}
 		else {
-			writeSample(&v.samples, len, freq, (int16_t)(amp*v.amplitude), v.waveform);
+			writeSample(&v.samples, len, freq, (int16_t)(amp*v.amplitude), v.dutyCycle, v.lowpass, v.waveform);
 		}
 
 		// Return the length of the note in unit beats
@@ -862,7 +888,7 @@ static int16_t *parseABC(const char *abcData, size_t *numSamples, const asset::A
 	voices.clear();
 	voiceIndices.clear();
 	size_t n = numVoices++;
-	voices.push_back({ .waveform = square, .amplitude = 10000 });
+	voices.push_back({ .waveform = square, .amplitude = 10000, .dutyCycle = 0.5f, .lowpass = 0.5f });
 	voiceIndices["default"] = n;
 	
 	std::stringstream dataStream(abcData);

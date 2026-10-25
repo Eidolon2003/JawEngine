@@ -1,7 +1,6 @@
 Short-term for 0.2.2:
-- Improve audio synthesizer using PolyBLEP or minBLEP to prevent aliasing. Allow per-voice lowpass config, ADSR, and duty cycle.
+- Allow per-voice ADSR
 - Add a native-profile build preset option that compiles with CMAKE_BUILD_TYPE=RelWithDebInfo, and sets a macro that enables profile.h instead of using the debug macro for it
-- UI Layout engine
 - Reimplement sprites and animations
 - Bundle assets into the executable by appending them to the end of the file in a custom packed format
 - logging library?
