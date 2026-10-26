@@ -79,7 +79,7 @@ namespace asset {
 		// Lower values = more aggressive low pass filter
 		// Higher values = rawer, brighter sound
 		// This is the master lowpass filter, each voice also has its own
-		float lowpass = 1.f;
+		float lowpass = 0.5f;
 
 		// Multiplication factor applied at the very end
 		// Beware of clipping!

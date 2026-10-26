@@ -17,10 +17,8 @@ const char *abc = "\
 %abc\n\
 \n\
 K:C\n\
-V:1 jaw-waveform=pulse jaw-dutycycle=0.5 jaw-lowpass=0.1\n\
-c\n\
-V:1 jaw-lowpass=0.5\n\
-c\n\
+V:1 jaw-waveform=pulse jaw-dutycycle=0.3 jaw-lowpass=0.2 jaw-ahdsr=10,200,100,0,0\n\
+CDEFGABc\n\
 ";
 
 static void init(jaw::properties *props) {

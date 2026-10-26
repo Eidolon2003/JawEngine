@@ -35,6 +35,16 @@ struct ABCVoice {
 	int16_t amplitude{};
 	float dutyCycle;
 	float lowpass;
+	float a, h, d, s, r;
+};
+
+static float square(float, float, float);
+static const ABCVoice DEFAULT_VOICE {
+	.waveform = square, 
+	.amplitude = 10000,
+	.dutyCycle = 0.5f,
+	.lowpass = 0.2f,
+	.a = 5, .h = 0, .d = 0, .s = 1.f, .r = 5
 };
 
 enum Accidental : int { 
@@ -182,16 +192,11 @@ static int16_t *mix(ABCVoice *voices, size_t numVoices, size_t *numSamples, floa
 // length is given in seconds
 // waveform should be a funciton like math.h's sin(),
 // ie it should repeat every 2pi, and return a value between approx. -1 and 1
-static void writeSample(
-	std::vector<int16_t> *vec, 
-	float length, 
-	float freq, 
-	int16_t amplitude,
-	float dutyCycle,
-	float lowpass,
-	float(*waveform)(float, float, float)) 
-{
+static void writeSample(ABCVoice &v, float length, float amp, float freq) {
 	constexpr unsigned SAMPLE_RATE = 44100;
+	constexpr auto MS_TO_SAMPLES = [](float ms) -> unsigned {
+		return (unsigned)(ms * SAMPLE_RATE / 1000);
+	};
 
 	// The most important thing is to write the exact correct number of samples for the given length of time
 	// that way we're guaranteed that two voices of the same length will have the same number of samples
@@ -200,7 +205,7 @@ static void writeSample(
 	// if freq=0, just write zeros and return
 	if (freq == 0.f) {
 		for (unsigned i = 0; i < totalSamples; i++) {
-			vec->push_back(0);
+			v.samples.push_back(0);
 		}
 		return;
 	}
@@ -214,19 +219,30 @@ static void writeSample(
 	float smoothed = 0;
 	for (unsigned i = 0; i < totalSamples; i++) {
 		// Apply the same lowpass filter per-voice that we do in the master mix
-		smoothed = smoothed - (lowpass * (smoothed - waveform(phase, step, dutyCycle)));
-		int16_t sample = (int16_t)(amplitude * smoothed);
+		smoothed = smoothed - (v.lowpass * (smoothed - v.waveform(phase, step, v.dutyCycle)));
+		int16_t sample = (int16_t)(amp * v.amplitude * smoothed);
 
-		// Apply a simple fade to the first and last samples
-		constexpr unsigned FADE_SIZE = 200;
-		if (totalSamples-i <= FADE_SIZE) {
-			sample = (int16_t)((float)sample * (totalSamples-i) / FADE_SIZE);
+		// Apply AHDSR envelope
+		float envelope;
+		if (totalSamples - i <= MS_TO_SAMPLES(v.r)) {
+			envelope = v.s * (float)(totalSamples - i) / MS_TO_SAMPLES(v.r);
 		}
-		else if (i < FADE_SIZE) {
-			sample = (int16_t)((float)sample * i / FADE_SIZE);
+		else if (i < MS_TO_SAMPLES(v.a)) {
+			envelope = (float)i / MS_TO_SAMPLES(v.a);
 		}
+		else if (i <= MS_TO_SAMPLES(v.a + v.h)) {
+			envelope = 1.f;
+		}
+		else if (i <= MS_TO_SAMPLES(v.a + v.h + v.d)) {
+			float x = (float)(i - MS_TO_SAMPLES(v.a + v.h)) / MS_TO_SAMPLES(v.d);
+			envelope = 1.f - (1.f - v.s) * x;
+		}
+		else {
+			envelope = v.s;
+		}
+		sample = (int16_t)(sample * envelope);
 
-		vec->push_back(sample);
+		v.samples.push_back(sample);
 
 		phase += step;
 		if (phase >= 2*PI) phase -= 2*PI;
@@ -375,7 +391,7 @@ static void parseV(std::string &s) {
 	}
 	else {
 		index = numVoices++;
-		voices.push_back({ .amplitude = 10000, .dutyCycle = 0.5f, .lowpass = 0.5f });
+		voices.push_back(DEFAULT_VOICE);
 		voiceIndices[label] = index;
 	}
 	ABCVoice &voice = voices[index];
@@ -405,6 +421,18 @@ static void parseV(std::string &s) {
 		else if (eq >= 11 && s.compare(eq-11, 11,"jaw-lowpass") == 0) {
 			float x = std::stof(option);
 			voice.lowpass = (float)std::clamp(x, 0.f, 1.f);
+		}
+		else if (eq >= 9 && s.compare(eq-9, 9,"jaw-ahdsr") == 0) {
+			int numParsed = sscanf(option.c_str(), "%f,%f,%f,%f,%f",
+				&voice.a, &voice.h, &voice.d, &voice.s, &voice.r);
+			if (numParsed != 5) {
+				JAW_DBGPRINT("Malformed abc: failed to parse ahdsr: " << option);
+			}
+			if (voice.a < 0) voice.a = 0;
+			if (voice.h < 0) voice.h = 0;
+			if (voice.d < 0) voice.d = 0;
+			voice.s = std::clamp(voice.s, 0.f, 1.f);
+			if (voice.r < 0) voice.r = 0;
 		}
 		else JAW_DBGPRINT("Malformed abc: unsupported V property; ignored.");
 	}
@@ -752,11 +780,11 @@ static bool parseTuneBody(std::stringstream &dataStream, std::string &line, Info
 		float freq = getFreq(line[index], octave, fields->K, acc, opt);
 		
 		if (staccato) {	// Staccato halves note length and fills the rest with silence
-			writeSample(&v.samples, len/2, freq, (int16_t)(amp*v.amplitude), v.dutyCycle, v.lowpass, v.waveform);
-			writeSample(&v.samples, len/2, 0, 0, 0, 0, nullptr);
+			writeSample(v, len/2, amp, freq);
+			writeSample(v, len/2, amp, 0);
 		}
 		else {
-			writeSample(&v.samples, len, freq, (int16_t)(amp*v.amplitude), v.dutyCycle, v.lowpass, v.waveform);
+			writeSample(v, len, amp, freq);
 		}
 
 		// Return the length of the note in unit beats
@@ -888,7 +916,7 @@ static int16_t *parseABC(const char *abcData, size_t *numSamples, const asset::A
 	voices.clear();
 	voiceIndices.clear();
 	size_t n = numVoices++;
-	voices.push_back({ .waveform = square, .amplitude = 10000, .dutyCycle = 0.5f, .lowpass = 0.5f });
+	voices.push_back(DEFAULT_VOICE);
 	voiceIndices["default"] = n;
 	
 	std::stringstream dataStream(abcData);

@@ -1,5 +1,4 @@
 Short-term for 0.2.2:
-- Allow per-voice ADSR
 - Add a native-profile build preset option that compiles with CMAKE_BUILD_TYPE=RelWithDebInfo, and sets a macro that enables profile.h instead of using the debug macro for it
 - Reimplement sprites and animations
 - Bundle assets into the executable by appending them to the end of the file in a custom packed format
