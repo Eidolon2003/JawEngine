@@ -9,32 +9,25 @@
  * https://github.com/Eidolon2003/JawEngine
  */
 
-// Synth testing
+// General arena use
 
 #include <JawEngine.h>
 
-const char *abc = "\
-%abc\n\
-\n\
-K:C\n\
-V:1 jaw-waveform=pulse jaw-dutycycle=0.3 jaw-lowpass=0.2 jaw-ahdsr=10,200,100,0,0\n\
-CDEFGABc\n\
-";
+static void loop(jaw::properties *props) {
+	// Allocate a 1K arena every frame
+	auto arena = util::arenaAllocator(1<<10);
 
-static void init(jaw::properties *props) {
-	size_t numSamples;
-	int16_t *audioData = asset::abc(abc, &numSamples, {});
-	if (audioData) {
-		jaw::soundid music = sound::create();
-		if (music != jaw::INVALID_ID) {
-			if (sound::write(music, audioData, numSamples, true))
-				sound::start(music);
-		}
+	// Do arena things
+	int *arr = arena.alloc<int>(100);
+	arr[99] = 69;
 
-	}	
+	char *frameArr = util::frameAllocator->alloc<char>(1000);
+	frameArr[568] = 'x';
+
+	// The arena is freed at the end of the scope
 }
 
 int main() {
 	jaw::properties p;
-	engine::start(&p, { .init = init });
+	engine::start(&p, { .loop = loop });
 }

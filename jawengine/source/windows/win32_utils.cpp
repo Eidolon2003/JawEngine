@@ -18,7 +18,6 @@
 #include <mmsystem.h>	//timer
 #include <cstdlib>
 #include <cassert>
-#include <list>
 #include "../common/internal_utils.h"
 #include "../../JawEngine.h"	// JAW_DBGPRINTF & utils.h
 
@@ -37,7 +36,10 @@ static size_t maxBytes = 0;
 #endif
 
 bool util::init(jaw::properties *props) {
-	static auto _frameAllocator = util::arenaAllocator(props->frameAllocatorBytes);
+	static auto _frameAllocator = util::arenaAllocator(0);
+	if (_frameAllocator.base == nullptr) {
+		new (&_frameAllocator) util::arenaAllocator(props->frameAllocatorBytes);
+	}
 	frameAllocator = &_frameAllocator;
 
 	timers.clear();
@@ -51,6 +53,7 @@ void util::deinit() {
 #ifndef NDEBUG
 	JAW_DBGPRINT("frameAllocator used a maximum of " << maxBytes << " bytes");
 #endif
+	frameAllocator->~arenaAllocator();
 	timers.clear();
 	timeEndPeriod(timerInfo.wPeriodMin);
 }
@@ -159,13 +162,18 @@ jaw::nanoseconds util::accurateSleep(jaw::nanoseconds time, jaw::nanoseconds sta
 	return retTime;
 }
 
-// arenaAllocator constructor implementation
+// arenaAllocator constructor/destructor implementation
 util::arenaAllocator::arenaAllocator(size_t commitSize) {
 	base = head = end = nullptr;
+	if (commitSize == 0) return;
 
 	void *alloc = VirtualAlloc(NULL, commitSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 	if (alloc) {
 		base = head = alloc;
 		end = (char *)base + commitSize;
 	}
+}
+util::arenaAllocator::~arenaAllocator() {
+	VirtualFree(base, 0, MEM_RELEASE);
+	base = head = end = nullptr;
 }

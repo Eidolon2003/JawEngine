@@ -26,7 +26,10 @@ static size_t maxBytes;
 #endif
 
 void state::init(jaw::properties *props) {
-	static auto _stateAllocator = util::arenaAllocator(props->stateAllocatorBytes);
+	static auto _stateAllocator = util::arenaAllocator(0);
+	if (_stateAllocator.base == nullptr) {
+		new (&_stateAllocator) util::arenaAllocator(props->stateAllocatorBytes);
+	}
 	allocator = &_stateAllocator;
 }
 
@@ -118,7 +121,7 @@ void state::deinit(jaw::properties *props) {
 		if (currentFns.deinit) currentFns.deinit(props);
 	}
 
-	allocator->clear();
+	allocator->~arenaAllocator();
 	newStateFlag = false;
 	numStates = 0;
 	stackTop = 0;

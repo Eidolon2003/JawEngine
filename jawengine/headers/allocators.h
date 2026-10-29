@@ -88,6 +88,7 @@ struct arenaAllocator {
 	// the OS will page in memory as it's used.
 	// This funciton is not defined inline because it is platform dependent
 	arenaAllocator(size_t commitSize);
+	~arenaAllocator();
 
 	inline size_t bytesRemaining() const { return (size_t)((char *)end - (char *)head); };
 
@@ -111,6 +112,12 @@ struct arenaAllocator {
 		if (!p) return nullptr;
 		uintptr_t aligned = (((uintptr_t)p + align - 1) / align) * align;
 		return (T*)aligned;
+	}
+
+	// Move the head back upto num bytes
+	inline void rewind(size_t num) {
+		if (bytesUsed() < num) num = bytesUsed();
+		head = (void*)((char*)head - num);
 	}
 
 	// Simply resets the arena 
