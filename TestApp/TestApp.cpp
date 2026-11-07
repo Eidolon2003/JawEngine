@@ -9,22 +9,25 @@
  * https://github.com/Eidolon2003/JawEngine
  */
 
-// General arena use
+// Profiler
 
+#include "headers/types.h"
 #include <JawEngine.h>
+#include <libs/profile.h>
 
 static void loop(jaw::properties *props) {
-	// Allocate a 1K arena every frame
-	auto arena = util::arenaAllocator(1<<10);
+	profile::begin(0);
+	util::accurateSleep(jaw::millis(0.69420), util::getTimePoint());
+	profile::end(0);
 
-	// Do arena things
-	int *arr = arena.alloc<int>(100);
-	arr[99] = 69;
-
-	char *frameArr = util::frameAllocator->alloc<char>(1000);
-	frameArr[568] = 'x';
-
-	// The arena is freed at the end of the scope
+	char *str = util::frameAllocator->alloc<char>(256);
+	float ms = jaw::to_millis(profile::get(0));
+	std::snprintf(str, 256, "%f", ms);
+	draw::enqueue<draw::str>({
+		.str = str,
+		.color = jaw::color::WHITE,
+		.rect = jaw::recti(jaw::vec2i(), props->size)
+	}, 0);
 }
 
 int main() {

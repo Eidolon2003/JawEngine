@@ -74,6 +74,12 @@
 		},
 
 		{
+			"name": "native-profile",
+			"inherits": "native-debug",
+			"cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+		},
+
+		{
 			"name": "windows-debug",
 			"inherits": "windows-linux-base",
 			"architecture": {
@@ -87,6 +93,12 @@
 			"name": "windows-release",
 			"inherits": "windows-debug",
 			"cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+		},
+
+		{
+			"name": "windows-profile",
+			"inherits": "windows-debug",
+			"cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
 		}
 	],
 
@@ -102,6 +114,11 @@
 		},
 
 		{
+			"name": "native-profile",
+			"configurePreset": "native-profile"
+		},
+
+		{
 			"name": "windows-debug",
 			"configurePreset": "windows-debug"
 		},
@@ -109,6 +126,11 @@
 		{
 			"name": "windows-release",
 			"configurePreset": "windows-release"
+		},
+
+		{
+			"name": "windows-profile",
+			"configurePreset": "windows-profile"
 		}
 	]
 }

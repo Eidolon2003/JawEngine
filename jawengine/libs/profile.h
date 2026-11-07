@@ -13,7 +13,7 @@
 #include "../JawEngine.h"
 
 // A simple-as-possible profiling library
-// Define JAW_NPROFILE to disable profiling in a release build!
+// JAW_PROFILE is enabled when compiling in profile mode
 
 namespace profile {
 	// Clear all data, use at beginning or end of frame
@@ -29,30 +29,30 @@ namespace profile {
 	// You may also lookup in the periods array directly 
 	inline jaw::nanoseconds get(uint8_t);
 
-#ifndef JAW_NPROFILE
+#ifdef JAW_PROFILE
 	inline jaw::nanoseconds periods[256];
 #endif
 
 	inline void clear() {
-#ifndef JAW_NPROFILE
+#ifdef JAW_PROFILE
 		memset(periods, 0, sizeof(periods));
 #endif
 	}
 
 	inline void begin(uint8_t id) {
-#ifndef JAW_NPROFILE
+#ifdef JAW_PROFILE
 		periods[id] = util::getTimePoint();
 #endif
 	}
 
 	inline void end(uint8_t id) {
-#ifndef JAW_NPROFILE
+#ifdef JAW_PROFILE
 		periods[id] = util::getTimePoint() - periods[id];
 #endif
 	}
 
 	inline jaw::nanoseconds get(uint8_t id) {
-#ifndef JAW_NPROFILE
+#ifdef JAW_PROFILE
 		return periods[id];
 #else
 		return 0;
