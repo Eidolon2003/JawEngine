@@ -9,7 +9,7 @@
  * https://github.com/Eidolon2003/JawEngine
  */
 
-#include "../jawengine/JawEngine.h"
+#include <JawEngine.h>
 
 // Demo the ABC synth. This audio is generated at runtime from the source text :)
 // See: https://abcnotation.com/, https://abcnotation.com/wiki/abc:standard:v2.1
