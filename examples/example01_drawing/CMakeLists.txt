@@ -1,5 +1,5 @@
-add_executable(basic-gamepad-handling basic-gamepad-handling.cpp)
-target_link_libraries(basic-gamepad-handling PRIVATE jawengine)
+add_executable(drawing drawing.cpp)
+target_link_libraries(drawing PRIVATE jawengine)
 
 if(MSVC)
     target_link_options(TestApp PRIVATE "/ENTRY:jaw_entry")

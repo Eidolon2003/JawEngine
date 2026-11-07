@@ -1,5 +1,5 @@
-add_executable(basic-key-handling basic-key-handling.cpp)
-target_link_libraries(basic-key-handling PRIVATE jawengine)
+add_executable(key-handling key-handling.cpp)
+target_link_libraries(key-handling PRIVATE jawengine)
 
 if(MSVC)
     target_link_options(TestApp PRIVATE "/ENTRY:jaw_entry")
