@@ -1,7 +1,7 @@
 Short-term for 0.2.2:
-- Reimplement sprites and animations
 - Bundle assets into the executable by appending them to the end of the file in a custom packed format
-- logging library?
+- More powerful animation state machine for sprites
+- profile.cpp
 
 Potential Future Features:
 - Support more audio formats

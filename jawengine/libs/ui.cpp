@@ -64,8 +64,8 @@ namespace ui {
 	void destroy(ui::id x) {
 		UIElement *e = slots.idtoptr(x);
 		if (!e) [[unlikely]] return;
-		if (e->click != jaw::INVALID_ID) input::destroy(e->click);
-		if (e->cb != jaw::INVALID_ID) callback::destroy(e->cb);
+		if (e->_click != jaw::INVALID_ID) input::destroy(e->_click);
+		if (e->_cb != jaw::INVALID_ID) callback::destroy(e->_cb);
 		slots.destroy(x);
 	}
 
@@ -89,20 +89,20 @@ namespace ui {
 				UIElement *p = slots.idtoptr(id);
 				if (!p) [[unlikely]] return;
 
-				p->transformedRect = cam::forward(p->camera, p->rect);
+				p->_transformedRect = cam::forward(p->camera, p->rect);
 
 				constexpr int16_t BORDER = JAWUI_TEXT_DISPLAY_BORDER_WIDTH;
 				draw::drawCall calls[3]{
 					draw::make<draw::rect>({
-						.rect = p->transformedRect,
+						.rect = p->_transformedRect,
 						.color = p->borderColor
 					}, p->z),
 					draw::make<draw::rect>({
-						.rect = jaw::recti(p->transformedRect.tl + BORDER, p->transformedRect.br - BORDER),
+						.rect = jaw::recti(p->_transformedRect.tl + BORDER, p->_transformedRect.br - BORDER),
 						.color = p->backColor
 					}, p->z),
 					draw::make<draw::str>({
-						.rect = jaw::recti(p->transformedRect.tl + BORDER, p->transformedRect.br - BORDER),
+						.rect = jaw::recti(p->_transformedRect.tl + BORDER, p->_transformedRect.br - BORDER),
 						.str = p->text,
 						.color = p->textColor,
 						.font = p->font
@@ -115,7 +115,7 @@ namespace ui {
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
-		slots.idtoptr(x)->cb = cbid;
+		slots.idtoptr(x)->_cb = cbid;
 
 		return x;
 	}
@@ -137,23 +137,23 @@ namespace ui {
 				UIElement *p = slots.idtoptr(id);
 				if (!p) [[unlikely]] return;
 
-				p->transformedRect = cam::forward(p->camera, p->rect);
+				p->_transformedRect = cam::forward(p->camera, p->rect);
 
 				constexpr int16_t DESELECT_BORDER = JAWUI_TEXT_BUTTON_DESELECT_BORDER_WIDTH;
 				constexpr int16_t SELECT_BORDER = JAWUI_TEXT_BUTTON_SELECT_BORDER_WIDTH;
-				int16_t border = p->transformedRect.contains(input::getMouse().pos) ? SELECT_BORDER : DESELECT_BORDER;
+				int16_t border = p->_transformedRect.contains(input::getMouse().pos) ? SELECT_BORDER : DESELECT_BORDER;
 
 				draw::drawCall calls[3]{
 					draw::make<draw::rect>({
-						.rect = p->transformedRect,
+						.rect = p->_transformedRect,
 						.color = p->borderColor
 					}, p->z),
 					draw::make<draw::rect>({
-						.rect = jaw::recti(p->transformedRect.tl + border, p->transformedRect.br - border),
+						.rect = jaw::recti(p->_transformedRect.tl + border, p->_transformedRect.br - border),
 						.color = p->backColor
 					}, p->z),
 					draw::make<draw::str>({
-						.rect = jaw::recti(p->transformedRect.tl + border, p->transformedRect.br - border),
+						.rect = jaw::recti(p->_transformedRect.tl + border, p->_transformedRect.br - border),
 						.str = p->text,
 						.color = p->textColor,
 						.font = p->font
@@ -166,10 +166,10 @@ namespace ui {
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
-		ep->cb = cbid;
+		ep->_cb = cbid;
 
 		jaw::clickableid click = input::createClickable(jaw::clickable{
-			.rect = &ep->transformedRect,
+			.rect = &ep->_transformedRect,
 			.condition = jaw::mouseFlags{.lmb = true },
 			.data = (void*)(uintptr_t)x,
 			.callback = [](jaw::clickableid cid, jaw::properties *props) {
@@ -188,9 +188,9 @@ namespace ui {
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
-		ep->click = click;
+		ep->_click = click;
 
-		ep->transformedRect = cam::forward(ep->camera, ep->rect);
+		ep->_transformedRect = cam::forward(ep->camera, ep->rect);
 
 		return x;
 	}
@@ -211,10 +211,10 @@ namespace ui {
 				UIElement *p = slots.idtoptr(id);
 				if (!p) [[unlikely]] return;
 
-				p->transformedRect = cam::forward(p->camera, p->rect);
+				p->_transformedRect = cam::forward(p->camera, p->rect);
 
 				if (p->selected && (
-					(input::getMouse().flags.lmb && !p->transformedRect.contains(input::getMouse().pos)) ||
+					(input::getMouse().flags.lmb && !p->_transformedRect.contains(input::getMouse().pos)) ||
 					(input::getKey(key::ENTER).isDown && !input::getKey(key::SHIFT).isHeld)
 					)
 					) {
@@ -230,15 +230,15 @@ namespace ui {
 
 				draw::drawCall calls[3]{
 					draw::make<draw::rect>({
-						.rect = p->transformedRect,
+						.rect = p->_transformedRect,
 						.color = p->borderColor
 					}, p->z),
 					draw::make<draw::rect>({
-						.rect = jaw::recti(p->transformedRect.tl + border, p->transformedRect.br - border),
+						.rect = jaw::recti(p->_transformedRect.tl + border, p->_transformedRect.br - border),
 						.color = p->backColor
 					}, p->z),
 					draw::make<draw::str>({
-						.rect = jaw::recti(p->transformedRect.tl + border, p->transformedRect.br - border),
+						.rect = jaw::recti(p->_transformedRect.tl + border, p->_transformedRect.br - border),
 						.str = p->text,
 						.color = p->textColor,
 						.font = p->font
@@ -251,10 +251,10 @@ namespace ui {
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
-		ep->cb = cbid;
+		ep->_cb = cbid;
 
 		jaw::clickableid click = input::createClickable(jaw::clickable{
-			.rect = &ep->transformedRect,
+			.rect = &ep->_transformedRect,
 			.condition = jaw::mouseFlags{.lmb = true },
 			.data = (void*)(uintptr_t)x,
 			.callback = [](jaw::clickableid cid, jaw::properties *props) {
@@ -274,9 +274,9 @@ namespace ui {
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
-		ep->click = click;
+		ep->_click = click;
 
-		ep->transformedRect = cam::forward(ep->camera, ep->rect);
+		ep->_transformedRect = cam::forward(ep->camera, ep->rect);
 
 		return x;
 	}
@@ -297,22 +297,22 @@ namespace ui {
 				UIElement *p = slots.idtoptr(id);
 				if (!p) [[unlikely]] return;
 
-				p->transformedRect = cam::forward(p->camera, p->rect);
+				p->_transformedRect = cam::forward(p->camera, p->rect);
 
 				constexpr int16_t BORDER = JAWUI_CHECKBOX_BORDER_WIDTH;
 				constexpr int16_t STROKE = JAWUI_CHECKBOX_STROKE_WIDTH;
 				draw::drawCall calls[4] = {
 					draw::make<draw::rect>({
-						.rect = p->transformedRect,
+						.rect = p->_transformedRect,
 						.color = p->borderColor
 					}, p->z),
 					draw::make<draw::rect>({
-						.rect = jaw::recti(p->transformedRect.tl + BORDER, p->transformedRect.br - BORDER),
+						.rect = jaw::recti(p->_transformedRect.tl + BORDER, p->_transformedRect.br - BORDER),
 						.color = p->backColor
 					}, p->z),
 					draw::make<draw::line>({
-						.p1 = p->transformedRect.tl + 2*BORDER,
-						.p2 = p->transformedRect.br - 2*BORDER,
+						.p1 = p->_transformedRect.tl + 2*BORDER,
+						.p2 = p->_transformedRect.br - 2*BORDER,
 						.color = p->textColor,
 						.width = STROKE
 					}, p->z)
@@ -324,10 +324,10 @@ namespace ui {
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
-		ep->cb = cbid;
+		ep->_cb = cbid;
 
 		jaw::clickableid click = input::createClickable(jaw::clickable{
-			.rect = &ep->transformedRect,
+			.rect = &ep->_transformedRect,
 			.condition = jaw::mouseFlags{.lmb = true },
 			.data = (void*)(uintptr_t)x,
 			.callback = [](jaw::clickableid cid, jaw::properties *props) {
@@ -353,9 +353,9 @@ namespace ui {
 			slots.destroy(x);
 			return jaw::INVALID_ID;
 		}
-		ep->click = click;
+		ep->_click = click;
 
-		ep->transformedRect = cam::forward(ep->camera, ep->rect);
+		ep->_transformedRect = cam::forward(ep->camera, ep->rect);
 
 		return x;
 	}
@@ -374,14 +374,14 @@ namespace ui {
 		static int16_t availableWidth(Context *ctx) {
 			int16_t ret = ctx->rect.width();
 			if (ctx->type == Type::ROW) {
-				ret -= ctx->progress;
+				ret -= ctx->_progress;
 			}
 			return ret;
 		}
 		static int16_t availableHeight(Context *ctx) {
 			int16_t ret = ctx->rect.height();
 			if (ctx->type == Type::COL) {
-				ret -= ctx->progress;
+				ret -= ctx->_progress;
 			}
 			return ret;
 		}
@@ -417,14 +417,14 @@ namespace ui {
 			ret = ret + ctx->rect.tl;
 			switch (ctx->type) {
 			case Type::ROW:
-				ret = ret + jaw::vec2i(ctx->progress, 0);
-				ctx->progress += ret.width();
+				ret = ret + jaw::vec2i(ctx->_progress, 0);
+				ctx->_progress += ret.width();
 				ret.tl.x += ctx->gap/2;
 				ret.br.x -= ctx->gap/2;
 				break;
 			case Type::COL:
-				ret = ret + jaw::vec2i(0, ctx->progress);
-				ctx->progress += ret.height();
+				ret = ret + jaw::vec2i(0, ctx->_progress);
+				ctx->_progress += ret.height();
 				ret.tl.y += ctx->gap/2;
 				ret.br.y -= ctx->gap/2;
 				break;

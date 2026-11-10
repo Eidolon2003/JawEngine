@@ -67,9 +67,9 @@ namespace ui {
 
 		// IDs of the internal callback, clickable, and transformedRect which drive the UI
 		// This should generally not be touched by the user
-		jaw::callbackid cb = jaw::INVALID_ID;
-		jaw::clickableid click = jaw::INVALID_ID;
-		jaw::recti transformedRect;
+		jaw::callbackid _cb = jaw::INVALID_ID;
+		jaw::clickableid _click = jaw::INVALID_ID;
+		jaw::recti _transformedRect;
 	};
 
 	// Destroy all UI Elements and their associated components
@@ -108,7 +108,7 @@ namespace ui {
 			unsigned gap;
 
 			// Number of pixels we are into the layout, starts at zero
-			int16_t progress;
+			int16_t _progress;
 		};
 
 		struct Options {

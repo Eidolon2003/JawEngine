@@ -9,28 +9,32 @@
  * https://github.com/Eidolon2003/JawEngine
  */
 
-// Profiler
+// Sprite demo
 
-#include "headers/types.h"
 #include <JawEngine.h>
-#include <libs/profile.h>
+#include <libs/sprite.h>
 
-static void loop(jaw::properties *props) {
-	profile::begin(0);
-	util::accurateSleep(jaw::millis(0.69420), util::getTimePoint());
-	profile::end(0);
+static void init(jaw::properties *props) {
+	jaw::vec2i size;
+	jaw::argb *pixels = asset::bmp("F:\\assets\\test-animation\\idle-40x70x6.png", &size);
+	if (pixels == nullptr) return;
 
-	char *str = util::frameAllocator->alloc<char>(256);
-	float ms = jaw::to_millis(profile::get(0));
-	std::snprintf(str, 256, "%f", ms);
-	draw::enqueue<draw::str>({
-		.str = str,
-		.color = jaw::color::WHITE,
-		.rect = jaw::recti(jaw::vec2i(), props->size)
-	}, 0);
+	jaw::bmpid bitmap = draw::createBmp(size);
+	draw::writeBmp(bitmap, pixels, size);
+
+	(void)sprite::create({
+		.pos = {50, 50},
+		.bmp = bitmap,
+		.fullSize = size,
+		.frameSize = {40, 70},
+		.scale = 5,
+		.animationInterval = jaw::millis(300)
+	});
 }
 
 int main() {
 	jaw::properties p;
-	engine::start(&p, { .loop = loop });
+	engine::start(&p, { .init = init });
 }
+
+#include <libs/sprite.cpp>
