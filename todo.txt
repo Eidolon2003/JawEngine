@@ -2,6 +2,7 @@ Short-term for 0.2.2:
 - Bundle assets into the executable by appending them to the end of the file in a custom packed format
 - More powerful animation state machine for sprites
 - profile.cpp
+- sprites have a camera
 
 Potential Future Features:
 - Support more audio formats
