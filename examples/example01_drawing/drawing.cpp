@@ -12,6 +12,7 @@
 // Demonstrate drawing primitives
 
 #include <JawEngine.h>
+#include <cmath>
 
 static void loop(jaw::properties *props) {
 	// Solid rectangle
