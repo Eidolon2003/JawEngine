@@ -11,6 +11,7 @@
 
 #pragma once
 #include "../JawEngine.h"
+#include "cam.h"
 
 namespace sprite {
 	constexpr size_t MAX_NUM = 1024;
@@ -25,14 +26,18 @@ namespace sprite {
 		jaw::vec2f vel;	// velocity in pixels-per-second
 
 		// animation
-		jaw::vec2i fullSize;	// Size of the full bitmap
-		jaw::vec2i frameSize;	// Size of one animation frame
-		jaw::nanoseconds animationInterval;	// zero = not animated
-		unsigned animationRow;	// choose which row of the sprite sheet is used
+		jaw::vec2i fullSize;                 // Size of the full bitmap
+		jaw::vec2i frameSize;                // Size of one animation frame
+		jaw::nanoseconds animationInterval;  // zero = not animated
+		unsigned animationRow;               // which row of the sprite sheet is used
+		unsigned animationNextRow;           // the row to go to after rollover
+		unsigned animationNumFrames;         // max number of frames in animation cycle
 
 		// drawing
-		jaw::bmpid bmp;
+		jaw::bmpid bmp = jaw::INVALID_ID;
 		uint8_t z;
+		bool invisible;
+		cam::id camera = jaw::INVALID_ID;
 		float scale;
 
 		// custom behavior
@@ -41,15 +46,25 @@ namespace sprite {
 
 		// Engine managed
 		jaw::nanoseconds age;
-		jaw::nanoseconds _lastAnimationAge;
-		unsigned _animationCounter;
+		jaw::nanoseconds _animationLastAge;
+		unsigned animationCounter;           // the current frame being displayed
 
 		// helpers
 		jaw::recti rect() const {
-			return jaw::recti(
-				jaw::vec2i(pos),
-				jaw::vec2i(pos) + (frameSize * scale)
-			);
+			if (camera == jaw::INVALID_ID) {
+				return jaw::recti(
+					jaw::vec2i(pos),
+					jaw::vec2i(pos) + (frameSize * scale)
+				);
+			}
+			else {
+				return cam::forward(camera,
+					jaw::recti(
+						jaw::vec2i(pos),
+						jaw::vec2i(pos) + (frameSize * scale)
+					)
+				);
+			}
 		}
 	};
 

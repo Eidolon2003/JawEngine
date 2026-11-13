@@ -1,8 +1,7 @@
 Short-term for 0.2.2:
 - Bundle assets into the executable by appending them to the end of the file in a custom packed format
-- More powerful animation state machine for sprites
 - profile.cpp
-- sprites have a camera
+- can sprite camera replace its scale factor entirely?
 
 Potential Future Features:
 - Support more audio formats
@@ -11,6 +10,7 @@ Potential Future Features:
 - Physics system
 - ABC parser improvements
 - C compatible wrapper
+- Make INVALID_ID equal zero instead of MAX to make default initialization easier
 
 Thoughts for a future secondary rendering thread:
 - The render thread owns all of its resources

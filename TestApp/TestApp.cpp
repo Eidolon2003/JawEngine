@@ -27,7 +27,6 @@ static void init(jaw::properties *props) {
 		.bmp = bitmap,
 		.fullSize = size,
 		.frameSize = {40, 70},
-		.scale = 5,
 		.animationInterval = jaw::millis(300)
 	});
 }

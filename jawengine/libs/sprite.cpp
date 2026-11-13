@@ -26,10 +26,12 @@ namespace sprite {
 
 	sprite::id create(const sprite::Sprite &s) {
 		sprite::Sprite spr = s;
-		spr._lastAnimationAge = spr.age = 0;
-		spr._animationCounter = 0;
+		spr._animationLastAge = spr.age = 0;
+		spr.animationCounter = 0;
 		if (spr.updateAndDraw == nullptr) spr.updateAndDraw = sprite::updateAndDraw;
 		if (spr.scale <= 0) spr.scale = 1;
+		if (spr.frameSize.x == 0) spr.frameSize.x = spr.fullSize.x;
+		if (spr.frameSize.y == 0) spr.frameSize.y = spr.fullSize.y;
 
 		if (spriteCallback == jaw::INVALID_ID) {
 			spriteCallback = callback::create({
@@ -62,36 +64,45 @@ namespace sprite {
 		spr->age += props->totalFrametime;
 		spr->pos = spr->pos + (spr->vel * jaw::to_seconds(props->totalFrametime));
 
-		// update animation at the correct interval
-		if (spr->animationInterval > 0 &&
-			spr->age >= spr->_lastAnimationAge + spr->animationInterval)
-		{
-			spr->_lastAnimationAge = spr->age;
-			spr->_animationCounter++;
-			if (spr->_animationCounter >= (spr->fullSize.x / spr->frameSize.x))
-				spr->_animationCounter = 0;
+		// draw
+		if (!spr->invisible) {
+			if (spr->bmp == jaw::INVALID_ID) {
+				draw::enqueue<draw::rect>({
+					.rect = spr->rect(),
+					.color = jaw::color::MAGENTA
+				}, spr->z);
+			}
+			else {
+				auto srcPoint = jaw::vec2i(
+					spr->frameSize.x * spr->animationCounter,
+					spr->frameSize.y * spr->animationRow
+				);
+				auto srcRect = jaw::recti(
+					srcPoint,
+					srcPoint + spr->frameSize
+				);
+				draw::enqueue<draw::bmp>({
+					.bmp = spr->bmp,
+					.src = srcRect,
+					.dest = spr->rect()
+				}, spr->z);
+			}
 		}
 
-		if (spr->bmp == jaw::INVALID_ID) {
-			draw::enqueue<draw::rect>({
-				.rect = spr->rect(),
-				.color = jaw::color::MAGENTA
-			}, spr->z);
-		}
-		else {
-			auto srcPoint = jaw::vec2i(
-				spr->frameSize.x * spr->_animationCounter,
-				spr->frameSize.y * spr->animationRow
-			);
-			auto srcRect = jaw::recti(
-				srcPoint,
-				srcPoint + spr->frameSize
-			);
-			draw::enqueue<draw::bmp>({
-				.bmp = spr->bmp,
-				.src = srcRect,
-				.dest = spr->rect()
-			}, spr->z);
+		// update animation at the correct interval
+		if (spr->animationInterval > 0 &&
+			spr->age >= spr->_animationLastAge + spr->animationInterval)
+		{
+			spr->_animationLastAge = spr->age;
+			spr->animationCounter++;
+			if ((spr->animationNumFrames > 0 && spr->animationCounter >= spr->animationNumFrames) ||
+				spr->animationCounter >= (spr->fullSize.x / spr->frameSize.x))
+			{
+				spr->animationCounter = 0;
+				spr->animationRow = spr->animationNextRow;
+			}
 		}
  	}
 }
+
+#include "cam.cpp"

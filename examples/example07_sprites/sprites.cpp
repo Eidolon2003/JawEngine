@@ -45,6 +45,8 @@ static void init(jaw::properties *) {
 		.scale = 3,
 		.animationInterval = jaw::millis(250)	// Change animation frame every 250ms
 	});
+
+	draw::setBackgroundColor(jaw::color::DARK_MAGENTA);
 }
 
 // Move the sprite around the screen with WASD, animate in the direction of movement
@@ -56,19 +58,19 @@ static void loop(jaw::properties *props) {
 	constexpr float SPEED = 200.0f;
 	spr->vel = {};
 	if (input::getKey(key::W).isHeld) {
-		spr->animationRow = ANIM_MOVE_UP;
+		spr->animationNextRow = spr->animationRow = ANIM_MOVE_UP;
 		spr->vel = spr->vel + jaw::vec2f(0, -SPEED);
 	}
 	if (input::getKey(key::S).isHeld) {
-		spr->animationRow = ANIM_MOVE_DOWN;
+		spr->animationNextRow = spr->animationRow = ANIM_MOVE_DOWN;
 		spr->vel = spr->vel + jaw::vec2f(0, +SPEED);
 	}
 	if (input::getKey(key::A).isHeld) {
-		spr->animationRow = ANIM_MOVE_LEFT;
+		spr->animationNextRow = spr->animationRow = ANIM_MOVE_LEFT;
 		spr->vel = spr->vel + jaw::vec2f(-SPEED, 0);
 	}
 	if (input::getKey(key::D).isHeld) {
-		spr->animationRow = ANIM_MOVE_RIGHT;
+		spr->animationNextRow = spr->animationRow = ANIM_MOVE_RIGHT;
 		spr->vel = spr->vel + jaw::vec2f(+SPEED, 0);
 	}
 }
