@@ -17,45 +17,15 @@
 
 namespace profile {
 	// Clear all data, use at beginning or end of frame
-	inline void clear(jaw::properties*);
+	void clear(jaw::properties*);
 
 	// Begin a new timing period
-	inline void begin(uint8_t);
+	void begin(uint8_t);
 
 	// End a previously begun timing period
-	inline void end(uint8_t);
+	void end(uint8_t);
 
 	// Get the value in nanoseconds for a completed timing period
 	// You may also lookup in the periods array directly 
-	inline jaw::nanoseconds get(uint8_t);
-
-#ifdef JAW_PROFILE
-	inline jaw::nanoseconds periods[256];
-#endif
-
-	inline void clear() {
-#ifdef JAW_PROFILE
-		memset(periods, 0, sizeof(periods));
-#endif
-	}
-
-	inline void begin(uint8_t id) {
-#ifdef JAW_PROFILE
-		periods[id] = util::getTimePoint();
-#endif
-	}
-
-	inline void end(uint8_t id) {
-#ifdef JAW_PROFILE
-		periods[id] = util::getTimePoint() - periods[id];
-#endif
-	}
-
-	inline jaw::nanoseconds get(uint8_t id) {
-#ifdef JAW_PROFILE
-		return periods[id];
-#else
-		return 0;
-#endif
-	}
+	jaw::nanoseconds get(uint8_t);
 }

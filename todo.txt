@@ -1,8 +1,3 @@
-Short-term for 0.2.2:
-- Bundle assets into the executable by appending them to the end of the file in a custom packed format
-- profile.cpp
-- can sprite camera replace its scale factor entirely?
-
 Potential Future Features:
 - Support more audio formats
 - Support more gamepads
@@ -11,6 +6,7 @@ Potential Future Features:
 - ABC parser improvements
 - C compatible wrapper
 - Make INVALID_ID equal zero instead of MAX to make default initialization easier
+- Bundle assets into the executable by appending them to the end of the file in a custom packed format
 
 Thoughts for a future secondary rendering thread:
 - The render thread owns all of its resources

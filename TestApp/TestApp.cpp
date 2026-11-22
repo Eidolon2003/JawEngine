@@ -12,28 +12,20 @@
 // Sprite demo
 
 #include <JawEngine.h>
-#include <libs/sprite.h>
+#include <libs/profile.h>
+#include <iostream>
 
-static void init(jaw::properties *props) {
-	jaw::vec2i size;
-	jaw::argb *pixels = asset::bmp("F:\\assets\\test-animation\\idle-40x70x6.png", &size);
-	if (pixels == nullptr) return;
-
-	jaw::bmpid bitmap = draw::createBmp(size);
-	draw::writeBmp(bitmap, pixels, size);
-
-	(void)sprite::create({
-		.pos = {50, 50},
-		.bmp = bitmap,
-		.fullSize = size,
-		.frameSize = {40, 70},
-		.animationInterval = jaw::millis(300)
-	});
+static void loop(jaw::properties *props) {
+	profile::begin(0);
+	util::accurateSleep(jaw::millis(420.69), profile::get(0));
+	profile::end(0);
+	std::cout << jaw::to_millis(profile::get(0)) << " ms\n";
 }
 
 int main() {
 	jaw::properties p;
-	engine::start(&p, { .init = init });
+	p.showCMD = true;
+	engine::start(&p, { .loop = loop });
 }
 
-#include <libs/sprite.cpp>
+#include <libs/profile.cpp>
