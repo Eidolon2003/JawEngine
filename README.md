@@ -22,16 +22,49 @@ Current APIs include:
     - Be sure to also select clang as an optional add on. The project will not compile with MSVC
     - Note: If you have Visual Studio installed, you should be able to skip this step
 2) Install Git: `winget install Microsoft.Git`
-3) Clone the repository
+3) Clone the repository: `git clone https://github.com/Eidolon2003/JawEngine`
 4) Open the "x64 Native Tools Command Prompt" and navigate to the project's root directory
-5) Run `cmake --preset native-release` then `cmake --build --preset native-release` to build the library
-6) Use `cmake --preset native-release -DCOMPILE_EXAMPLES=ON` to compile all of the examples in the examples directory
+5) Run `build.bat` to compile the engine. Any of the following options may be combined in any order to modify the build:
+    - `debug` - Compile in debug mode (default)
+    - `release` - Compile in release mode
+    - `profile` - Compile in profile mode (Compiles release with debug info and enables the engine's profiling library)
+    - `examples` - Compile the examples in the `examples` directory alongside the engine itself
+    - `clean` - Delete the `out` directory before rebuilding
+    - `nobuild` - Run the build script without building, so you can clean without building again
+    - Example: `build clean release examples`
 
 ## Cross-compilation on Linux (WIP)
 1) Ensure that you have `git`, `cmake`, and the `clang` compiler with Windows libraries
     - Tested working on clang-19, not working on clang-14. Will flesh out these instructions more
-2) Compile as with Windows, but with `cmake --preset windows-release` and `cmake --build --preset windows-release`
+2) Compile as with Windows, using `build.sh`
 3) Run with `wine64`
+
+## Getting Started
+### A brief guide on how to set up a project using JawEngine in Visual Studio
+1) Create a new project using the "Empty Project" template (C++, Windows, Console)
+2) Under "Project > Properties > General" set
+    - C++ Language Standard = C++20
+    - Platform Toolset = LLVM (clang-cl)
+3) Under "Project > Properties > C/C++ > General" set
+    - Additional Include Directories = path to jawengine
+4) Under "Project > Properties > Linker > General" set
+    - Additional Library Directories = path to jawengine
+5) Under "Project > Properties > Linker > Input" set
+    - Additional Dependencies add winmm.lib, d2d1.lib, windowscodecs.lib, dwrite.lib, dinput8.lib, dxguid.lib
+        - In release configuration, add the release version of the jawengine.lib
+        - In debug configuration, add the debug version of the jawengine.lib (named jawengine-debug.lib in github releases)
+6) Under "Project > Properties > Linker > Advanced" set
+    - Entry Point = jaw_entry
+7) Create a .cpp file and enter the following code
+```
+#include <JawEngine.h>
+
+int main() {
+   jaw::properties p;
+   engine::start(&p, {});
+ }
+```
+8) If all is well, running this program will open a blank black window!
 
 ## Architectural Notes
 The core of the engine, which is comprised of the APIs listed above, is intended to be the minimum possible toolkit of engine managed resources required. Higher order structures, such as UI and Sprites, are provided as libraries that compose the engine's core primitives. For exmaple, see `jawengine/libs/ui.h`
